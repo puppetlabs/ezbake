@@ -59,23 +59,9 @@ A Puppet Node Terminus for the classifier
 %install
 
 rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT/%{_initddir}
 
-install -d -m0755 %{buildroot}/%{_datadir}/classifier
-install -p -m0644 classifier.jar %{buildroot}/%{_datadir}/classifier
-
-install -d -m0755 %{buildroot}/%{_sysconfdir}/%{name}
-install -p -m0644 ext/classifier.conf %{buildroot}/%{_sysconfdir}/%{name}/%{name}.conf
-
-install -d -m0755 %{buildroot}/%{_sysconfdir}/sysconfig
-install -p -m0644 ext/default %{buildroot}/%{_sysconfdir}/sysconfig/classifier
-
-mkdir -p $RPM_BUILD_ROOT/%{_rundir}/%{name}
-
-install -p -m0755 ext/redhat/init %{buildroot}%{_initddir}/classifier
-
-mkdir -p $RPM_BUILD_ROOT/%{puppet_libdir}/puppet/indirector/node
-install -p -m0644 puppet/lib/puppet/indirector/node/classifier.rb $RPM_BUILD_ROOT/%{puppet_libdir}/puppet/indirector/node
+env DESTDIR=%{buildroot} prefix=/usr initdir=%{_initddir} make -e install-classifier
+env DESTDIR=%{buildroot} prefix=/usr make -e install-terminus
 
 %clean
 rm -rf $RPM_BUILD_ROOT

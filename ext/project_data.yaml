@@ -7,7 +7,7 @@ summary: 'Puppet node classifier'
 description: 'Puppet node classifier'
 version_file: 'version'
 # files and gem_files are space separated lists
-files: 'ext *.md classifier.jar version Rakefile puppet'
+files: 'ext *.md classifier.jar version Rakefile Makefile puppet'
 tar_excludes: '.gitignore'
 gem_files:
 gem_require_path:
