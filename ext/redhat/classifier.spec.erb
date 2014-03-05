@@ -1,0 +1,157 @@
+%global realname classifier
+%global realversion <%= @version %>
+%global rpmversion <%= @rpmversion %>
+
+# Fedora 17 ships with openjdk 1.7.0
+%if 0%{?fedora} >= 17
+%global open_jdk          java-1.7.0-openjdk
+%else
+%global open_jdk          java-1.6.0-openjdk
+%endif
+
+%if 0%{?fedora} >= 17
+%global puppet_libdir     %(ruby -rrbconfig -e "puts Config::CONFIG['vendorlibdir']")
+%else
+%global puppet_libdir     %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
+%endif
+
+# These macros are not always defined on much older rpm-based systems
+%global  _sharedstatedir /var/lib
+%global  _realsysconfdir /etc
+%global  _initddir   %{_realsysconfdir}/rc.d/init.d
+%global _rundir /var/run
+
+Name:          classifier
+Version:       <%= @rpmversion %>
+Release:       <%= @rpmrelease %>%{?dist}
+BuildRoot:     %{_tmppath}/%{realname}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+Summary:       Puppet Labs version-checking backend
+License:       ASL 2.0
+
+URL:           http://github.com/puppetlabs/classifier
+Source0:       http://downloads.puppetlabs.com/classifier/%{realname}-%{realversion}.tar.gz
+
+Group:         System Environment/Daemons
+
+BuildRequires: ruby
+BuildArch:     noarch
+BuildRequires: /usr/sbin/useradd
+Requires:      chkconfig
+Requires:      %{open_jdk}
+
+%description
+Puppet Labs version-checking backend.
+
+%package terminus
+Summary: Puppet terminus files to connect to PuppetDB
+Group: Development/Libraries
+Requires: puppet >= 3.3
+
+%description terminus
+A Puppet Node Terminus for the classifier
+
+%prep
+%setup -q -n %{realname}-%{realversion}
+
+%build
+
+%install
+
+rm -rf $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT/%{_initddir}
+
+install -d -m0755 %{buildroot}/%{_datadir}/classifier
+install -p -m0644 classifier.jar %{buildroot}/%{_datadir}/classifier
+
+install -d -m0755 %{buildroot}/%{_sysconfdir}/%{name}
+install -p -m0644 ext/classifier.conf %{buildroot}/%{_sysconfdir}/%{name}/%{name}.conf
+
+install -d -m0755 %{buildroot}/%{_sysconfdir}/sysconfig
+install -p -m0644 ext/default %{buildroot}/%{_sysconfdir}/sysconfig/classifier
+
+mkdir -p $RPM_BUILD_ROOT/%{_rundir}/%{name}
+
+install -p -m0755 ext/redhat/init %{buildroot}%{_initddir}/classifier
+
+mkdir -p $RPM_BUILD_ROOT/%{puppet_libdir}/puppet/indirector/node
+install -p -m0644 puppet/lib/puppet/indirector/node/classifier.rb $RPM_BUILD_ROOT/%{puppet_libdir}/puppet/indirector/node
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%pre
+# Here we'll do a little bit of cleanup just in case something went horribly
+# awry during a previous install/uninstall:
+if [ -f "/usr/share/classifier/start_service_after_upgrade" ] ; then
+   rm /usr/share/classifier/start_service_after_upgrade
+fi
+# If this is an upgrade (as opposed to an install) then we need to check
+#  and see if the service is running.  If it is, we need to stop it.
+#  we want to shut down and disable the service.
+if [ "$1" = "2" ] ; then
+    if /sbin/service %{name} status > /dev/null ; then
+        # If we need to restart the service after the upgrade
+        #  is finished, we will touch a temp file so that
+        #  we can detect that state
+        touch /usr/share/classifier/start_service_after_upgrade
+        /sbin/service %{name} stop >/dev/null 2>&1
+    fi
+fi
+# Add classifier user
+getent group %{name} > /dev/null || groupadd -r %{name}
+getent passwd %{name} > /dev/null || \
+useradd -r -g %{name} -d /usr/share/classifier -s /sbin/nologin \
+     -c "classifier daemon"  %{name}
+
+%post
+# If this is an install (as opposed to an upgrade)...
+if [ "$1" = "1" ]; then
+  # Register the classifier service
+  /sbin/chkconfig --add %{name}
+fi
+
+%preun
+# If this is an uninstall (as opposed to an upgrade) then
+#  we want to shut down and disable the service.
+if [ "$1" = "0" ] ; then
+    /sbin/service %{name} stop >/dev/null 2>&1
+    /sbin/chkconfig --del %{name}
+fi
+
+%postun
+# Remove the rundir if this is an uninstall (as opposed to an upgrade)...
+if [ "$1" = "0" ]; then
+    rm -rf %{_rundir}/%{name} || :
+fi
+
+# If this is an upgrade (as opposed to an install) then we need to check
+#  and see if we stopped the service during the install (we indicate
+#  this via the existence of a temp file that was created during that
+#  phase).  If we did, then we need to restart it.
+if [ "$1" = "1" ] ; then
+    if [ -f "/usr/share/classifier/start_service_after_upgrade" ] ; then
+        rm /usr/share/classifier/start_service_after_upgrade
+        /sbin/service %{name} start >/dev/null 2>&1
+    fi
+fi
+
+
+%files
+%defattr(-, root, root)
+%doc *.md
+%{_datadir}/%{realname}
+%{_initddir}/%{name}
+%dir %{_sysconfdir}/%{name}
+%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
+%{_sysconfdir}/sysconfig/%{name}
+%ghost %{_rundir}/%{name}
+
+%files terminus
+%defattr(-, root, root)
+%{puppet_libdir}/puppet/indirector/node/classifier.rb
+
+%changelog
+* <%= Time.now.strftime("%a %b %d %Y") %> Puppet Labs Release <info@puppetlabs.com> -  <%= @rpmversion %>-<%= @rpmrelease %>
+- Build for <%= @version %>
+

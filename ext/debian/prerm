@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -e
+if [ -x "/etc/init.d/classifier" ]; then
+    if [ -x "`which invoke-rc.d 2>/dev/null`" ]; then
+        invoke-rc.d classifier stop || exit $?
+    else
+        /etc/init.d/classifier stop || exit $?
+    fi
+fi
+
