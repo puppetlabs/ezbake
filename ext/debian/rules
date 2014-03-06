@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+include /usr/share/cdbs/1/rules/debhelper.mk
+
+BUILD_ROOT=$(CURDIR)/debian/$(cdbs_curpkg)
+rubylibdir=/usr/lib/ruby/vendor_ruby
+
+DESTDIR=$(BUILD_ROOT)
+prefix=/usr
+export DESTDIR
+export rubylibdir
+export prefix
+
+install/classifier::
+	make install-classifier
+
+install/classifier-terminus::
+	make -e install-terminus

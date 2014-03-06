@@ -1,0 +1,18 @@
+Source: classifier
+Section: utils
+Priority: optional
+Maintainer: Puppet Labs <info@puppetlabs.com>
+Build-Depends: debhelper (>= 7.0.0~), cdbs
+Standards-Version: 3.9.1
+Homepage: http://puppetlabs.com
+
+Package: classifier
+Architecture: all
+Depends: ${misc:Depends},  java6-runtime-headless, adduser
+Suggests: postgresql
+Description: Puppet Labs node classifier
+
+Package: classifier-terminus
+Architecture: all
+Depends: ${misc:Depends}, puppet (>> 3.3.0)
+Description: Node Terminus for Puppet Classifier
