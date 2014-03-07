@@ -1,4 +1,8 @@
 require 'rake'
+require './ezbake.rb'
+
+puts "EZBAKE PROJECT NAME: #{EZBake::Config[:project]}"
+
 
 JAR_FILE = 'classifier.jar'
 
