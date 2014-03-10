@@ -71,12 +71,17 @@ description: '%s'
 version_file: 'version'
 # files and gem_files are space separated lists
 files: 'ext *.md %s version Rakefile Makefile puppet'
+#templates:
+#  - ext/**/*.erb
+#  - Makefile.erb
 tar_excludes: '.gitignore'
 gem_files:
 gem_require_path:
 gem_test_files:
 gem_executables:
 gem_default_executables:
+pre_tasks:
+  'package:tar': 'makefile'
 "
             (:name lein-project)
             (:description lein-project)
@@ -98,13 +103,25 @@ gem_default_executables:
   (println "Tagging git repo at" (:version lein-project))
   (staging-dir-git-cmd "tag" "-a" (:version lein-project) "-m" "Tag for packaging code"))
 
+(defn rename-redhat-spec-file
+  "The packaging framework expects for the redhat spec file to be
+  named `<project-name>.spec`, but we have the file on disk as `ezbake.spec`, so
+  we need to rename it after it's been copied to the staging dir."
+  [lein-project]
+  (fs/rename (fs/file staging-dir "ext" "redhat" "ezbake.spec.erb")
+             (fs/file staging-dir "ext" "redhat" (format "%s.spec.erb"
+                                                        (:name lein-project)))))
+
 (defn -main
   [& args]
   (clean)
   (cp-template-files)
+  ;; TODO: this will be configurable and allow us to build other projects besides
+  ;; just jvm-puppet.
   (let [project-file "./configs/jvm-puppet.clj"
         lein-project (project/read project-file)]
     (cp-project-file project-file)
+    (rename-redhat-spec-file lein-project)
     (generate-ezbake-config-file lein-project)
     (generate-project-data-yaml lein-project)
     (create-git-repo lein-project))
