@@ -130,7 +130,8 @@ fi
 %{_datadir}/%{realname}
 %{_initddir}/%{name}
 %dir %{_sysconfdir}/%{name}
-%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
+# TODO: support app-specific config files
+#%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %{_sysconfdir}/sysconfig/%{name}
 %ghost %{_rundir}/%{name}
 
