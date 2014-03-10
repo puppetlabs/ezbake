@@ -1,4 +1,4 @@
-%global realname classifier
+%global realname <%= EZBake::Config[:project] %>
 %global realversion <%= @version %>
 %global rpmversion <%= @rpmversion %>
 
@@ -21,7 +21,7 @@
 %global  _initddir   %{_realsysconfdir}/rc.d/init.d
 %global _rundir /var/run
 
-Name:          classifier
+Name:          <%= EZBake::Config[:project] %>
 Version:       <%= @rpmversion %>
 Release:       <%= @rpmrelease %>%{?dist}
 BuildRoot:     %{_tmppath}/%{realname}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -29,8 +29,8 @@ BuildRoot:     %{_tmppath}/%{realname}-%{version}-%{release}-root-%(%{__id_u} -n
 Summary:       Puppet Labs version-checking backend
 License:       ASL 2.0
 
-URL:           http://github.com/puppetlabs/classifier
-Source0:       http://downloads.puppetlabs.com/classifier/%{realname}-%{realversion}.tar.gz
+URL:           http://github.com/puppetlabs/ezbake
+Source0:       <%= EZBake::Config[:project] %>-<%= @rpmversion %>.tar.gz
 
 Group:         System Environment/Daemons
 
@@ -43,13 +43,13 @@ Requires:      %{open_jdk}
 %description
 Puppet Labs version-checking backend.
 
-%package terminus
-Summary: Puppet terminus files to connect to PuppetDB
-Group: Development/Libraries
-Requires: puppet >= 3.3
+#%package terminus
+#Summary: Puppet terminus files to connect to PuppetDB
+#Group: Development/Libraries
+#Requires: puppet >= 3.3
 
-%description terminus
-A Puppet Node Terminus for the classifier
+#%description terminus
+#A Puppet Node Terminus for the classifier
 
 %prep
 %setup -q -n %{realname}-%{realversion}
@@ -60,8 +60,8 @@ A Puppet Node Terminus for the classifier
 
 rm -rf $RPM_BUILD_ROOT
 
-env DESTDIR=%{buildroot} prefix=/usr initdir=%{_initddir} make -e install-classifier
-env DESTDIR=%{buildroot} prefix=/usr make -e install-terminus
+env DESTDIR=%{buildroot} prefix=/usr initdir=%{_initddir} make -e install-<%= EZBake::Config[:project] %>
+#env DESTDIR=%{buildroot} prefix=/usr make -e install-terminus
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -69,8 +69,8 @@ rm -rf $RPM_BUILD_ROOT
 %pre
 # Here we'll do a little bit of cleanup just in case something went horribly
 # awry during a previous install/uninstall:
-if [ -f "/usr/share/classifier/start_service_after_upgrade" ] ; then
-   rm /usr/share/classifier/start_service_after_upgrade
+if [ -f "/usr/share/<%= EZBake::Config[:project] %>/start_service_after_upgrade" ] ; then
+   rm /usr/share/<%= EZBake::Config[:project] %>/start_service_after_upgrade
 fi
 # If this is an upgrade (as opposed to an install) then we need to check
 #  and see if the service is running.  If it is, we need to stop it.
@@ -80,20 +80,20 @@ if [ "$1" = "2" ] ; then
         # If we need to restart the service after the upgrade
         #  is finished, we will touch a temp file so that
         #  we can detect that state
-        touch /usr/share/classifier/start_service_after_upgrade
+        touch /usr/share/<%= EZBake::Config[:project] %>/start_service_after_upgrade
         /sbin/service %{name} stop >/dev/null 2>&1
     fi
 fi
-# Add classifier user
+# Add <%= EZBake::Config[:project] %> user
 getent group %{name} > /dev/null || groupadd -r %{name}
 getent passwd %{name} > /dev/null || \
-useradd -r -g %{name} -d /usr/share/classifier -s /sbin/nologin \
-     -c "classifier daemon"  %{name}
+useradd -r -g %{name} -d /usr/share/<%= EZBake::Config[:project] %> -s /sbin/nologin \
+     -c "<%= EZBake::Config[:project] %> daemon"  %{name}
 
 %post
 # If this is an install (as opposed to an upgrade)...
 if [ "$1" = "1" ]; then
-  # Register the classifier service
+  # Register the <%= EZBake::Config[:project] %> service
   /sbin/chkconfig --add %{name}
 fi
 
@@ -116,8 +116,8 @@ fi
 #  this via the existence of a temp file that was created during that
 #  phase).  If we did, then we need to restart it.
 if [ "$1" = "1" ] ; then
-    if [ -f "/usr/share/classifier/start_service_after_upgrade" ] ; then
-        rm /usr/share/classifier/start_service_after_upgrade
+    if [ -f "/usr/share/<%= EZBake::Config[:project] %>/start_service_after_upgrade" ] ; then
+        rm /usr/share/<%= EZBake::Config[:project] %>/start_service_after_upgrade
         /sbin/service %{name} start >/dev/null 2>&1
     fi
 fi
@@ -125,17 +125,19 @@ fi
 
 %files
 %defattr(-, root, root)
-%doc *.md
+# TODO: figure out how/whether to grab custom docs from projects
+#%doc *.md
 %{_datadir}/%{realname}
 %{_initddir}/%{name}
 %dir %{_sysconfdir}/%{name}
-%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
+# TODO: support app-specific config files
+#%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %{_sysconfdir}/sysconfig/%{name}
 %ghost %{_rundir}/%{name}
 
-%files terminus
-%defattr(-, root, root)
-%{puppet_libdir}/puppet/indirector/node/classifier.rb
+#%files terminus
+#%defattr(-, root, root)
+#%{puppet_libdir}/puppet/indirector/node/classifier.rb
 
 %changelog
 * <%= Time.now.strftime("%a %b %d %Y") %> Puppet Labs Release <info@puppetlabs.com> -  <%= @rpmversion %>-<%= @rpmrelease %>

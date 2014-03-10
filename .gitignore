@@ -5,4 +5,4 @@ pom.xml
 /targets/
 .lein-deps-sum
 target
-/ext/packaging
+/template/ext/packaging
