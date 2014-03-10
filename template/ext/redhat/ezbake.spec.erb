@@ -61,7 +61,7 @@ Puppet Labs version-checking backend.
 rm -rf $RPM_BUILD_ROOT
 
 env DESTDIR=%{buildroot} prefix=/usr initdir=%{_initddir} make -e install-<%= EZBake::Config[:project] %>
-env DESTDIR=%{buildroot} prefix=/usr make -e install-terminus
+#env DESTDIR=%{buildroot} prefix=/usr make -e install-terminus
 
 %clean
 rm -rf $RPM_BUILD_ROOT
