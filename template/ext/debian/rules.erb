@@ -11,8 +11,8 @@ export DESTDIR
 export rubylibdir
 export prefix
 
-install/classifier::
-	make install-classifier
+install/<%= EZBake::Config[:project] %>::
+	make install-<%= EZBake::Config[:project] %>
 
-install/classifier-terminus::
-	make -e install-terminus
+#install/classifier-terminus::
+#	make -e install-terminus

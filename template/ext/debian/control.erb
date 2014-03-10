@@ -1,0 +1,18 @@
+Source: <%= EZBake::Config[:project] %>
+Section: utils
+Priority: optional
+Maintainer: Puppet Labs <info@puppetlabs.com>
+Build-Depends: debhelper (>= 7.0.0~), cdbs
+Standards-Version: 3.9.1
+Homepage: http://puppetlabs.com
+
+Package: <%= EZBake::Config[:project] %>
+Architecture: all
+Depends: ${misc:Depends},  java6-runtime-headless, adduser
+Suggests: postgresql
+Description: Puppet Labs <%= EZBake::Config[:project] %>
+
+#Package: classifier-terminus
+#Architecture: all
+#Depends: ${misc:Depends}, puppet (>> 3.3.0)
+#Description: Node Terminus for Puppet Classifier

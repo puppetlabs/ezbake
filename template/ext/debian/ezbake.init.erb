@@ -1,12 +1,12 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          classifier
+# Provides:          <%= EZBake::Config[:project] %>
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: classifier stored config server
-# Description:       Start classifier daemon placed in /etc/init.d.
+# Short-Description: <%= EZBake::Config[:project] %>
+# Description:       Start <%= EZBake::Config[:project] %> daemon placed in /etc/init.d.
 ### END INIT INFO
 
 # Author: Ben Hughes <ben@puppetlabs.com>
@@ -14,19 +14,19 @@
 # Copyright 2012 Puppet Labs
 
 
-# You should only need to edit the default/classifier file and not
+# You should only need to edit the default/<%= EZBake::Config[:project] %> file and not
 #   this init script directly
-if [ -r "/etc/default/classifier" ] ; then
-  . /etc/default/classifier
+if [ -r "/etc/default/<%= EZBake::Config[:project] %>" ] ; then
+  . /etc/default/<%= EZBake::Config[:project] %>
 else
   exit 1
 fi
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-NAME=classifier
-DESC="classifier Puppet Labs version-checking backend"
-JARFILE="classifier.jar"
+NAME=<%= EZBake::Config[:project] %>
+DESC="<%= EZBake::Config[:project] %> Puppet Labs version-checking backend"
+JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
