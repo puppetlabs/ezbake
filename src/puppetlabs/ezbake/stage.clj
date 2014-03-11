@@ -70,18 +70,16 @@ summary: '%s'
 description: '%s'
 version_file: 'version'
 # files and gem_files are space separated lists
-files: 'ext *.md %s version Rakefile Makefile puppet'
-#templates:
-#  - ext/**/*.erb
-#  - Makefile.erb
+files: 'ext *.md %s version Rakefile Makefile.erb puppet'
+templates:
+  - ext/**/*.erb
+  - Makefile.erb
 tar_excludes: '.gitignore'
 gem_files:
 gem_require_path:
 gem_test_files:
 gem_executables:
 gem_default_executables:
-pre_tasks:
-  'package:tar': 'makefile'
 "
             (:name lein-project)
             (:description lein-project)

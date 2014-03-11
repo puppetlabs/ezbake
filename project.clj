@@ -7,5 +7,7 @@
   :repositories [["releases" "http://nexus.delivery.puppetlabs.net/content/repositories/releases/"]
                  ["snapshots" "http://nexus.delivery.puppetlabs.net/content/repositories/snapshots/"]]
 
+  :profiles {:dev {:dependencies [[io.aviso/pretty "0.1.10"]]}}
+
   :aliases {"stage" ["run" "-m" "puppetlabs.ezbake.stage"]}
   )
