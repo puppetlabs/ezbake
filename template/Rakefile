@@ -6,7 +6,15 @@ puts "EZBAKE PROJECT NAME: EZBake::Config[:project]"
 
 RAKE_ROOT = File.dirname(__FILE__)
 
-#LEIN_SNAPSHOTS_IN_RELEASE = 'y'
+# TODO: not sure what to do here.  I have it this way so that you
+# can toggle it on and off during dev, but in practice, we probably
+# just want it on all the time?  Otherwise we'd just be detecting
+# to see if there were any snapshots involved, and if so, we'd
+# dynamically turn it on; so it's not providing any safety...
+LEIN_SNAPSHOTS_IN_RELEASE = true
+if LEIN_SNAPSHOTS_IN_RELEASE
+  ENV['LEIN_SNAPSHOTS_IN_RELEASE'] = 'y'
+end
 
 # Load tasks and variables for packaging automation
 begin

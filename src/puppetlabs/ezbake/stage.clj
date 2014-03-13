@@ -1,10 +1,44 @@
 (ns puppetlabs.ezbake.stage
+  (:import (java.io File)
+           (java.util.jar JarFile JarEntry))
   (:require [me.raynes.fs :as fs]
             [leiningen.core.project :as project]
-            [clojure.java.shell :as sh]))
+            [clojure.java.shell :as sh]
+            [clojure.string :as str]
+            [cemerick.pomegranate.aether :as aether]))
 
 (def template-dir "./template")
 (def staging-dir "./target/staging")
+(def shared-config-prefix "ext/config/shared/")
+
+;; NOTE: this is unfortunate, but I couldn't come up with a better solution.
+;; we need to walk over all of the dependencies in the lein project file
+;; to inspect their jars for content that we need to put into the packaging;
+;; default config files, etc.  However, when leinengen parses the project file
+;; it automatically adds these dependencies to the dependency list, and these
+;; are not at all relevant to our task at hand.
+(def exclude-dependencies #{'org.clojure/tools.nrepl
+                            'clojure-complete/clojure-complete})
+
+(defn find-shared-config-files
+  [jar-file]
+  {:pre [(instance? JarFile jar-file)]
+   :post [(every? #(instance? JarEntry %) %)]}
+  (filter
+    #(and (.startsWith (.getName %) shared-config-prefix)
+          (not= shared-config-prefix (.getName %)))
+    (enumeration-seq (.entries jar-file))))
+
+(defn find-maven-jar-file
+  [coords lein-project]
+  {:post [(instance? JarFile %)]}
+  (-> (aether/resolve-artifacts
+        :coordinates [coords]
+        :repositories (:repositories lein-project))
+      first
+      meta
+      :file
+      (JarFile.)))
 
 (defn staging-dir-git-cmd [& args]
   (apply sh/sh "git"
@@ -38,7 +72,7 @@
 ;; file from that.  All of these options sound unappealing in their own special
 ;; ways.
 (defn generate-ezbake-config-file
-  [lein-project]
+  [lein-project config-files]
   (println "generating ezbake config file")
   (spit
     (fs/file staging-dir "ezbake.rb")
@@ -47,13 +81,13 @@ module EZBake
   Config = {
       :project => '%s',
       :uberjar_name => '%s',
+      :config_files => [%s],
   }
 end
 "
         (:name lein-project)
-        (:uberjar-name lein-project))
-    ))
-
+        (:uberjar-name lein-project)
+        (format "\"%s\"" (str/join "\",\"" config-files)))))
 
 (defn generate-project-data-yaml
   [lein-project]
@@ -109,6 +143,32 @@ gem_default_executables:
   (fs/rename (fs/file staging-dir "ext" "redhat" "ezbake.spec.erb")
              (fs/file staging-dir "ext" "redhat" (format "%s.spec.erb"
                                                         (:name lein-project)))))
+(defn include-dep?
+  [dep]
+  (let [artifact-id (first dep)]
+    (not (contains? exclude-dependencies artifact-id))))
+
+(defn cp-shared-config-file
+  [jar-file conf-file]
+  (println "Copying shared config file:" (.getName conf-file))
+  (let [rel-file (File. (.getName conf-file))
+        rel-dir (.getParent rel-file)]
+    (fs/mkdirs (fs/file staging-dir rel-dir))
+    (spit (fs/file staging-dir rel-file)
+          (slurp (.getInputStream jar-file conf-file)))
+    conf-file))
+
+(defn cp-shared-config-files-for-dep
+  [lein-project dep]
+  (println "Checking for shared config files in dependency:" dep)
+  (let [jar-file (find-maven-jar-file dep lein-project)
+        shared-config-files (find-shared-config-files jar-file)]
+    (mapv (partial cp-shared-config-file jar-file) shared-config-files)))
+
+(defn cp-shared-config-files
+  [lein-project]
+  (let [deps (filter include-dep? (:dependencies lein-project))]
+    (vec (mapcat (partial cp-shared-config-files-for-dep lein-project) deps))))
 
 (defn -main
   [& args]
@@ -117,10 +177,11 @@ gem_default_executables:
   ;; TODO: this will be configurable and allow us to build other projects besides
   ;; just jvm-puppet.
   (let [project-file "./configs/jvm-puppet.clj"
-        lein-project (project/read project-file)]
+        lein-project (project/read project-file)
+        config-files (cp-shared-config-files lein-project)]
     (cp-project-file project-file)
     (rename-redhat-spec-file lein-project)
-    (generate-ezbake-config-file lein-project)
+    (generate-ezbake-config-file lein-project config-files)
     (generate-project-data-yaml lein-project)
     (create-git-repo lein-project))
   ;; this is required in order to make the threads started by sh/sh terminate,
