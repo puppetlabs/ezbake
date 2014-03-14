@@ -1,0 +1,18 @@
+#!/bin/sh
+
+if [ "$1" = install ] || [ "$1" = upgrade ]; then
+ # Create the "<%= EZBake::Config[:project] %>" user
+    if ! getent passwd <%= EZBake::Config[:project] %>  > /dev/null; then
+        adduser --quiet --system --group --home /usr/share/<%= EZBake::Config[:project] %>  \
+            --no-create-home                                 \
+            --gecos "Puppet Labs version-checking backend daemon" \
+<%= EZBake::Config[:project] %>
+    fi
+
+    # Create the "<%= EZBake::Config[:project] %>" group, if it is missing, and set the
+    # primary group of the "<%= EZBake::Config[:project] %>" user to this group.
+    if ! getent group <%= EZBake::Config[:project] %> > /dev/null; then
+         addgroup --quiet --system <%= EZBake::Config[:project] %>
+         usermod -g <%= EZBake::Config[:project] %> <%= EZBake::Config[:project] %>
+    fi
+fi
