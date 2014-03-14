@@ -5,7 +5,8 @@
             [leiningen.core.project :as project]
             [clojure.java.shell :as sh]
             [clojure.string :as str]
-            [cemerick.pomegranate.aether :as aether]))
+            [cemerick.pomegranate.aether :as aether]
+            [clj-time.local :as local-time]))
 
 (def template-dir "./template")
 (def staging-dir "./target/staging")
@@ -40,8 +41,20 @@
       :file
       (JarFile.)))
 
-(defn staging-dir-git-cmd [& args]
-  (apply sh/sh "git"
+(defn exec
+  [& args]
+  (let [result (apply sh/sh args)]
+    (when (not= 0 (:exit result))
+      (throw (RuntimeException. (str
+                                  "Failed to execute shell command:\n\t"
+                                  (str/join " " args)
+                                  "\n\nOutput:"
+                                  (:out result)
+                                  (:err result)))))))
+
+(defn staging-dir-git-cmd
+  [& args]
+  (apply exec "git"
          (format "--git-dir=%s" (fs/file staging-dir ".git"))
          (format "--work-tree=%s" staging-dir)
          args))
@@ -120,6 +133,19 @@ gem_default_executables:
             (:description lein-project)
             (:uberjar-name lein-project))))
 
+(defn generate-git-tag-from-version
+  [lein-version]
+  {:pre [(string? lein-version)]
+   :post [(string? %)]}
+  (if (.endsWith lein-version "-SNAPSHOT")
+    (-> (format "%s-%s"
+                lein-version
+                (local-time/format-local-time (local-time/local-now) :date-hour-minute))
+        ;; git tags cannot contain colons
+        (str/replace ":" ""))
+    lein-version))
+
+
 ;; TODO: this is a horrible, horrible hack; I can't yet see a good way to
 ;; let the packaging library know what the version number is without faking
 ;; up a git tag; it seems like the packaging code is pretty well hard-coded
@@ -127,13 +153,14 @@ gem_default_executables:
 (defn create-git-repo
   [lein-project]
   (println "Creating temporary git repo")
-  (sh/sh "git" "init" staging-dir)
+  (exec "git" "init" staging-dir)
   (println "Adding all files to git repo")
   (staging-dir-git-cmd "add" "*")
   (println "Committing git repo")
   (staging-dir-git-cmd "commit" "-m" "'Temporary git repo to house packaging code'")
-  (println "Tagging git repo at" (:version lein-project))
-  (staging-dir-git-cmd "tag" "-a" (:version lein-project) "-m" "Tag for packaging code"))
+  (let [git-tag (generate-git-tag-from-version (:version lein-project))]
+    (println "Tagging git repo at" git-tag)
+    (staging-dir-git-cmd "tag" "-a" git-tag "-m" "Tag for packaging code")))
 
 (defn rename-redhat-spec-file
   "The packaging framework expects for the redhat spec file to be
@@ -172,18 +199,20 @@ gem_default_executables:
 
 (defn -main
   [& args]
-  (clean)
-  (cp-template-files)
-  ;; TODO: this will be configurable and allow us to build other projects besides
-  ;; just jvm-puppet.
-  (let [project-file "./configs/jvm-puppet.clj"
-        lein-project (project/read project-file)
-        config-files (cp-shared-config-files lein-project)]
-    (cp-project-file project-file)
-    (rename-redhat-spec-file lein-project)
-    (generate-ezbake-config-file lein-project config-files)
-    (generate-project-data-yaml lein-project)
-    (create-git-repo lein-project))
-  ;; this is required in order to make the threads started by sh/sh terminate,
-  ;; and thus allow the jvm to exit
-  (shutdown-agents))
+  (try
+    (clean)
+    (cp-template-files)
+    ;; TODO: this will be configurable and allow us to build other projects besides
+    ;; just jvm-puppet.
+    (let [project-file "./configs/jvm-puppet.clj"
+          lein-project (project/read project-file)
+          config-files (cp-shared-config-files lein-project)]
+      (cp-project-file project-file)
+      (rename-redhat-spec-file lein-project)
+      (generate-ezbake-config-file lein-project config-files)
+      (generate-project-data-yaml lein-project)
+      (create-git-repo lein-project))
+    (finally
+      ;; this is required in order to make the threads started by sh/sh terminate,
+      ;; and thus allow the jvm to exit
+      (shutdown-agents))))
