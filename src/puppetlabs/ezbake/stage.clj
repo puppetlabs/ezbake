@@ -5,11 +5,13 @@
             [leiningen.core.project :as project]
             [clojure.java.shell :as sh]
             [clojure.string :as str]
-            [cemerick.pomegranate.aether :as aether]))
+            [cemerick.pomegranate.aether :as aether]
+            [clj-time.local :as local-time]))
 
-(def template-dir "./template")
+(def template-dir-prefix "./template")
 (def staging-dir "./target/staging")
 (def shared-config-prefix "ext/config/shared/")
+(def docs-prefix "ext/docs/")
 
 ;; NOTE: this is unfortunate, but I couldn't come up with a better solution.
 ;; we need to walk over all of the dependencies in the lein project file
@@ -19,15 +21,6 @@
 ;; are not at all relevant to our task at hand.
 (def exclude-dependencies #{'org.clojure/tools.nrepl
                             'clojure-complete/clojure-complete})
-
-(defn find-shared-config-files
-  [jar-file]
-  {:pre [(instance? JarFile jar-file)]
-   :post [(every? #(instance? JarEntry %) %)]}
-  (filter
-    #(and (.startsWith (.getName %) shared-config-prefix)
-          (not= shared-config-prefix (.getName %)))
-    (enumeration-seq (.entries jar-file))))
 
 (defn find-maven-jar-file
   [coords lein-project]
@@ -40,8 +33,20 @@
       :file
       (JarFile.)))
 
-(defn staging-dir-git-cmd [& args]
-  (apply sh/sh "git"
+(defn exec
+  [& args]
+  (let [result (apply sh/sh args)]
+    (when (not= 0 (:exit result))
+      (throw (RuntimeException. (str
+                                  "Failed to execute shell command:\n\t"
+                                  (str/join " " args)
+                                  "\n\nOutput:"
+                                  (:out result)
+                                  (:err result)))))))
+
+(defn staging-dir-git-cmd
+  [& args]
+  (apply exec "git"
          (format "--git-dir=%s" (fs/file staging-dir ".git"))
          (format "--work-tree=%s" staging-dir)
          args))
@@ -52,8 +57,8 @@
   (fs/delete-dir staging-dir))
 
 (defn cp-template-files
-  []
-  (println "copying template files from" template-dir "to" staging-dir)
+  [template-dir]
+  (println "copying template files from" (.toString template-dir) "to" staging-dir)
   (fs/copy-dir template-dir staging-dir))
 
 (defn cp-project-file
@@ -120,6 +125,19 @@ gem_default_executables:
             (:description lein-project)
             (:uberjar-name lein-project))))
 
+(defn generate-git-tag-from-version
+  [lein-version]
+  {:pre [(string? lein-version)]
+   :post [(string? %)]}
+  (if (.endsWith lein-version "-SNAPSHOT")
+    (-> (format "%s-%s"
+                lein-version
+                (local-time/format-local-time (local-time/local-now) :date-hour-minute))
+        ;; git tags cannot contain colons
+        (str/replace ":" ""))
+    lein-version))
+
+
 ;; TODO: this is a horrible, horrible hack; I can't yet see a good way to
 ;; let the packaging library know what the version number is without faking
 ;; up a git tag; it seems like the packaging code is pretty well hard-coded
@@ -127,13 +145,14 @@ gem_default_executables:
 (defn create-git-repo
   [lein-project]
   (println "Creating temporary git repo")
-  (sh/sh "git" "init" staging-dir)
+  (exec "git" "init" staging-dir)
   (println "Adding all files to git repo")
   (staging-dir-git-cmd "add" "*")
   (println "Committing git repo")
   (staging-dir-git-cmd "commit" "-m" "'Temporary git repo to house packaging code'")
-  (println "Tagging git repo at" (:version lein-project))
-  (staging-dir-git-cmd "tag" "-a" (:version lein-project) "-m" "Tag for packaging code"))
+  (let [git-tag (generate-git-tag-from-version (:version lein-project))]
+    (println "Tagging git repo at" git-tag)
+    (staging-dir-git-cmd "tag" "-a" git-tag "-m" "Tag for packaging code")))
 
 (defn rename-redhat-spec-file
   "The packaging framework expects for the redhat spec file to be
@@ -147,6 +166,16 @@ gem_default_executables:
   [dep]
   (let [artifact-id (first dep)]
     (not (contains? exclude-dependencies artifact-id))))
+
+
+(defn find-shared-config-files
+  [jar-file]
+  {:pre [(instance? JarFile jar-file)]
+   :post [(every? #(instance? JarEntry %) %)]}
+  (filter
+    #(and (.startsWith (.getName %) shared-config-prefix)
+          (not= shared-config-prefix (.getName %)))
+    (enumeration-seq (.entries jar-file))))
 
 (defn cp-shared-config-file
   [jar-file conf-file]
@@ -170,20 +199,72 @@ gem_default_executables:
   (let [deps (filter include-dep? (:dependencies lein-project))]
     (vec (mapcat (partial cp-shared-config-files-for-dep lein-project) deps))))
 
+;; TODO: these cp-doc-files and cp-shared-config-files functions have a lot of
+;; overlap, should probably refactor.
+(defn find-doc-files
+  [jar-file]
+  {:pre [(instance? JarFile jar-file)]
+   :post [(every? #(instance? JarEntry %) %)]}
+  (filter
+    #(and (.startsWith (.getName %) docs-prefix)
+          (not= docs-prefix (.getName %)))
+    (enumeration-seq (.entries jar-file))))
+
+(defn cp-doc-file
+  [proj-name jar-file doc-file]
+  (println "Copying doc file:" (.getName doc-file))
+  (let [orig-file (File. (.getName doc-file))
+        ;; This is a bit complex; we want to put the doc files into the staging
+        ;; dir under `ext/docs/<project-name>/<original-dir-structure-in-project`.
+        ;; To build this path we need to find <original-dir-structure-in-project>
+        ;; and then remove the first two elements (which will be "ext/docs").
+        rel-dir  (->> orig-file
+                     .getParentFile
+                     .toPath
+                     .iterator
+                     iterator-seq
+                     (drop 2)
+                     (mapv #(.toString %))
+                     (str/join "/")
+                     (File.))
+        out-dir  (fs/file staging-dir "ext" "docs" proj-name rel-dir)
+        out-file (fs/file out-dir (.getName orig-file))]
+    (fs/mkdirs out-dir)
+    (spit out-file
+          (slurp (.getInputStream jar-file doc-file)))
+    out-file))
+
+(defn cp-doc-files-for-dep
+  [lein-project dep]
+  (println "Checking for doc files in dependency:" dep)
+  (let [jar-file (find-maven-jar-file dep lein-project)
+        doc-files (find-doc-files jar-file)
+        proj-name (name (first dep))]
+    {(keyword proj-name) (mapv (partial cp-doc-file proj-name jar-file) doc-files)}))
+
+(defn cp-doc-files
+  [lein-project]
+  (let [deps (filter include-dep? (:dependencies lein-project))]
+    (apply merge (mapv (partial cp-doc-files-for-dep lein-project) deps))))
+
 (defn -main
   [& args]
-  (clean)
-  (cp-template-files)
-  ;; TODO: this will be configurable and allow us to build other projects besides
-  ;; just jvm-puppet.
-  (let [project-file "./configs/jvm-puppet.clj"
-        lein-project (project/read project-file)
-        config-files (cp-shared-config-files lein-project)]
-    (cp-project-file project-file)
-    (rename-redhat-spec-file lein-project)
-    (generate-ezbake-config-file lein-project config-files)
-    (generate-project-data-yaml lein-project)
-    (create-git-repo lein-project))
-  ;; this is required in order to make the threads started by sh/sh terminate,
-  ;; and thus allow the jvm to exit
-  (shutdown-agents))
+  ;; TODO: these will be configurable and allow us to build other projects besides
+  ;; just jvm-puppet, and choose between foss and pe templates
+  (let [template-dir (fs/file template-dir-prefix "foss")
+        project-file "./configs/jvm-puppet.clj"]
+    (try
+      (clean)
+      (cp-template-files template-dir)
+      (let [lein-project (project/read project-file)
+            config-files (cp-shared-config-files lein-project)
+            doc-files    (cp-doc-files lein-project)]
+        (cp-project-file project-file)
+        (rename-redhat-spec-file lein-project)
+        (generate-ezbake-config-file lein-project config-files)
+        (generate-project-data-yaml lein-project)
+        (create-git-repo lein-project))
+      (finally
+        ;; this is required in order to make the threads started by sh/sh terminate,
+        ;; and thus allow the jvm to exit
+        (shutdown-agents)))))
