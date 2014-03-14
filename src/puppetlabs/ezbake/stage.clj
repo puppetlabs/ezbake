@@ -8,7 +8,7 @@
             [cemerick.pomegranate.aether :as aether]
             [clj-time.local :as local-time]))
 
-(def template-dir "./template")
+(def template-dir-prefix "./template")
 (def staging-dir "./target/staging")
 (def shared-config-prefix "ext/config/shared/")
 
@@ -65,7 +65,7 @@
   (fs/delete-dir staging-dir))
 
 (defn cp-template-files
-  []
+  [template-dir]
   (println "copying template files from" template-dir "to" staging-dir)
   (fs/copy-dir template-dir staging-dir))
 
@@ -199,20 +199,21 @@ gem_default_executables:
 
 (defn -main
   [& args]
-  (try
-    (clean)
-    (cp-template-files)
-    ;; TODO: this will be configurable and allow us to build other projects besides
-    ;; just jvm-puppet.
-    (let [project-file "./configs/jvm-puppet.clj"
-          lein-project (project/read project-file)
-          config-files (cp-shared-config-files lein-project)]
-      (cp-project-file project-file)
-      (rename-redhat-spec-file lein-project)
-      (generate-ezbake-config-file lein-project config-files)
-      (generate-project-data-yaml lein-project)
-      (create-git-repo lein-project))
-    (finally
-      ;; this is required in order to make the threads started by sh/sh terminate,
-      ;; and thus allow the jvm to exit
-      (shutdown-agents))))
+  ;; TODO: these will be configurable and allow us to build other projects besides
+  ;; just jvm-puppet, and choose between foss and pe templates
+  (let [template-dir (fs/file template-dir-prefix "foss")
+        project-file "./configs/jvm-puppet.clj"]
+    (try
+      (clean)
+      (cp-template-files template-dir)
+      (let [lein-project (project/read project-file)
+            config-files (cp-shared-config-files lein-project)]
+        (cp-project-file project-file)
+        (rename-redhat-spec-file lein-project)
+        (generate-ezbake-config-file lein-project config-files)
+        (generate-project-data-yaml lein-project)
+        (create-git-repo lein-project))
+      (finally
+        ;; this is required in order to make the threads started by sh/sh terminate,
+        ;; and thus allow the jvm to exit
+        (shutdown-agents)))))
