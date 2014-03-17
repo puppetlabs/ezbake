@@ -2,12 +2,7 @@
 %global realversion <%= @version %>
 %global rpmversion <%= @rpmversion %>
 
-# Fedora 17 ships with openjdk 1.7.0
-%if 0%{?fedora} >= 17
 %global open_jdk          java-1.7.0-openjdk
-%else
-%global open_jdk          java-1.6.0-openjdk
-%endif
 
 %if 0%{?fedora} >= 17
 %global puppet_libdir     %(ruby -rrbconfig -e "puts Config::CONFIG['vendorlibdir']")
