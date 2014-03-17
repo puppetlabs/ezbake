@@ -130,8 +130,7 @@ fi
 %doc ext/docs
 %{_datadir}/%{realname}
 %{_initddir}/%{name}
-%dir %{_sysconfdir}/%{name}
-%{_datadir}/%{realname}/ezbake.manifest
+#%dir %{_sysconfdir}/%{name}
 # TODO: support app-specific config files
 #%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %config(noreplace) %{_sysconfdir}/%{name}
