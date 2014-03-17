@@ -125,16 +125,22 @@ gem_default_executables:
             (:description lein-project)
             (:uberjar-name lein-project))))
 
+(defn get-timestamp-string
+  []
+  (-> (local-time/format-local-time (local-time/local-now) :date-hour-minute)
+      ;; packaging system expects for there to be no colons or dashes after
+      ;; the 'x.y.z-' version string prefix
+      (str/replace ":" "")
+      (str/replace "-" ".")))
+
 (defn generate-git-tag-from-version
   [lein-version]
   {:pre [(string? lein-version)]
    :post [(string? %)]}
   (if (.endsWith lein-version "-SNAPSHOT")
-    (-> (format "%s-%s"
-                lein-version
-                (local-time/format-local-time (local-time/local-now) :date-hour-minute))
-        ;; git tags cannot contain colons
-        (str/replace ":" ""))
+    (format "%s.%s"
+            (str/replace lein-version "-" ".")
+            (get-timestamp-string))
     lein-version))
 
 
