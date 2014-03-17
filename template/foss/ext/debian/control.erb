@@ -8,7 +8,10 @@ Homepage: http://puppetlabs.com
 
 Package: <%= EZBake::Config[:project] %>
 Architecture: all
-Depends: ${misc:Depends}, java7-runtime-headless, adduser
+Depends: ${misc:Depends}, java7-runtime-headless, adduser<%=
+    if !EZBake::Config[:additional_debian_dependencies].empty?
+      ", " + EZBake::Config[:additional_debian_dependencies].join(", ")
+    end %>
 # TODO: are we even going to bother with "suggests?"
 #Suggests: postgresql
 #Suggests:

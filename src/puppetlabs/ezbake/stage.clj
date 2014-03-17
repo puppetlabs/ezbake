@@ -186,6 +186,8 @@ module EZBake
       :project => '%s',
       :uberjar_name => '%s',
       :config_files => [%s],
+      :additional_debian_dependencies => [],
+      :additional_redhat_dependencies => [],
   }
 end
 "

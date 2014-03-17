@@ -34,6 +34,9 @@ BuildArch:     noarch
 BuildRequires: /usr/sbin/useradd
 Requires:      chkconfig
 Requires:      %{open_jdk}
+<% EZBake::Config[:additional_redhat_dependencies].each do |dep| %>
+Requires:      <%= dep %>
+<% end %>
 
 %description
 <%= Pkg::Config.config[:description] -%>
