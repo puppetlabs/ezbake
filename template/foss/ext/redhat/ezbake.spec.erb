@@ -60,8 +60,8 @@ Requires:      %{open_jdk}
 
 rm -rf $RPM_BUILD_ROOT
 
-env DESTDIR=%{buildroot} prefix=/usr initdir=%{_initddir} make -e install-<%= EZBake::Config[:project] %>
-#env DESTDIR=%{buildroot} prefix=/usr make -e install-terminus
+env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} initdir=%{_initddir} make -e install-<%= EZBake::Config[:project] %>
+#env DESTDIR=%{buildroot} prefix=%{_prefix} make -e install-terminus
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -69,8 +69,8 @@ rm -rf $RPM_BUILD_ROOT
 %pre
 # Here we'll do a little bit of cleanup just in case something went horribly
 # awry during a previous install/uninstall:
-if [ -f "/usr/share/<%= EZBake::Config[:project] %>/start_service_after_upgrade" ] ; then
-   rm /usr/share/<%= EZBake::Config[:project] %>/start_service_after_upgrade
+if [ -f "%{_datadir}/%{realname}/start_service_after_upgrade" ] ; then
+   rm %{_datadir}/%{realname}/start_service_after_upgrade
 fi
 # If this is an upgrade (as opposed to an install) then we need to check
 #  and see if the service is running.  If it is, we need to stop it.
@@ -80,14 +80,14 @@ if [ "$1" = "2" ] ; then
         # If we need to restart the service after the upgrade
         #  is finished, we will touch a temp file so that
         #  we can detect that state
-        touch /usr/share/<%= EZBake::Config[:project] %>/start_service_after_upgrade
+        touch %{_datadir}/%{realname}/start_service_after_upgrade
         /sbin/service %{name} stop >/dev/null 2>&1
     fi
 fi
 # Add <%= EZBake::Config[:project] %> user
 getent group %{name} > /dev/null || groupadd -r %{name}
 getent passwd %{name} > /dev/null || \
-useradd -r -g %{name} -d /usr/share/<%= EZBake::Config[:project] %> -s /sbin/nologin \
+useradd -r -g %{name} -d %{_datadir}/%{realname} -s /sbin/nologin \
      -c "<%= EZBake::Config[:project] %> daemon"  %{name}
 
 %post
@@ -116,8 +116,8 @@ fi
 #  this via the existence of a temp file that was created during that
 #  phase).  If we did, then we need to restart it.
 if [ "$1" = "1" ] ; then
-    if [ -f "/usr/share/<%= EZBake::Config[:project] %>/start_service_after_upgrade" ] ; then
-        rm /usr/share/<%= EZBake::Config[:project] %>/start_service_after_upgrade
+    if [ -f "%{_datadir}/%{realname}/start_service_after_upgrade" ] ; then
+        rm %{_datadir}/%{realname}/start_service_after_upgrade
         /sbin/service %{name} start >/dev/null 2>&1
     fi
 fi
@@ -127,12 +127,14 @@ fi
 %defattr(-, root, root)
 # TODO: figure out how/whether to grab custom docs from projects
 #%doc *.md
+%doc ext/docs
 %{_datadir}/%{realname}
 %{_initddir}/%{name}
 %dir %{_sysconfdir}/%{name}
 %{_datadir}/%{realname}/ezbake.manifest
 # TODO: support app-specific config files
 #%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
+%config(noreplace) %{_sysconfdir}/%{name}
 %{_sysconfdir}/sysconfig/%{name}
 %ghost %{_rundir}/%{name}
 
