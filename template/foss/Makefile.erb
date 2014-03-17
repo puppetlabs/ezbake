@@ -14,13 +14,13 @@ else
 	initsrc = ext/debian/ezbake.init
 endif
 
-<%= EZBake::Config[:project] %>.jar:
+<%= EZBake::Config[:uberjar_name] %>:
 	lein uberjar
-	mv target/<%= EZBake::Config[:project] %>.jar <%= EZBake::Config[:project] %>.jar
+	mv target/<%= EZBake::Config[:uberjar_name] %> <%= EZBake::Config[:uberjar_name] %>
 
-install-<%= EZBake::Config[:project] %>: <%= EZBake::Config[:project] %>.jar
+install-<%= EZBake::Config[:project] %>: <%= EZBake::Config[:uberjar_name] %>
 	install -d -m 0755 "$(DESTDIR)$(datadir)/<%= EZBake::Config[:project] %>"
-	install -m 0644 <%= EZBake::Config[:project] %>.jar "$(DESTDIR)$(datadir)/<%= EZBake::Config[:project] %>"
+	install -m 0644 <%= EZBake::Config[:uberjar_name] %> "$(DESTDIR)$(datadir)/<%= EZBake::Config[:project] %>"
 	install -m 0644 ext/ezbake.manifest "$(DESTDIR)$(datadir)/<%= EZBake::Config[:project] %>"
 	install -d -m 0755 "$(DESTDIR)$(confdir)/<%= EZBake::Config[:project] %>"
 <% EZBake::Config[:config_files].each do |config_file| -%>
