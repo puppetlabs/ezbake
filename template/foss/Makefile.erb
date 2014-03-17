@@ -21,9 +21,8 @@ endif
 install-<%= EZBake::Config[:project] %>: <%= EZBake::Config[:project] %>.jar
 	install -d -m 0755 "$(DESTDIR)$(datadir)/<%= EZBake::Config[:project] %>"
 	install -m 0644 <%= EZBake::Config[:project] %>.jar "$(DESTDIR)$(datadir)/<%= EZBake::Config[:project] %>"
+	install -m 0644 ext/ezbake.manifest "$(DESTDIR)$(datadir)/<%= EZBake::Config[:project] %>"
 	install -d -m 0755 "$(DESTDIR)$(confdir)/<%= EZBake::Config[:project] %>"
-	# TODO: figure out what to do about conf files
-	#install -m 0644 ext/<%= EZBake::Config[:project] %>.conf "$(DESTDIR)$(confdir)/<%= EZBake::Config[:project] %>"
 <% EZBake::Config[:config_files].each do |config_file| -%>
 	install -m 0644 <%= config_file %> "$(DESTDIR)$(confdir)"
 <% end -%>

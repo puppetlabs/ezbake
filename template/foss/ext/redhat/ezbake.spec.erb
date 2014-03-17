@@ -26,7 +26,7 @@ Version:       <%= @rpmversion %>
 Release:       <%= @rpmrelease %>%{?dist}
 BuildRoot:     %{_tmppath}/%{realname}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-Summary:       Puppet Labs version-checking backend
+Summary:       Puppet Labs - <%= EZBake::Config[:project] %>
 License:       ASL 2.0
 
 URL:           http://github.com/puppetlabs/ezbake
@@ -41,7 +41,7 @@ Requires:      chkconfig
 Requires:      %{open_jdk}
 
 %description
-Puppet Labs version-checking backend.
+<%= Pkg::Config.config[:description] -%>
 
 #%package terminus
 #Summary: Puppet terminus files to connect to PuppetDB
@@ -130,6 +130,7 @@ fi
 %{_datadir}/%{realname}
 %{_initddir}/%{name}
 %dir %{_sysconfdir}/%{name}
+%{_datadir}/%{realname}/ezbake.manifest
 # TODO: support app-specific config files
 #%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %{_sysconfdir}/sysconfig/%{name}
