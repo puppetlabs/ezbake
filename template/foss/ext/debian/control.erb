@@ -11,6 +11,7 @@ Architecture: all
 Depends: ${misc:Depends},  java6-runtime-headless, adduser
 Suggests: postgresql
 Description: Puppet Labs <%= EZBake::Config[:project] %>
+ Contains: <%= Pkg::Config.config[:description] -%>
 
 #Package: classifier-terminus
 #Architecture: all

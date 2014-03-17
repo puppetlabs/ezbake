@@ -22,6 +22,15 @@
 (def exclude-dependencies #{'org.clojure/tools.nrepl
                             'clojure-complete/clojure-complete})
 
+(defn include-dep?
+  [dep]
+  (let [artifact-id (first dep)]
+    (not (contains? exclude-dependencies artifact-id))))
+
+(defn get-relevant-deps
+  [lein-project]
+  (filter include-dep? (:dependencies lein-project)))
+
 (defn find-maven-jar-file
   [coords lein-project]
   {:post [(instance? JarFile %)]}
@@ -94,6 +103,15 @@ end
         (:uberjar-name lein-project)
         (format "\"%s\"" (str/join "\",\"" config-files)))))
 
+(defn get-manifest-string
+  [dep]
+  (format "%s %s" (name (first dep)) (second dep)))
+
+(defn generate-manifest-string
+  [lein-project]
+  (let [deps (get-relevant-deps lein-project)]
+    (str/join "," (map get-manifest-string deps))))
+
 (defn generate-project-data-yaml
   [lein-project]
   (println "generating project_data.yaml file")
@@ -122,8 +140,25 @@ gem_default_executables:
 "
             (:name lein-project)
             (:description lein-project)
-            (:description lein-project)
+            (format "%s (%s)"
+                    (:description lein-project)
+                    (generate-manifest-string lein-project))
             (:uberjar-name lein-project))))
+
+(defn generate-manifest-file
+  [lein-project]
+  (spit
+    (fs/file staging-dir "ext" "ezbake.manifest")
+    (format "
+This package was built by the Puppet Labs packaging system.
+
+Release package: %s/%s (%s)
+Bundled packages: %s
+"
+            (:group lein-project)
+            (:name lein-project)
+            (:version lein-project)
+            (generate-manifest-string lein-project))))
 
 (defn get-timestamp-string
   []
@@ -168,11 +203,6 @@ gem_default_executables:
   (fs/rename (fs/file staging-dir "ext" "redhat" "ezbake.spec.erb")
              (fs/file staging-dir "ext" "redhat" (format "%s.spec.erb"
                                                         (:name lein-project)))))
-(defn include-dep?
-  [dep]
-  (let [artifact-id (first dep)]
-    (not (contains? exclude-dependencies artifact-id))))
-
 
 (defn find-shared-config-files
   [jar-file]
@@ -202,7 +232,7 @@ gem_default_executables:
 
 (defn cp-shared-config-files
   [lein-project]
-  (let [deps (filter include-dep? (:dependencies lein-project))]
+  (let [deps (get-relevant-deps lein-project)]
     (vec (mapcat (partial cp-shared-config-files-for-dep lein-project) deps))))
 
 ;; TODO: these cp-doc-files and cp-shared-config-files functions have a lot of
@@ -250,7 +280,7 @@ gem_default_executables:
 
 (defn cp-doc-files
   [lein-project]
-  (let [deps (filter include-dep? (:dependencies lein-project))]
+  (let [deps (get-relevant-deps lein-project)]
     (apply merge (mapv (partial cp-doc-files-for-dep lein-project) deps))))
 
 (defn -main
@@ -269,6 +299,7 @@ gem_default_executables:
         (rename-redhat-spec-file lein-project)
         (generate-ezbake-config-file lein-project config-files)
         (generate-project-data-yaml lein-project)
+        (generate-manifest-file lein-project)
         (create-git-repo lein-project))
       (finally
         ;; this is required in order to make the threads started by sh/sh terminate,
