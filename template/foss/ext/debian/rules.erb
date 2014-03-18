@@ -12,7 +12,8 @@ export rubylibdir
 export prefix
 
 install/<%= EZBake::Config[:project] %>::
-	make install-<%= EZBake::Config[:project] %>
+	echo "PATH IS: ${PATH}"
+	make -e install-<%= EZBake::Config[:project] %>
 
 #install/classifier-terminus::
 #	make -e install-terminus
