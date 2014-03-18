@@ -46,6 +46,19 @@
           (enumeration-seq (.entries jar-file))))
 
 (defn cp-file-from-jar
+  "Given the following:
+
+  * file-type-desc: a human readable description of the type of files we're copying,
+                    used in logging output
+  * jar-file: JarFile we're copying files from
+  * out-dir-fn: a function that accepts a lein dependency and a JarEntry,
+                and returns a File representing the directory that we should
+                copy the jar entry to
+  * dep: a single entry from the leinengen dependencies list
+  * jar-entry: the JarEntry that we are copying out of the JarFile
+
+  copies the file from the jar to the directory returned by the out-dir-fn,
+  and returns the absolute path for that file."
   [file-type-desc jar-file out-dir-fn dep jar-entry]
   {:pre [(string? file-type-desc)
          (instance? JarFile jar-file)

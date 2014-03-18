@@ -44,6 +44,15 @@
   (println "deleting staging directory:" staging-dir)
   (fs/delete-dir staging-dir))
 
+(defn relativize
+  "Convert an absolute File to a relative File"
+  [base-path absolute-file]
+  (-> (File. base-path)
+      .toURI
+      (.relativize (.toURI absolute-file))
+      .getPath
+      (File.)))
+
 (defn cp-template-files
   [template-dir]
   (println "copying template files from" (.toString template-dir) "to" staging-dir)
@@ -85,8 +94,10 @@ Bundled packages: %s
 
 (defn cp-shared-config-files
   [lein-project]
-  (deputils/cp-files-of-type lein-project "shared config"
-                             shared-config-prefix get-out-dir-for-shared-config-file))
+  (mapv (partial relativize staging-dir)
+        (deputils/cp-files-of-type lein-project "shared config"
+                                   shared-config-prefix
+                                   get-out-dir-for-shared-config-file)))
 
 (defn get-out-dir-for-doc-file
   [dep jar-entry]
@@ -109,8 +120,9 @@ Bundled packages: %s
 
 (defn cp-doc-files
   [lein-project]
-  (deputils/cp-files-of-type lein-project "doc"
-                             docs-prefix get-out-dir-for-doc-file))
+  (mapv (partial relativize staging-dir)
+        (deputils/cp-files-of-type lein-project "doc"
+                                   docs-prefix get-out-dir-for-doc-file)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Ephemeral Git Repo functions
