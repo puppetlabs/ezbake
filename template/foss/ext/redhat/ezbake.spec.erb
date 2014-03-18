@@ -125,14 +125,9 @@ fi
 
 %files
 %defattr(-, root, root)
-# TODO: figure out how/whether to grab custom docs from projects
-#%doc *.md
 %doc ext/docs
 %{_datadir}/%{realname}
 %{_initddir}/%{name}
-#%dir %{_sysconfdir}/%{name}
-# TODO: support app-specific config files
-#%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %config(noreplace) %{_sysconfdir}/%{name}
 %{_sysconfdir}/sysconfig/%{name}
 %ghost %{_rundir}/%{name}
