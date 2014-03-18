@@ -204,57 +204,68 @@ Bundled packages: %s
              (fs/file staging-dir "ext" "redhat" (format "%s.spec.erb"
                                                         (:name lein-project)))))
 
-(defn find-shared-config-files
-  [jar-file]
+(defn find-files-in-jar
+  [jar-file prefix]
   {:pre [(instance? JarFile jar-file)]
    :post [(every? #(instance? JarEntry %) %)]}
-  (filter
-    #(and (.startsWith (.getName %) shared-config-prefix)
-          (not= shared-config-prefix (.getName %)))
-    (enumeration-seq (.entries jar-file))))
+  (filter #(and (.startsWith (.getName %) prefix)
+                (not= prefix (.getName %)))
+          (enumeration-seq (.entries jar-file))))
 
-(defn cp-shared-config-file
-  [jar-file conf-file]
-  (println "Copying shared config file:" (.getName conf-file))
-  (let [rel-file (File. (.getName conf-file))
-        rel-dir (.getParent rel-file)]
-    (fs/mkdirs (fs/file staging-dir rel-dir))
-    (spit (fs/file staging-dir rel-file)
-          (slurp (.getInputStream jar-file conf-file)))
-    conf-file))
+(defn cp-file-from-jar
+  [file-type-desc jar-file out-dir-fn dep jar-entry]
+  {:pre [(string? file-type-desc)
+         (instance? JarFile jar-file)
+         (ifn? out-dir-fn)
+         (vector? dep)
+         (instance? JarEntry jar-entry)]
+   :post [(instance? File %)]}
+  (println "Copying" file-type-desc "file:" (.getName jar-entry))
+  (let [file-name (.getName (File. (.getName jar-entry)))
+        out-dir   (out-dir-fn dep jar-entry)
+        out-file  (fs/file out-dir file-name)]
+    (fs/mkdirs (fs/file out-dir))
+    (spit out-file
+          (slurp (.getInputStream jar-file jar-entry)))
+    out-file))
 
-(defn cp-shared-config-files-for-dep
-  [lein-project dep]
-  (println "Checking for shared config files in dependency:" dep)
-  (let [jar-file (find-maven-jar-file dep lein-project)
-        shared-config-files (find-shared-config-files jar-file)]
-    (mapv (partial cp-shared-config-file jar-file) shared-config-files)))
+(defn cp-files-for-dep
+  [file-type-desc file-prefix out-dir-fn lein-project dep]
+  (println "Checking for" file-type-desc "files in dependency:" dep)
+  (let [jar-file    (find-maven-jar-file dep lein-project)
+        jar-entries (find-files-in-jar jar-file file-prefix)]
+    (mapv (partial cp-file-from-jar file-type-desc jar-file out-dir-fn dep) jar-entries)))
+
+(defn cp-files-of-type
+  [lein-project file-type-desc file-prefix out-dir-fn]
+  (let [deps (get-relevant-deps lein-project)]
+    (vec (mapcat
+           (partial cp-files-for-dep
+                    file-type-desc
+                    file-prefix
+                    out-dir-fn
+                    lein-project)
+           deps))))
+
+(defn get-out-dir-for-shared-config-file
+  [dep jar-entry]
+  (fs/file staging-dir
+           (.getParent (File. (.getName jar-entry)))))
 
 (defn cp-shared-config-files
   [lein-project]
-  (let [deps (get-relevant-deps lein-project)]
-    (vec (mapcat (partial cp-shared-config-files-for-dep lein-project) deps))))
+  (cp-files-of-type lein-project "shared config"
+                    shared-config-prefix get-out-dir-for-shared-config-file))
 
-;; TODO: these cp-doc-files and cp-shared-config-files functions have a lot of
-;; overlap, should probably refactor.
-(defn find-doc-files
-  [jar-file]
-  {:pre [(instance? JarFile jar-file)]
-   :post [(every? #(instance? JarEntry %) %)]}
-  (filter
-    #(and (.startsWith (.getName %) docs-prefix)
-          (not= docs-prefix (.getName %)))
-    (enumeration-seq (.entries jar-file))))
-
-(defn cp-doc-file
-  [proj-name jar-file doc-file]
-  (println "Copying doc file:" (.getName doc-file))
-  (let [orig-file (File. (.getName doc-file))
+(defn get-out-dir-for-doc-file
+  [dep jar-entry]
+  (let [proj-name (name (first dep))
+        orig-file (File. (.getName jar-entry))
         ;; This is a bit complex; we want to put the doc files into the staging
         ;; dir under `ext/docs/<project-name>/<original-dir-structure-in-project`.
         ;; To build this path we need to find <original-dir-structure-in-project>
         ;; and then remove the first two elements (which will be "ext/docs").
-        rel-dir  (->> orig-file
+        rel-dir (->> orig-file
                      .getParentFile
                      .toPath
                      .iterator
@@ -262,26 +273,13 @@ Bundled packages: %s
                      (drop 2)
                      (mapv #(.toString %))
                      (str/join "/")
-                     (File.))
-        out-dir  (fs/file staging-dir "ext" "docs" proj-name rel-dir)
-        out-file (fs/file out-dir (.getName orig-file))]
-    (fs/mkdirs out-dir)
-    (spit out-file
-          (slurp (.getInputStream jar-file doc-file)))
-    out-file))
-
-(defn cp-doc-files-for-dep
-  [lein-project dep]
-  (println "Checking for doc files in dependency:" dep)
-  (let [jar-file (find-maven-jar-file dep lein-project)
-        doc-files (find-doc-files jar-file)
-        proj-name (name (first dep))]
-    {(keyword proj-name) (mapv (partial cp-doc-file proj-name jar-file) doc-files)}))
+                     (File.))]
+    (fs/file staging-dir "ext" "docs" proj-name rel-dir)))
 
 (defn cp-doc-files
   [lein-project]
-  (let [deps (get-relevant-deps lein-project)]
-    (apply merge (mapv (partial cp-doc-files-for-dep lein-project) deps))))
+  (cp-files-of-type lein-project "doc"
+                    docs-prefix get-out-dir-for-doc-file))
 
 (defn -main
   [& args]
@@ -293,8 +291,8 @@ Bundled packages: %s
       (clean)
       (cp-template-files template-dir)
       (let [lein-project (project/read project-file)
-            config-files (cp-shared-config-files lein-project)
-            doc-files    (cp-doc-files lein-project)]
+            config-files (cp-shared-config-files lein-project)]
+        (cp-doc-files lein-project)
         (cp-project-file project-file)
         (rename-redhat-spec-file lein-project)
         (generate-ezbake-config-file lein-project config-files)
