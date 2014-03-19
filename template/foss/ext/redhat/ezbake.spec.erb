@@ -16,6 +16,8 @@
 %global  _initddir   %{_realsysconfdir}/rc.d/init.d
 %global _rundir /var/run
 
+%define __jar_repack 0
+
 Name:          <%= EZBake::Config[:project] %>
 Version:       <%= @rpmversion %>
 Release:       <%= @rpmrelease %>%{?dist}
