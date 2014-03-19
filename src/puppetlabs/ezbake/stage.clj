@@ -270,8 +270,10 @@ gem_default_executables:
   ;; TODO: these will be configurable and allow us to build other projects besides
   ;; just jvm-puppet, and choose between foss and pe templates
   (let [build-target "foss"
+        project      "jvm-puppet"
+
         template-dir (fs/file template-dir-prefix build-target)
-        project-file "./configs/jvm-puppet.clj"]
+        project-file (.toString (fs/file "./configs" project (str project ".clj")))]
     (try
       (clean)
       (cp-template-files template-dir)
