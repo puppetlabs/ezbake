@@ -37,13 +37,20 @@
       :file
       (JarFile.)))
 
-(defn find-files-in-jar
+(defn find-files-in-dir-in-jar
   [jar-file prefix]
   {:pre [(instance? JarFile jar-file)]
    :post [(every? #(instance? JarEntry %) %)]}
   (filter #(and (.startsWith (.getName %) prefix)
                 (not= prefix (.getName %)))
           (enumeration-seq (.entries jar-file))))
+
+(defn find-file-in-jar
+  [jar-file file-path]
+  {:pre [(instance? JarFile jar-file)
+         (string? file-path)]
+   :post [((some-fn nil? #(instance? JarEntry %)) %)]}
+  (.getJarEntry jar-file file-path))
 
 (defn cp-file-from-jar
   "Given the following:
@@ -79,15 +86,32 @@
   [file-type-desc file-prefix out-dir-fn lein-project dep]
   (println "Checking for" file-type-desc "files in dependency:" dep)
   (let [jar-file    (find-maven-jar-file dep lein-project)
-        jar-entries (find-files-in-jar jar-file file-prefix)]
+        jar-entries (find-files-in-dir-in-jar jar-file file-prefix)]
     (mapv (partial cp-file-from-jar file-type-desc jar-file out-dir-fn dep) jar-entries)))
 
 (defn get-manifest-string
   [dep]
   (format "%s %s" (name (first dep)) (second dep)))
 
+(defn add-stream-from-jar-to-map
+  [lein-project file-path acc dep]
+  (let [jar-file (find-maven-jar-file dep lein-project)]
+    (if-let [jar-entry (find-file-in-jar jar-file file-path)]
+      (let [project-name (name (first dep))]
+        (assoc acc project-name (.getInputStream jar-file jar-entry)))
+      acc)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Public
+
+(defn file-file-in-jars
+  "Given a lein project file and a path to a file that may exist in the upstream
+  jars, return a map whose keys are the project names whose jar contained the
+  specified file, and whose values are InputStreams for reading the contents of
+  those files."
+  [lein-project file-path]
+  (let [deps (get-relevant-deps lein-project)]
+    (reduce (partial add-stream-from-jar-to-map lein-project file-path) {} deps)))
 
 (defn generate-manifest-string
   [lein-project]

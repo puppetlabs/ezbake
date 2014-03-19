@@ -1,11 +1,12 @@
 (ns puppetlabs.ezbake.stage
-  (:import (java.io File))
+  (:import (java.io File InputStreamReader))
   (:require [me.raynes.fs :as fs]
             [leiningen.core.project :as project]
             [clojure.java.shell :as sh]
             [clojure.string :as str]
             [clj-time.local :as local-time]
-            [puppetlabs.ezbake.dependency-utils :as deputils]))
+            [puppetlabs.ezbake.dependency-utils :as deputils]
+            [puppetlabs.config.typesafe :as ts]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Constants
@@ -125,6 +126,34 @@ Bundled packages: %s
                                    docs-prefix get-out-dir-for-doc-file)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Upstream EZBake config handling
+
+(defn get-deps
+  [upstream-ezbake-configs build-target deps-type]
+  {:pre [(map? upstream-ezbake-configs)
+         (string? build-target)
+         (contains? #{:redhat-dependencies :debian-dependencies} deps-type)]}
+  (set (mapcat #(get-in % [:ezbake (keyword build-target) deps-type])
+               (vals upstream-ezbake-configs))))
+
+(defn get-debian-deps
+  [upstream-ezbake-configs build-target]
+  (get-deps upstream-ezbake-configs build-target :debian-dependencies))
+
+(defn get-redhat-deps
+  [upstream-ezbake-configs build-target]
+  (get-deps upstream-ezbake-configs build-target :redhat-dependencies))
+
+(defn add-ezbake-config-to-map
+  [acc [proj-name config-stream]]
+  (assoc acc proj-name (ts/reader->map config-stream)))
+
+(defn get-upstream-ezbake-configs
+  [lein-project]
+  (let [upstream-config-streams (deputils/file-file-in-jars lein-project "ext/ezbake.conf")]
+    (reduce add-ezbake-config-to-map {} upstream-config-streams)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Ephemeral Git Repo functions
 
 (defn get-timestamp-string
@@ -176,24 +205,29 @@ Bundled packages: %s
 ;; file from that.  All of these options sound unappealing in their own special
 ;; ways.
 (defn generate-ezbake-config-file
-  [lein-project config-files]
+  [lein-project build-target config-files]
   (println "generating ezbake config file")
-  (spit
-    (fs/file staging-dir "ezbake.rb")
-    (format "
+  (let [upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)
+        debian-deps (get-debian-deps upstream-ezbake-configs build-target)
+        redhat-deps (get-redhat-deps upstream-ezbake-configs build-target)]
+    (spit
+      (fs/file staging-dir "ezbake.rb")
+      (format "
 module EZBake
   Config = {
       :project => '%s',
       :uberjar_name => '%s',
       :config_files => [%s],
-      :additional_debian_dependencies => [],
-      :additional_redhat_dependencies => [],
+      :additional_debian_dependencies => [%s],
+      :additional_redhat_dependencies => [%s],
   }
 end
 "
-            (:name lein-project)
-            (:uberjar-name lein-project)
-            (format "\"%s\"" (str/join "\",\"" config-files)))))
+              (:name lein-project)
+              (:uberjar-name lein-project)
+              (if (empty? config-files) "" (format "\"%s\"" (str/join "\",\"" config-files)))
+              (if (empty? debian-deps) "" (format "\"%s\"" (str/join "\",\"" debian-deps)))
+              (if (empty? redhat-deps) "" (format "\"%s\"" (str/join "\",\"" redhat-deps)))))))
 
 (defn generate-project-data-yaml
   [lein-project]
@@ -235,7 +269,8 @@ gem_default_executables:
   [& args]
   ;; TODO: these will be configurable and allow us to build other projects besides
   ;; just jvm-puppet, and choose between foss and pe templates
-  (let [template-dir (fs/file template-dir-prefix "foss")
+  (let [build-target "foss"
+        template-dir (fs/file template-dir-prefix build-target)
         project-file "./configs/jvm-puppet.clj"]
     (try
       (clean)
@@ -245,7 +280,7 @@ gem_default_executables:
         (cp-doc-files lein-project)
         (cp-project-file project-file)
         (rename-redhat-spec-file lein-project)
-        (generate-ezbake-config-file lein-project config-files)
+        (generate-ezbake-config-file lein-project build-target config-files)
         (generate-project-data-yaml lein-project)
         (generate-manifest-file lein-project)
         (create-git-repo lein-project))
