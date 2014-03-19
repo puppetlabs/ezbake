@@ -17,7 +17,7 @@
 (def docs-prefix "ext/docs/")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Shell Helpers
+;;; Shell / Filesystem Helpers
 
 (defn exec
   [& args]
@@ -37,6 +37,30 @@
          (format "--work-tree=%s" staging-dir)
          args))
 
+(defn files-from-dir-iter
+  "Given an individual entry from a `fs/iterate-dir` result set, return a flat
+  list of File objects for all of the files reference in the entry."
+  [iter-entry]
+  {:pre [(vector? iter-entry)
+         (= 3 (count iter-entry))]
+   :post [(coll? %)
+          (every? #(instance? File %) %)]}
+  (let [dir   (first iter-entry)
+        files (get iter-entry 2)]
+    (map #(fs/file dir %) files)))
+
+(defn find-files-recursively
+  "Given a File object representing a directory, walks the directory (recursively)
+  and returns a list of File objects for all of the files in the directory.
+  (Return value does not include directories, only regular files.)"
+  [dir]
+  {:pre [(instance? File dir)
+         (.isDirectory dir)]
+   :post [(coll? %)
+          (every? #(instance? File %) %)]}
+  (let [iter (fs/iterate-dir dir)]
+    (mapcat files-from-dir-iter iter)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; General Staging Helper functions
 
@@ -48,11 +72,14 @@
 (defn relativize
   "Convert an absolute File to a relative File"
   [base-path absolute-file]
-  (-> (File. base-path)
-      .toURI
-      (.relativize (.toURI absolute-file))
-      .getPath
-      (File.)))
+  (let [base-file (if (instance? File base-path)
+                    base-path
+                    (File. base-path))]
+    (-> base-file
+        .toURI
+        (.relativize (.toURI absolute-file))
+        .getPath
+        (File.))))
 
 (defn cp-template-files
   [template-dir]
@@ -90,8 +117,10 @@ Bundled packages: %s
 
 (defn get-out-dir-for-shared-config-file
   [dep jar-entry]
-  (fs/file staging-dir
-           (.getParent (File. (.getName jar-entry)))))
+  (let [rel-path (relativize shared-config-prefix (File. (.getName jar-entry)))]
+    (if-let [parent (.getParent rel-path)]
+      (fs/file staging-dir "ext" "config" "conf.d" parent)
+      (fs/file staging-dir "ext" "config" "conf.d"))))
 
 (defn cp-shared-config-files
   [lein-project]
@@ -99,6 +128,23 @@ Bundled packages: %s
         (deputils/cp-files-of-type lein-project "shared config"
                                    shared-config-prefix
                                    get-out-dir-for-shared-config-file)))
+
+(defn cp-project-config-file
+  [project-config-dir config-file]
+  (let [out-file (fs/file staging-dir "ext" "config"
+                          (relativize project-config-dir config-file))
+        out-dir (.getParent out-file)]
+    (fs/mkdirs out-dir)
+    (fs/copy config-file out-file)
+    (relativize staging-dir out-file)))
+
+(defn cp-project-config-files
+  [project config-files]
+  (let [project-config-dir    (fs/file "." "configs" project "config")
+        project-config-files  (find-files-recursively project-config-dir)
+        rel-files             (for [config-file project-config-files]
+                                (cp-project-config-file project-config-dir config-file))]
+    (concat config-files rel-files)))
 
 (defn get-out-dir-for-doc-file
   [dep jar-entry]
@@ -278,7 +324,8 @@ gem_default_executables:
       (clean)
       (cp-template-files template-dir)
       (let [lein-project (project/read project-file)
-            config-files (cp-shared-config-files lein-project)]
+            config-files (cp-shared-config-files lein-project)
+            config-files (cp-project-config-files project config-files)]
         (cp-doc-files lein-project)
         (cp-project-file project-file)
         (rename-redhat-spec-file lein-project)
