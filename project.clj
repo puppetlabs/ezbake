@@ -5,7 +5,7 @@
                  [leiningen-core "2.3.4"]
                  [com.cemerick/pomegranate "0.3.0"]
                  [clj-time "0.6.0"]
-                 [puppetlabs/typesafe-config "0.1.2-SNAPSHOT"]]
+                 [puppetlabs/typesafe-config "0.1.2"]]
 
   :repositories [["releases" "http://nexus.delivery.puppetlabs.net/content/repositories/releases/"]
                  ["snapshots" "http://nexus.delivery.puppetlabs.net/content/repositories/snapshots/"]]
