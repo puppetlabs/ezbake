@@ -167,6 +167,7 @@ Bundled packages: %s
 
 (defn cp-doc-files
   [lein-project]
+  (fs/mkdirs (fs/file staging-dir "ext" "docs"))
   (mapv (partial relativize staging-dir)
         (deputils/cp-files-of-type lein-project "doc"
                                    docs-prefix get-out-dir-for-doc-file)))
