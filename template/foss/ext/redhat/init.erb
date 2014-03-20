@@ -58,7 +58,7 @@ start() {
     # call status here and figure out current state
     rh_status_q
     [ -x $JAVA_BIN ] || exit 5
-    [ -f $config ] || exit 6
+    [ -e $config ] || exit 6
     mkdir -p /var/log/<%= EZBake::Config[:project] %>
     chown -R $USER /var/log/<%= EZBake::Config[:project] %>
     # Move any heap dumps aside

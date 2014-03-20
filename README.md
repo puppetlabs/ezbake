@@ -47,6 +47,10 @@ This file is actually a regular leiningen project file.  It must define:
   OSS release, and all of the dependencies are available on clojars.  If if any
   of the dependencies are internal/closed-source, you'll probably need to add
   our Nexus release/snapshot repos here.
+* `:main`: the name of the main namespace, for use when running `java -jar`.  This
+  will almost always be `puppetlabs.trapperkeeper.main` (NOTE: this may go away
+  at some point if we decide to get rid of the tiny bit of aot that we are still
+  doing.)
 
 ### Additional Config Files
 
