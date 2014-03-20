@@ -24,7 +24,7 @@ install-<%= EZBake::Config[:project] %>: <%= EZBake::Config[:uberjar_name] %>
 	install -m 0644 ext/ezbake.manifest "$(DESTDIR)$(datadir)/<%= EZBake::Config[:project] %>"
 	install -d -m 0755 "$(DESTDIR)$(confdir)/<%= EZBake::Config[:project] %>/conf.d"
 <% EZBake::Config[:config_files].each do |config_file| -%>
-	install -m 0644 <%= config_file %> "$(DESTDIR)$(confdir)/<%= EZBake::Config[:project] %>/conf.d"
+	install -m 0644 <%= config_file %> "$(DESTDIR)$(confdir)/<%= EZBake::Config[:project] %>/<%= config_file.sub(/^ext\/config\//, "") %>"
 <% end -%>
 	install -d -m 0755 "$(DESTDIR)$(defaultsdir)"
 	install -m 0644 ext/default "$(DESTDIR)$(defaultsdir)/<%= EZBake::Config[:project] %>"
