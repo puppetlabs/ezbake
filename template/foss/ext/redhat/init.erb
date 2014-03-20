@@ -34,7 +34,7 @@ config=$CONFIG
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
-JAVA_ARGS="${JAVA_ARGS} -jar ${INSTALL_DIR}/${JARFILE} --config ${CONFIG} "
+JAVA_ARGS="${JAVA_ARGS} -jar ${INSTALL_DIR}/${JARFILE} --config ${CONFIG} --bootstrap-config ${BOOTSTRAP_CONFIG}"
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile=/var/lock/subsys/$prog
 EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" $JAVA_ARGS"
