@@ -1,0 +1,15 @@
+module EZBake
+  Config = {
+      :project => '{{{project}}}',
+      :uberjar_name => '{{{uberjar-name}}}',
+      :config_files => [{{{config-files}}}],
+      :debian => {
+                    :additional_dependencies => [{{{deb-deps}}}],
+                    :additional_preinst => [{{{deb-preinst}}}],
+                 },
+      :redhat => {
+                    :additional_dependencies => [{{{redhat-deps}}}],
+                    :additional_preinst => [{{{redhat-preinst}}}],
+                 },
+  }
+end

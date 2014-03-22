@@ -1,0 +1,19 @@
+---
+project: '{{{project}}}'
+author: 'Puppet Labs'
+email: 'info@puppetlabs.com'
+homepage: 'https://github.com/puppetlabs/ezbake'
+summary: '{{{summary}}}'
+description: '{{{description}}}'
+version_file: 'version'
+# files and gem_files are space separated lists
+files: 'ext *.md {{{uberjar-name}}} version Rakefile Makefile.erb puppet'
+templates:
+  - ext/**/*.erb
+  - Makefile.erb
+tar_excludes: '.gitignore'
+gem_files:
+gem_require_path:
+gem_test_files:
+gem_executables:
+gem_default_executables:

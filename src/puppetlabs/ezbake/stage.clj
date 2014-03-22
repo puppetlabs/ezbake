@@ -281,63 +281,29 @@ Bundled packages: %s
         ezbake-vars             (get-ezbake-vars lein-project)]
     (spit
       (fs/file staging-dir "ezbake.rb")
-      (format "
-module EZBake
-  Config = {
-      :project => '%s',
-      :uberjar_name => '%s',
-      :config_files => [%s],
-      :debian => {
-                    :additional_dependencies => [%s],
-                    :additional_preinst => [%s],
-                 },
-      :redhat => {
-                    :additional_dependencies => [%s],
-                    :additional_preinst => [%s],
-                 },
-  }
-end
-"
-              (:name lein-project)
-              (:uberjar-name lein-project)
-              (quoted-list config-files)
-              (quoted-list (get-deps upstream-ezbake-configs build-target :debian))
-              (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :debian))
-              (quoted-list (get-deps upstream-ezbake-configs build-target :redhat))
-              (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :redhat))))))
+      (stencil/render-string
+        (slurp "./staging-templates/ezbake.rb.mustache")
+        {:project         (:name lein-project)
+         :uberjar-name    (:uberjar-name lein-project)
+         :config-files    (quoted-list config-files)
+         :deb-deps        (quoted-list (get-deps upstream-ezbake-configs build-target :debian))
+         :deb-preinst     (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :debian))
+         :redhat-deps     (quoted-list (get-deps upstream-ezbake-configs build-target :redhat))
+         :redhat-preinst  (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :redhat))}))))
 
 (defn generate-project-data-yaml
   [lein-project]
   (println "generating project_data.yaml file")
   (spit
     (fs/file staging-dir "ext" "project_data.yaml")
-    (format "
----
-project: '%s'
-author: 'Puppet Labs'
-email: 'info@puppetlabs.com'
-homepage: 'https://github.com/puppetlabs/ezbake'
-summary: '%s'
-description: '%s'
-version_file: 'version'
-# files and gem_files are space separated lists
-files: 'ext *.md %s version Rakefile Makefile.erb puppet'
-templates:
-  - ext/**/*.erb
-  - Makefile.erb
-tar_excludes: '.gitignore'
-gem_files:
-gem_require_path:
-gem_test_files:
-gem_executables:
-gem_default_executables:
-"
-            (:name lein-project)
-            (:description lein-project)
-            (format "%s (%s)"
-                    (:description lein-project)
-                    (deputils/generate-manifest-string lein-project))
-            (:uberjar-name lein-project))))
+    (stencil/render-string
+      (slurp "./staging-templates/project_data.yaml.mustache")
+      {:project       (:name lein-project)
+       :summary       (:description lein-project)
+       :description   (format "%s (%s)"
+                              (:description lein-project)
+                              (deputils/generate-manifest-string lein-project))
+       :uberjar-name  (:uberjar-name lein-project)})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Main
