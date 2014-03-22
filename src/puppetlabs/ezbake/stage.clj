@@ -5,6 +5,7 @@
             [clojure.java.shell :as sh]
             [clojure.string :as str]
             [clj-time.local :as local-time]
+            [stencil.core :as stencil]
             [puppetlabs.ezbake.dependency-utils :as deputils]
             [puppetlabs.config.typesafe :as ts]))
 
@@ -80,6 +81,10 @@
         (.relativize (.toURI absolute-file))
         .getPath
         (File.))))
+
+(defn quoted-list
+  [l]
+  (if (empty? l) "" (format "\"%s\"" (str/join "\",\"" l))))
 
 (defn cp-template-files
   [template-dir]
@@ -174,21 +179,40 @@ Bundled packages: %s
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Upstream EZBake config handling
 
+(defn get-ezbake-vars
+  [lein-project]
+  ;; This function should build up a map of variables that are allowed to
+  ;; be interpolated into an upstream ezbake config file.  For now, the only one
+  ;; we've had a need for is :user.
+  {:user (:name lein-project)})
+
+(defn interpolate-ezbake-config
+  [ezbake-vars s]
+  {:pre [(map? ezbake-vars)
+         (string? s)]
+   :post [(string? %)]}
+  ;; TODO: now that we've introduced a dependency on stencil/mustache, we probably
+  ;; might as well replace the heredoc-y template stuff elsewhere in this file
+  ;; with it as well.
+  (stencil/render-string s ezbake-vars))
+
 (defn get-deps
-  [upstream-ezbake-configs build-target deps-type]
+  [upstream-ezbake-configs build-target os]
   {:pre [(map? upstream-ezbake-configs)
          (string? build-target)
-         (contains? #{:redhat-dependencies :debian-dependencies} deps-type)]}
-  (set (mapcat #(get-in % [:ezbake (keyword build-target) deps-type])
+         (contains? #{:redhat :debian} os)]}
+  (set (mapcat #(get-in % [:ezbake (keyword build-target) os :dependencies])
                (vals upstream-ezbake-configs))))
 
-(defn get-debian-deps
-  [upstream-ezbake-configs build-target]
-  (get-deps upstream-ezbake-configs build-target :debian-dependencies))
-
-(defn get-redhat-deps
-  [upstream-ezbake-configs build-target]
-  (get-deps upstream-ezbake-configs build-target :redhat-dependencies))
+(defn get-preinst
+  [ezbake-vars upstream-ezbake-configs build-target os]
+  {:pre [(map? ezbake-vars)
+         (map? upstream-ezbake-configs)
+         (string? build-target)
+         (contains? #{:redhat :debian} os)]}
+  (map (partial interpolate-ezbake-config ezbake-vars)
+       (mapcat #(get-in % [:ezbake (keyword build-target) os :preinst])
+               (vals upstream-ezbake-configs))))
 
 (defn add-ezbake-config-to-map
   [acc [proj-name config-stream]]
@@ -254,8 +278,7 @@ Bundled packages: %s
   [lein-project build-target config-files]
   (println "generating ezbake config file")
   (let [upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)
-        debian-deps (get-debian-deps upstream-ezbake-configs build-target)
-        redhat-deps (get-redhat-deps upstream-ezbake-configs build-target)]
+        ezbake-vars             (get-ezbake-vars lein-project)]
     (spit
       (fs/file staging-dir "ezbake.rb")
       (format "
@@ -264,16 +287,24 @@ module EZBake
       :project => '%s',
       :uberjar_name => '%s',
       :config_files => [%s],
-      :additional_debian_dependencies => [%s],
-      :additional_redhat_dependencies => [%s],
+      :debian => {
+                    :additional_dependencies => [%s],
+                    :additional_preinst => [%s],
+                 },
+      :redhat => {
+                    :additional_dependencies => [%s],
+                    :additional_preinst => [%s],
+                 },
   }
 end
 "
               (:name lein-project)
               (:uberjar-name lein-project)
-              (if (empty? config-files) "" (format "\"%s\"" (str/join "\",\"" config-files)))
-              (if (empty? debian-deps) "" (format "\"%s\"" (str/join "\",\"" debian-deps)))
-              (if (empty? redhat-deps) "" (format "\"%s\"" (str/join "\",\"" redhat-deps)))))))
+              (quoted-list config-files)
+              (quoted-list (get-deps upstream-ezbake-configs build-target :debian))
+              (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :debian))
+              (quoted-list (get-deps upstream-ezbake-configs build-target :redhat))
+              (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :redhat))))))
 
 (defn generate-project-data-yaml
   [lein-project]

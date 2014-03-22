@@ -36,7 +36,7 @@ BuildArch:     noarch
 BuildRequires: /usr/sbin/useradd
 Requires:      chkconfig
 Requires:      %{open_jdk}
-<% EZBake::Config[:additional_redhat_dependencies].each do |dep| %>
+<% EZBake::Config[:redhat][:additional_dependencies].each do |dep| %>
 Requires:      <%= dep %>
 <% end %>
 
@@ -89,6 +89,9 @@ getent group %{name} > /dev/null || groupadd -r %{name}
 getent passwd %{name} > /dev/null || \
 useradd -r -g %{name} -d %{_datadir}/%{realname} -s /sbin/nologin \
      -c "<%= EZBake::Config[:project] %> daemon"  %{name}
+<% EZBake::Config[:redhat][:additional_preinst].each do |cmd| -%>
+<%= cmd %>
+<% end -%>
 
 %post
 # If this is an install (as opposed to an upgrade)...
