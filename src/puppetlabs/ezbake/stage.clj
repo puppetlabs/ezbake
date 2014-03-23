@@ -29,7 +29,8 @@
                                   (str/join " " args)
                                   "\n\nOutput:"
                                   (:out result)
-                                  (:err result)))))))
+                                  (:err result)))))
+    result))
 
 (defn staging-dir-git-cmd
   [& args]
@@ -61,6 +62,14 @@
           (every? #(instance? File %) %)]}
   (let [iter (fs/iterate-dir dir)]
     (mapcat files-from-dir-iter iter)))
+
+(defn get-ezbake-sha
+  "Get the commit SHA of the current ezbake working copy, plus an asterisk if the
+  working tree is dirty."
+  []
+  (let [sha     (str/trim (:out (exec "git" "rev-parse" "HEAD")))
+        dirty?  (not= "" (str/trim (:out (exec "git" "diff" "--shortstat"))))]
+    (str sha (if dirty? "*" ""))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; General Staging Helper functions
@@ -103,9 +112,11 @@
     (format "
 This package was built by the Puppet Labs packaging system.
 
+EZBake version: %s
 Release package: %s/%s (%s)
 Bundled packages: %s
 "
+            (get-ezbake-sha)
             (:group lein-project)
             (:name lein-project)
             (:version lein-project)
