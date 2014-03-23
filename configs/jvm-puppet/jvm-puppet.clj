@@ -9,4 +9,8 @@
   :repositories [["releases" "http://nexus.delivery.puppetlabs.net/content/repositories/releases/"]
                  ["snapshots" "http://nexus.delivery.puppetlabs.net/content/repositories/snapshots/"]]
   :main puppetlabs.trapperkeeper.main
+
+  :ezbake {:pe {}
+           :foss {:user "puppet"
+                  :group "puppet"}}
   )

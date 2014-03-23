@@ -295,6 +295,10 @@ Bundled packages: %s
       (stencil/render-string
         (slurp "./staging-templates/ezbake.rb.mustache")
         {:project         (:name lein-project)
+         :user            (get-in lein-project [:ezbake (keyword build-target) :user]
+                                  (:name lein-project))
+         :group           (get-in lein-project [:ezbake (keyword build-target) :group]
+                                  (:name lein-project))
          :uberjar-name    (:uberjar-name lein-project)
          :config-files    (quoted-list config-files)
          :deb-deps        (quoted-list (get-deps upstream-ezbake-configs build-target :debian))

@@ -84,11 +84,11 @@ if [ "$1" = "2" ] ; then
         /sbin/service %{name} stop >/dev/null 2>&1
     fi
 fi
-# Add <%= EZBake::Config[:project] %> user
-getent group %{name} > /dev/null || groupadd -r %{name}
-getent passwd %{name} > /dev/null || \
-useradd -r -g %{name} -d %{_datadir}/%{realname} -s /sbin/nologin \
-     -c "<%= EZBake::Config[:project] %> daemon"  %{name}
+# Add <%= EZBake::Config[:user] %> user
+getent group <%= EZBake::Config[:group] %> > /dev/null || groupadd -r <%= EZBake::Config[:group] %>
+getent passwd <%= EZBake::Config[:user] %> > /dev/null || \
+useradd -r -g <%= EZBake::Config[:group] %> -d %{_datadir}/%{realname} -s /sbin/nologin \
+     -c "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %>
 <% EZBake::Config[:redhat][:additional_preinst].each do |cmd| -%>
 <%= cmd %>
 <% end -%>
