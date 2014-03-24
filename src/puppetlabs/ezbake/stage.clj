@@ -190,12 +190,19 @@ Bundled packages: %s
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Upstream EZBake config handling
 
+(defn get-local-ezbake-var
+  "Get the value of a variable from the local ezbake config (inside of the
+  ezbake lein project file."
+  [lein-project build-target key default]
+  (get-in lein-project [:ezbake (keyword build-target) key]
+          default))
+
 (defn get-ezbake-vars
-  [lein-project]
+  [lein-project build-target]
   ;; This function should build up a map of variables that are allowed to
   ;; be interpolated into an upstream ezbake config file.  For now, the only one
   ;; we've had a need for is :user.
-  {:user (:name lein-project)})
+  {:user (get-local-ezbake-var lein-project build-target :user (:name lein-project))})
 
 (defn interpolate-ezbake-config
   [ezbake-vars s]
@@ -289,16 +296,16 @@ Bundled packages: %s
   [lein-project build-target config-files]
   (println "generating ezbake config file")
   (let [upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)
-        ezbake-vars             (get-ezbake-vars lein-project)]
+        ezbake-vars             (get-ezbake-vars lein-project build-target)]
     (spit
       (fs/file staging-dir "ezbake.rb")
       (stencil/render-string
         (slurp "./staging-templates/ezbake.rb.mustache")
         {:project         (:name lein-project)
-         :user            (get-in lein-project [:ezbake (keyword build-target) :user]
-                                  (:name lein-project))
-         :group           (get-in lein-project [:ezbake (keyword build-target) :group]
-                                  (:name lein-project))
+         :user            (get-local-ezbake-var lein-project build-target :user
+                                                (:name lein-project))
+         :group           (get-local-ezbake-var lein-project build-target :group
+                                                (:name lein-project))
          :uberjar-name    (:uberjar-name lein-project)
          :config-files    (quoted-list config-files)
          :deb-deps        (quoted-list (get-deps upstream-ezbake-configs build-target :debian))

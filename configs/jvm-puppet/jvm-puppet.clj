@@ -1,7 +1,7 @@
-(defproject puppetlabs.packages/jvm-puppet "0.1.0-SNAPSHOT"
+(defproject puppetlabs.packages/jvm-puppet "0.1.0"
   :description "Release artifacts for jvm-puppet"
   :pedantic? :warn
-  :dependencies [[puppetlabs/jvm-puppet "0.1.0-SNAPSHOT"]
+  :dependencies [[puppetlabs/jvm-puppet "0.1.0"]
                  [puppetlabs/trapperkeeper-webserver-jetty9 "0.3.4"]]
 
   :uberjar-name "jvm-puppet-release.jar"
