@@ -10,6 +10,7 @@ TODO: best practices and other docs.
 ```
 lein stage
 cd target/staging
+rake package:bootstrap
 rake pl:jenkins:uber_build
 ```
 TODO: `stage` command needs to support some CLI args, to allow you to specify
