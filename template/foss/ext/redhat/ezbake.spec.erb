@@ -13,10 +13,10 @@
 # These macros are not always defined on much older rpm-based systems
 %global  _sharedstatedir /var/lib
 %global  _realsysconfdir /etc
-%global  _initddir   %{_realsysconfdir}/rc.d/init.d
-%global _rundir /var/run
+%global  _initddir       %{_realsysconfdir}/rc.d/init.d
+%global  _rundir         /var/run
 
-%define __jar_repack 0
+%define __jar_repack     0
 
 Name:          <%= EZBake::Config[:project] %>
 Version:       <%= @rpmversion %>
@@ -30,9 +30,9 @@ URL:           http://github.com/puppetlabs/ezbake
 Source0:       <%= EZBake::Config[:project] %>-<%= @rpmversion %>.tar.gz
 
 Group:         System Environment/Daemons
+BuildArch:     noarch
 
 BuildRequires: ruby
-BuildArch:     noarch
 BuildRequires: /usr/sbin/useradd
 Requires:      chkconfig
 Requires:      %{open_jdk}
