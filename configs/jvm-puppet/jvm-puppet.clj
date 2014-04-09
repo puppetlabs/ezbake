@@ -1,4 +1,4 @@
-(defproject puppetlabs.packages/jvm-puppet "0.1.0"
+(defproject puppetlabs.packages/jvm-puppet "0.1.1-SNAPSHOT"
   :description "Release artifacts for jvm-puppet"
   :pedantic? :warn
   :dependencies [[puppetlabs/jvm-puppet "0.1.0"]
