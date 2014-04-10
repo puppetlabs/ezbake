@@ -13,6 +13,10 @@ cd target/staging
 rake package:bootstrap
 rake pl:jenkins:uber_build
 ```
+or the equivalent
+```
+lein build
+```
 TODO: `stage` command needs to support some CLI args, to allow you to specify
 FOSS vs PE and select which project to build.
 
