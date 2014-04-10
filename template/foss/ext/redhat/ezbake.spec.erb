@@ -4,7 +4,7 @@
 
 %global open_jdk          java-1.7.0-openjdk
 
-%if 0%{?fedora} >= 17
+%if 0%{?fedora} >= 17 || 0%{?rhel} >= 7
 %global puppet_libdir     %(ruby -rrbconfig -e "puts Config::CONFIG['vendorlibdir']")
 %else
 %global puppet_libdir     %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
