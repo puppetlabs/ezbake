@@ -131,14 +131,20 @@ Bundled packages: %s
              (fs/file staging-dir "ext" "redhat" (format "%s.spec.erb"
                                                          (:name lein-project)))))
 (defn rename-debian-init-file
-  "things."
+  "In order for debian to automatically populate the correct pre and post
+  scripts for service startup, it expects to find a file named
+  `<project-name>.init` to install as the init script. This function renames
+  ezbake.init.erb to match that convention."
   [lein-project]
   (fs/rename (fs/file staging-dir "ext" "debian" "ezbake.init.erb")
              (fs/file staging-dir "ext" "debian" (format "%s.init.erb"
                                                          (:name lein-project)))))
 
 (defn rename-debian-default-file
-  "things."
+  "In order for debian to automatically populate the correct pre and post
+  scripts for service startup, it expects to find a file named
+  `<project-name>.default` to install as the defaults file. This function
+  renames ezbake.default.erb to match that convention."
   [lein-project]
   (fs/rename (fs/file staging-dir "ext" "debian" "ezbake.default.erb")
              (fs/file staging-dir "ext" "debian" (format "%s.default.erb"
