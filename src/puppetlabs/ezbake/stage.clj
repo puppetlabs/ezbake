@@ -122,6 +122,7 @@ Bundled packages: %s
             (:version lein-project)
             (deputils/generate-manifest-string lein-project))))
 
+;; TODO: The following four functions will not be needed if RE-1533 is resolved
 (defn rename-redhat-spec-file
   "The packaging framework expects for the redhat spec file to be
   named `<project-name>.spec`, but we have the file on disk as `ezbake.spec`, so
@@ -130,6 +131,16 @@ Bundled packages: %s
   (fs/rename (fs/file staging-dir "ext" "redhat" "ezbake.spec.erb")
              (fs/file staging-dir "ext" "redhat" (format "%s.spec.erb"
                                                          (:name lein-project)))))
+
+(defn rename-redhat-systemd-file
+  "The redhat packaging expects for the redhat spec file to be
+  named `<project-name>.spec`, but we have the file on disk as `ezbake.spec`, so
+  we need to rename it after it's been copied to the staging dir."
+  [lein-project]
+  (fs/rename (fs/file staging-dir "ext" "redhat" "ezbake.service.erb")
+             (fs/file staging-dir "ext" "redhat" (format "%s.service.erb"
+                                                         (:name lein-project)))))
+
 (defn rename-debian-init-file
   "In order for debian to automatically populate the correct pre and post
   scripts for service startup, it expects to find a file named
@@ -356,6 +367,7 @@ Bundled packages: %s
     (cp-doc-files lein-project)
     (cp-project-file project-file)
     (rename-redhat-spec-file lein-project)
+    (rename-redhat-systemd-file lein-project)
     (rename-debian-init-file lein-project)
     (rename-debian-default-file lein-project)
     (generate-ezbake-config-file lein-project build-target config-files)

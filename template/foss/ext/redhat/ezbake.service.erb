@@ -1,0 +1,19 @@
+[Unit]
+Description=<%= EZBake::Config[:project] %> Service
+After=syslog.target network.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/sysconfig/<%= EZBake::Config[:project] %>
+User=$USER
+
+ExecStart=/usr/bin/java $JAVA_ARGS \
+          -cp "${INSTALL_DIR}/<%= EZBake::Config[:project] %>.jar" clojure.main \
+          -m puppetlabs.trapperkeeper.main --config "${CONFIG}" $@
+
+ExecStop=/bin/kill $MAINPID
+
+StandardOutput=syslog
+
+[Install]
+WantedBy=multi-user.target
