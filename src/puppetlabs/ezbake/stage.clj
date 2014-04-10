@@ -340,6 +340,23 @@ Bundled packages: %s
                               (deputils/generate-manifest-string lein-project))
        :uberjar-name  (:uberjar-name lein-project)})))
 
+(defn stage-all-the-things
+  [build-target project template-dir project-file]
+  (clean)
+    (cp-template-files template-dir)
+    (let [lein-project (project/read project-file)
+          config-files (cp-shared-config-files lein-project)
+          config-files (cp-project-config-files project config-files)]
+      (cp-doc-files lein-project)
+      (cp-project-file project-file)
+      (rename-redhat-spec-file lein-project)
+      (rename-debian-init-file lein-project)
+      (rename-debian-default-file lein-project)
+      (generate-ezbake-config-file lein-project build-target config-files)
+      (generate-project-data-yaml lein-project)
+      (generate-manifest-file lein-project)
+      (create-git-repo lein-project)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Main
 
@@ -353,20 +370,7 @@ Bundled packages: %s
         template-dir (fs/file template-dir-prefix build-target)
         project-file (.toString (fs/file "./configs" project (str project ".clj")))]
     (try
-      (clean)
-      (cp-template-files template-dir)
-      (let [lein-project (project/read project-file)
-            config-files (cp-shared-config-files lein-project)
-            config-files (cp-project-config-files project config-files)]
-        (cp-doc-files lein-project)
-        (cp-project-file project-file)
-        (rename-redhat-spec-file lein-project)
-        (rename-debian-init-file lein-project)
-        (rename-debian-default-file lein-project)
-        (generate-ezbake-config-file lein-project build-target config-files)
-        (generate-project-data-yaml lein-project)
-        (generate-manifest-file lein-project)
-        (create-git-repo lein-project))
+      (stage-all-the-things build-target project template-dir project-file)
       (finally
         ;; this is required in order to make the threads started by sh/sh terminate,
         ;; and thus allow the jvm to exit
