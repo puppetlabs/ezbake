@@ -13,7 +13,6 @@
 # These macros are not always defined on much older rpm-based systems
 %global  _sharedstatedir /var/lib
 %global  _realsysconfdir /etc
-%global  _initddir       %{_realsysconfdir}/rc.d/init.d
 %global  _rundir         /var/run
 
 %define __jar_repack     0
@@ -60,7 +59,11 @@ Requires:      <%= dep %>
 
 rm -rf $RPM_BUILD_ROOT
 
-env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} initdir=%{_initddir} make -e install-<%= EZBake::Config[:project] %>
+env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} make -e install-<%= EZBake::Config[:project] %>
+install -d -m 0755 %{buildroot}%{_initrddir}
+install -d -m 0755 %{buildroot}%{_sysconfdir}/sysconfig
+install -m 0755 ext/redhat/init %{buildroot}%{_initrddir}/<%= EZBake::Config[:project] %>
+install -m 0755 ext/default %{buildroot}%{_sysconfdir}/sysconfig/<%= EZBake::Config[:project] %>
 #env DESTDIR=%{buildroot} prefix=%{_prefix} make -e install-terminus
 
 %clean
@@ -132,10 +135,10 @@ fi
 %doc ext/docs
 <% end %>
 %{_datadir}/%{realname}
-%{_initddir}/%{name}
+%{_initrddir}/%{name}
 %config(noreplace) %{_sysconfdir}/%{name}
 %{_sysconfdir}/sysconfig/%{name}
-%ghost %{_rundir}/%{name}
+%ghost %attr(0755, root, root) %{_rundir}/%{name}
 
 #%files terminus
 #%defattr(-, root, root)
