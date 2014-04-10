@@ -130,6 +130,19 @@ Bundled packages: %s
   (fs/rename (fs/file staging-dir "ext" "redhat" "ezbake.spec.erb")
              (fs/file staging-dir "ext" "redhat" (format "%s.spec.erb"
                                                          (:name lein-project)))))
+(defn rename-debian-init-file
+  "things."
+  [lein-project]
+  (fs/rename (fs/file staging-dir "ext" "debian" "ezbake.init.erb")
+             (fs/file staging-dir "ext" "debian" (format "%s.init.erb"
+                                                         (:name lein-project)))))
+
+(defn rename-debian-default-file
+  "things."
+  [lein-project]
+  (fs/rename (fs/file staging-dir "ext" "debian" "ezbake.default.erb")
+             (fs/file staging-dir "ext" "debian" (format "%s.default.erb"
+                                                         (:name lein-project)))))
 
 (defn get-out-dir-for-shared-config-file
   [dep jar-entry]
@@ -348,6 +361,8 @@ Bundled packages: %s
         (cp-doc-files lein-project)
         (cp-project-file project-file)
         (rename-redhat-spec-file lein-project)
+        (rename-debian-init-file lein-project)
+        (rename-debian-default-file lein-project)
         (generate-ezbake-config-file lein-project build-target config-files)
         (generate-project-data-yaml lein-project)
         (generate-manifest-file lein-project)
