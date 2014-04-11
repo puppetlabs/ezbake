@@ -74,14 +74,14 @@ Requires:         <%= dep %>
 rm -rf $RPM_BUILD_ROOT
 
 env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> make -e install-<%= EZBake::Config[:project] %>
-install -d -m 0755 %{buildroot}%{_initrddir}
-install -d -m 0755 %{buildroot}%{_sysconfdir}/sysconfig
 %if %{_with_systemd}
 install -d -m0755 %{buildroot}%{_unitdir}
 install -m 0644 ext/redhat/<%= EZBake::Config[:project] %>.service %{buildroot}%{_unitdir}/<%= EZBake::Config[:project] %>.service
 %else
+install -d -m 0755 %{buildroot}%{_initrddir}
 install -m 0755 ext/redhat/init %{buildroot}%{_initrddir}/<%= EZBake::Config[:project] %>
 %endif
+install -d -m 0755 %{buildroot}%{_sysconfdir}/sysconfig
 install -m 0755 ext/default %{buildroot}%{_sysconfdir}/sysconfig/<%= EZBake::Config[:project] %>
 #env DESTDIR=%{buildroot} prefix=%{_prefix} make -e install-terminus
 
