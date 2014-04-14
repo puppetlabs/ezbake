@@ -15,8 +15,7 @@
 # Description:       Start <%= EZBake::Config[:project] %> daemon placed in /etc/init.d.
 ### END INIT INFO
 
-# Author:  Michael Stahnke <stahnma@puppetlabs.com>
-# Copyright 2012 Puppet Labs
+# Copyright 2014 Puppet Labs
 
 # Source function library.
 . /etc/rc.d/init.d/functions
@@ -108,17 +107,21 @@ case "$1" in
         $1
         ;;
     stop)
-        #rh_status_q || exit 0
+        rh_status_q || exit 0
         $1
         ;;
     restart)
         $1
         ;;
+    condrestart|try-restart)
+        rh_status_q || exit 0
+        restart
+        ;;
     status)
         rh_status
         ;;
     *)
-        echo $"Usage: $0 {start|stop|status|restart}"
+        echo $"Usage: $0 {start|stop|restart|condrestart|try-restart|status}"
         exit 2
 esac
 exit $?

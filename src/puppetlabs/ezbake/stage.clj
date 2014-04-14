@@ -122,6 +122,7 @@ Bundled packages: %s
             (:version lein-project)
             (deputils/generate-manifest-string lein-project))))
 
+;; TODO: The following four functions will not be needed if RE-1533 is resolved
 (defn rename-redhat-spec-file
   "The packaging framework expects for the redhat spec file to be
   named `<project-name>.spec`, but we have the file on disk as `ezbake.spec`, so
@@ -129,6 +130,35 @@ Bundled packages: %s
   [lein-project]
   (fs/rename (fs/file staging-dir "ext" "redhat" "ezbake.spec.erb")
              (fs/file staging-dir "ext" "redhat" (format "%s.spec.erb"
+                                                         (:name lein-project)))))
+
+(defn rename-redhat-systemd-file
+  "The redhat packaging expects for the redhat spec file to be
+  named `<project-name>.spec`, but we have the file on disk as `ezbake.spec`, so
+  we need to rename it after it's been copied to the staging dir."
+  [lein-project]
+  (fs/rename (fs/file staging-dir "ext" "redhat" "ezbake.service.erb")
+             (fs/file staging-dir "ext" "redhat" (format "%s.service.erb"
+                                                         (:name lein-project)))))
+
+(defn rename-debian-init-file
+  "In order for debian to automatically populate the correct pre and post
+  scripts for service startup, it expects to find a file named
+  `<project-name>.init` to install as the init script. This function renames
+  ezbake.init.erb to match that convention."
+  [lein-project]
+  (fs/rename (fs/file staging-dir "ext" "debian" "ezbake.init.erb")
+             (fs/file staging-dir "ext" "debian" (format "%s.init.erb"
+                                                         (:name lein-project)))))
+
+(defn rename-debian-default-file
+  "In order for debian to automatically populate the correct pre and post
+  scripts for service startup, it expects to find a file named
+  `<project-name>.default` to install as the defaults file. This function
+  renames ezbake.default.erb to match that convention."
+  [lein-project]
+  (fs/rename (fs/file staging-dir "ext" "debian" "ezbake.default.erb")
+             (fs/file staging-dir "ext" "debian" (format "%s.default.erb"
                                                          (:name lein-project)))))
 
 (defn get-out-dir-for-shared-config-file
@@ -327,6 +357,24 @@ Bundled packages: %s
                               (deputils/generate-manifest-string lein-project))
        :uberjar-name  (:uberjar-name lein-project)})))
 
+(defn stage-all-the-things
+  [build-target project template-dir project-file]
+  (clean)
+  (cp-template-files template-dir)
+  (let [lein-project (project/read project-file)
+        config-files (cp-shared-config-files lein-project)
+        config-files (cp-project-config-files project config-files)]
+    (cp-doc-files lein-project)
+    (cp-project-file project-file)
+    (rename-redhat-spec-file lein-project)
+    (rename-redhat-systemd-file lein-project)
+    (rename-debian-init-file lein-project)
+    (rename-debian-default-file lein-project)
+    (generate-ezbake-config-file lein-project build-target config-files)
+    (generate-project-data-yaml lein-project)
+    (generate-manifest-file lein-project)
+    (create-git-repo lein-project)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Main
 
@@ -336,22 +384,10 @@ Bundled packages: %s
   ;; just jvm-puppet, and choose between foss and pe templates
   (let [build-target "foss"
         project      "jvm-puppet"
-
         template-dir (fs/file template-dir-prefix build-target)
         project-file (.toString (fs/file "./configs" project (str project ".clj")))]
     (try
-      (clean)
-      (cp-template-files template-dir)
-      (let [lein-project (project/read project-file)
-            config-files (cp-shared-config-files lein-project)
-            config-files (cp-project-config-files project config-files)]
-        (cp-doc-files lein-project)
-        (cp-project-file project-file)
-        (rename-redhat-spec-file lein-project)
-        (generate-ezbake-config-file lein-project build-target config-files)
-        (generate-project-data-yaml lein-project)
-        (generate-manifest-file lein-project)
-        (create-git-repo lein-project))
+      (stage-all-the-things build-target project template-dir project-file)
       (finally
         ;; this is required in order to make the threads started by sh/sh terminate,
         ;; and thus allow the jvm to exit

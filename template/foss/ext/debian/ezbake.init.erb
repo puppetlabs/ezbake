@@ -9,9 +9,7 @@
 # Description:       Start <%= EZBake::Config[:project] %> daemon placed in /etc/init.d.
 ### END INIT INFO
 
-# Author: Ben Hughes <ben@puppetlabs.com>
-#         Michael Stahnke <stahnma@puppetlabs.com>
-# Copyright 2012 Puppet Labs
+# Copyright 2014 Puppet Labs
 
 
 # You should only need to edit the default/<%= EZBake::Config[:project] %> file and not
@@ -32,6 +30,7 @@ SCRIPTNAME=/etc/init.d/$NAME
 
 JAVA_ARGS="${JAVA_ARGS} -jar ${INSTALL_DIR}/${JARFILE} --config ${CONFIG} --bootstrap-config ${BOOTSTRAP_CONFIG}"
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"
+EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" $JAVA_ARGS"
 
 # Exit if the package is not installed
 [ -x "$JAVA_BIN" ] || exit 0
@@ -49,20 +48,11 @@ EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 #
 do_start()
 {
-    # We need to do something with the log file...
+    mkdir -p /var/log/<%= EZBake::Config[:project] %>
+    chown -R $USER /var/log/<%= EZBake::Config[:project] %>
 
-    # Return
-    #   0 if daemon has been started
-    #   1 if daemon was already running
-    #   2 if daemon could not be started
-    start-stop-daemon --start $EXTRA_ARGS --quiet --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN --test > /dev/null \
-        || return 1
-    start-stop-daemon --start $EXTRA_ARGS --quiet --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN -- \
-        -XX:OnOutOfMemoryError="kill -9 %p" $JAVA_ARGS \
-        || return 2
-    # Add code here, if necessary, that waits for the process to be ready
-    # to handle requests from services started subsequently which depend
-    # on this one.  As a last resort, sleep for some time.
+    start-stop-daemon --start $EXTRA_ARGS --quiet --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
+        --startas /bin/bash -- -c "exec $EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1"
 }
 
 #
@@ -84,16 +74,44 @@ do_stop()
 }
 
 #
-# Function that sends a SIGHUP to the daemon/service
+# Function that gets the status of the daemon/service
 #
-do_reload() {
-    #
-    # If the daemon can reload its configuration without
-    # restarting (for example, when it is sent a SIGHUP),
-    # then implement that here.
-    #
-    start-stop-daemon --stop --signal 1 --quiet --pidfile $PIDFILE --name $NAME
-    return 0
+get_status()
+{
+    status_of_proc -p $PIDFILE "$JAVA_BIN" "$NAME"
+    return $?
+}
+
+#
+# Function that gets the status of the daemon/service
+# and makes no output
+#
+get_status_q()
+{
+    get_status >/dev/null 2>&1
+}
+
+
+#
+# Function that restarts the daemon/service
+#
+do_restart()
+{
+    do_stop
+    case "$?" in
+      0|1)
+        do_start
+        case "$?" in
+            0) log_end_msg 0 ;;
+            1) log_end_msg 1 ;; # Old process is still running
+            *) log_end_msg 1 ;; # Failed to start
+        esac
+        ;;
+      *)
+        # Failed to stop
+        log_end_msg 1
+        ;;
+    esac
 }
 
 case "$1" in
@@ -114,41 +132,23 @@ case "$1" in
     esac
     ;;
   status)
-       status_of_proc -p $PIDFILE "$JAVA_BIN" "$NAME" && exit 0 || exit $?
-       ;;
-  #reload|force-reload)
-    #
-    # If do_reload() is not implemented then leave this commented out
-    # and leave 'force-reload' as an alias for 'restart'.
-    #
-    #log_daemon_msg "Reloading $DESC" "$NAME"
-    #do_reload
-    #log_end_msg $?
-    #;;
+    get_status
+    exit $?
+    ;;
+  condrestart|try-restart)
+    get_status_q || exit 0
+    do_restart
+    ;;
   restart|force-reload)
     #
     # If the "reload" option is implemented then remove the
     # 'force-reload' alias
     #
-    log_daemon_msg "Restarting $DESC" "$NAME"
-    do_stop
-    case "$?" in
-      0|1)
-        do_start
-        case "$?" in
-            0) log_end_msg 0 ;;
-            1) log_end_msg 1 ;; # Old process is still running
-            *) log_end_msg 1 ;; # Failed to start
-        esac
-        ;;
-      *)
-        # Failed to stop
-        log_end_msg 1
-        ;;
-    esac
+    [ "$VERBOSE" != no ] && log_daemon_msg "Restarting $DESC" "$NAME"
+    do_restart
     ;;
   *)
-    echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
+    echo "Usage: $SCRIPTNAME {start|stop|status|condrestart|try-restart|restart|force-reload}" >&2
     exit 3
     ;;
 esac

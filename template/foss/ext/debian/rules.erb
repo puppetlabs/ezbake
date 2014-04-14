@@ -3,13 +3,11 @@
 include /usr/share/cdbs/1/rules/debhelper.mk
 
 BUILD_ROOT=$(CURDIR)/debian/$(cdbs_curpkg)
-rubylibdir=/usr/lib/ruby/vendor_ruby
+rubylibdir=$(shell ruby -rrbconfig -e "puts RbConfig::CONFIG['vendordir']")
 
-DESTDIR=$(BUILD_ROOT)
-prefix=/usr
-export DESTDIR
+export DESTDIR=$(BUILD_ROOT)
+export prefix=/usr
 export rubylibdir
-export prefix
 
 install/<%= EZBake::Config[:project] %>::
 	echo "PATH IS: ${PATH}"

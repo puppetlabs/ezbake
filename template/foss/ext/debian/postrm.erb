@@ -2,14 +2,10 @@
 
 case "$1" in
     purge)
-        rm -rf /usr/share/<%= EZBake::Config[:project] %>
-
         # Remove <%= EZBake::Config[:project] %> log files
         rm -rf /var/log/<%= EZBake::Config[:project] %>
         ;;
     remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-
-
         ;;
 
     *)

@@ -1,18 +1,8 @@
 prefix = /usr/local
 datadir = $(prefix)/share
 confdir = /etc
-initdir = $(confdir)/init.d
 rubylibdir = $(shell ruby -rrbconfig -e "puts RbConfig::CONFIG['sitelibdir']")
 rundir = /var/run
-
-ifeq ($(wildcard /etc/redhat-release),/etc/redhat-release)
-	defaultsdir = $(confdir)/sysconfig
-	initsrc = ext/redhat/init
-	rundir = /var/run/<%= EZBake::Config[:project] %>
-else
-	defaultsdir = $(confdir)/default
-	initsrc = ext/debian/ezbake.init
-endif
 
 <%= EZBake::Config[:uberjar_name] %>:
 	lein uberjar
@@ -26,10 +16,6 @@ install-<%= EZBake::Config[:project] %>: <%= EZBake::Config[:uberjar_name] %>
 <% EZBake::Config[:config_files].each do |config_file| -%>
 	install -m 0644 <%= config_file %> "$(DESTDIR)$(confdir)/<%= EZBake::Config[:project] %>/<%= config_file.sub(/^ext\/config\//, "") %>"
 <% end -%>
-	install -d -m 0755 "$(DESTDIR)$(defaultsdir)"
-	install -m 0644 ext/default "$(DESTDIR)$(defaultsdir)/<%= EZBake::Config[:project] %>"
-	install -d -m 0755 "$(DESTDIR)$(initdir)"
-	install -m 0755 $(initsrc) "$(DESTDIR)$(initdir)/<%= EZBake::Config[:project] %>"
 	install -d -m 0755 "$(DESTDIR)$(rundir)"
 
 #install-terminus:
