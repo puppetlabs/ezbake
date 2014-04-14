@@ -1,0 +1,23 @@
+prefix = /usr/local
+datadir = $(prefix)/share
+confdir = /etc
+rubylibdir = $(shell ruby -rrbconfig -e "puts RbConfig::CONFIG['sitelibdir']")
+rundir = /var/run
+
+<%= EZBake::Config[:uberjar_name] %>:
+	lein uberjar
+	mv target/<%= EZBake::Config[:uberjar_name] %> <%= EZBake::Config[:uberjar_name] %>
+
+install-<%= EZBake::Config[:project] %>: <%= EZBake::Config[:uberjar_name] %>
+	install -d -m 0755 "$(DESTDIR)$(datadir)/<%= EZBake::Config[:project] %>"
+	install -m 0644 <%= EZBake::Config[:uberjar_name] %> "$(DESTDIR)$(datadir)/<%= EZBake::Config[:project] %>"
+	install -m 0644 ext/ezbake.manifest "$(DESTDIR)$(datadir)/<%= EZBake::Config[:project] %>"
+	install -d -m 0755 "$(DESTDIR)$(confdir)/<%= EZBake::Config[:project] %>/conf.d"
+<% EZBake::Config[:config_files].each do |config_file| -%>
+	install -m 0644 <%= config_file %> "$(DESTDIR)$(confdir)/<%= EZBake::Config[:project] %>/<%= config_file.sub(/^ext\/config\//, "") %>"
+<% end -%>
+	install -d -m 0755 "$(DESTDIR)$(rundir)"
+
+#install-terminus:
+#    install -d -m 0755 "$(DESTDIR)$(rubylibdir)/puppet/indirector/node"
+#    install -m 0644 puppet/lib/puppet/indirector/node/<%= EZBake::Config[:project] %>.rb "$(DESTDIR)$(rubylibdir)/puppet/indirector/node/<%= EZBake::Config[:project] %>.rb"

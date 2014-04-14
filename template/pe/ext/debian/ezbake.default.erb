@@ -1,0 +1,15 @@
+###########################################
+# Init settings for <%= EZBake::Config[:project] %>
+###########################################
+
+# Location of your Java binary (version 7 or higher)
+JAVA_BIN="/opt/puppet/bin/java"
+
+# Modify this if you'd like to change the memory allocation, enable JMX, etc
+JAVA_ARGS="-Xmx192m "
+
+# These normally shouldn't need to be edited if using OS packages
+USER="<%= EZBake::Config[:user] %>"
+INSTALL_DIR="/opt/puppet/share/<%= EZBake::Config[:project] %>"
+CONFIG="/etc/puppetlabs/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>.conf"
+BOOTSTRAP_CONFIG="/etc/puppetlabs/<%= EZBake::Config[:project] %>/bootstrap.cfg"

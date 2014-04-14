@@ -1,0 +1,156 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          <%= EZBake::Config[:project] %>
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: <%= EZBake::Config[:project] %>
+# Description:       Start <%= EZBake::Config[:project] %> daemon placed in /etc/init.d.
+### END INIT INFO
+
+# Copyright 2014 Puppet Labs
+
+
+# You should only need to edit the default/<%= EZBake::Config[:project] %> file and not
+#   this init script directly
+if [ -r "/etc/default/<%= EZBake::Config[:project] %>" ] ; then
+  . /etc/default/<%= EZBake::Config[:project] %>
+else
+  exit 1
+fi
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+NAME=<%= EZBake::Config[:project] %>
+DESC="<%= EZBake::Config[:project] %> Puppet Labs version-checking backend"
+JARFILE="<%= EZBake::Config[:uberjar_name] %>"
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+
+JAVA_ARGS="${JAVA_ARGS} -jar ${INSTALL_DIR}/${JARFILE} --config ${CONFIG} --bootstrap-config ${BOOTSTRAP_CONFIG}"
+EXTRA_ARGS="--chuid $USER --background --make-pidfile"
+EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" $JAVA_ARGS"
+
+# Exit if the package is not installed
+[ -x "$JAVA_BIN" ] || exit 0
+
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.2-14) to ensure that this file is present
+# and status_of_proc is working.
+. /lib/lsb/init-functions
+
+#
+# Function that starts the daemon/service
+#
+do_start()
+{
+    mkdir -p /var/log/<%= EZBake::Config[:project] %>
+    chown -R $USER /var/log/<%= EZBake::Config[:project] %>
+
+    start-stop-daemon --start $EXTRA_ARGS --quiet --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
+        --startas /bin/bash -- -c "exec $EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1"
+}
+
+#
+# Function that stops the daemon/service
+#
+do_stop()
+{
+    # Return
+    #   0 if daemon has been stopped
+    #   1 if daemon was already stopped
+    #   2 if daemon could not be stopped
+    #   other if a failure occurred
+    start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --exec $JAVA_BIN
+    RETVAL="$?"
+    [ "$RETVAL" = 2 ] && return 2
+    # Many daemons don't delete their pidfiles when they exit.
+    rm -f $PIDFILE
+    return "$RETVAL"
+}
+
+#
+# Function that gets the status of the daemon/service
+#
+get_status()
+{
+    status_of_proc -p $PIDFILE "$JAVA_BIN" "$NAME"
+    return $?
+}
+
+#
+# Function that gets the status of the daemon/service
+# and makes no output
+#
+get_status_q()
+{
+    get_status >/dev/null 2>&1
+}
+
+
+#
+# Function that restarts the daemon/service
+#
+do_restart()
+{
+    do_stop
+    case "$?" in
+      0|1)
+        do_start
+        case "$?" in
+            0) log_end_msg 0 ;;
+            1) log_end_msg 1 ;; # Old process is still running
+            *) log_end_msg 1 ;; # Failed to start
+        esac
+        ;;
+      *)
+        # Failed to stop
+        log_end_msg 1
+        ;;
+    esac
+}
+
+case "$1" in
+  start)
+    [ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
+    do_start
+    case "$?" in
+        0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+        2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+    esac
+    ;;
+  stop)
+    [ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
+    do_stop
+    case "$?" in
+        0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+        2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+    esac
+    ;;
+  status)
+    get_status
+    exit $?
+    ;;
+  condrestart|try-restart)
+    get_status_q || exit 0
+    do_restart
+    ;;
+  restart|force-reload)
+    #
+    # If the "reload" option is implemented then remove the
+    # 'force-reload' alias
+    #
+    [ "$VERBOSE" != no ] && log_daemon_msg "Restarting $DESC" "$NAME"
+    do_restart
+    ;;
+  *)
+    echo "Usage: $SCRIPTNAME {start|stop|status|condrestart|try-restart|restart|force-reload}" >&2
+    exit 3
+    ;;
+esac
+
+:

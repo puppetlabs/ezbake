@@ -1,0 +1,23 @@
+#!/bin/sh
+
+if [ "$1" = install ] || [ "$1" = upgrade ]; then
+ # Create the "<%= EZBake::Config[:user] %>" user
+    if ! getent passwd <%= EZBake::Config[:user] %>  > /dev/null; then
+        adduser --quiet --system --group --home /opt/puppet/share/<%= EZBake::Config[:project] %>  \
+            --no-create-home                                 \
+            --gecos "<%= EZBake::Config[:project] %>" \
+            <%= EZBake::Config[:user] %>
+    fi
+
+    # Create the "<%= EZBake::Config[:group] %>" group, if it is missing, and set the
+    # primary group of the "<%= EZBake::Config[:user] %>" user to this group.
+    if ! getent group <%= EZBake::Config[:group] %> > /dev/null; then
+         addgroup --quiet --system <%= EZBake::Config[:group] %>
+         usermod -g <%= EZBake::Config[:group] %> <%= EZBake::Config[:user] %>
+    fi
+
+<% EZBake::Config[:debian][:additional_preinst].each do |cmd| -%>
+    <%= cmd %>
+<% end -%>
+
+fi
