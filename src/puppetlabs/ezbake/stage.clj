@@ -364,7 +364,10 @@ Bundled packages: %s
        :description   (format "%s (%s)"
                               (:description lein-project)
                               (deputils/generate-manifest-string lein-project))
-       :uberjar-name  (:uberjar-name lein-project)})))
+       :uberjar-name  (:uberjar-name lein-project)
+       :is-pe-build   (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"
+                                      ))
+       })))
 
 (defn stage-all-the-things
   [build-target project template-dir project-file]
