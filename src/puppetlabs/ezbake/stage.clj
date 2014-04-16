@@ -41,7 +41,7 @@
 
 (defn files-from-dir-iter
   "Given an individual entry from a `fs/iterate-dir` result set, return a flat
-  list of File objects for all of the files reference in the entry."
+  list of File objects for all of the files referenced in the entry."
   [iter-entry]
   {:pre [(vector? iter-entry)
          (= 3 (count iter-entry))]
