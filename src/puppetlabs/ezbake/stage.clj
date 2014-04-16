@@ -367,31 +367,28 @@ Bundled packages: %s
                               (:description lein-project)
                               (deputils/generate-manifest-string lein-project))
        :uberjar-name  (:uberjar-name lein-project)
-       :is-pe-build   (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"
-                                      ))
-       })))
+       :is-pe-build   (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))})))
 
 (defn stage-all-the-things
   [project project-file]
   (let [lein-project (project/read project-file)
         build-target (get-local-ezbake-var lein-project :build-type "foss")
-        template-dir (fs/file template-dir-prefix build-target)
-        ]
-  (clean)
-  (cp-template-files template-dir)
-  (cp-shared-files)
-  (let [config-files (cp-shared-config-files lein-project)
-        config-files (cp-project-config-files project config-files)]
-    (cp-doc-files lein-project)
-    (cp-project-file project-file)
-    (rename-redhat-spec-file lein-project)
-    (rename-redhat-systemd-file lein-project)
-    (rename-debian-init-file lein-project)
-    (rename-debian-default-file lein-project)
-    (generate-ezbake-config-file lein-project build-target config-files)
-    (generate-project-data-yaml lein-project build-target)
-    (generate-manifest-file lein-project)
-    (create-git-repo lein-project))))
+        template-dir (fs/file template-dir-prefix build-target)]
+    (clean)
+    (cp-template-files template-dir)
+    (cp-shared-files)
+    (let [config-files (cp-shared-config-files lein-project)
+          config-files (cp-project-config-files project config-files)]
+      (cp-doc-files lein-project)
+      (cp-project-file project-file)
+      (rename-redhat-spec-file lein-project)
+      (rename-redhat-systemd-file lein-project)
+      (rename-debian-init-file lein-project)
+      (rename-debian-default-file lein-project)
+      (generate-ezbake-config-file lein-project build-target config-files)
+      (generate-project-data-yaml lein-project build-target)
+      (generate-manifest-file lein-project)
+      (create-git-repo lein-project))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Main
