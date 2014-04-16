@@ -100,6 +100,15 @@
   (println "copying template files from" (.toString template-dir) "to" staging-dir)
   (fs/copy-dir template-dir staging-dir))
 
+(defn cp-shared-files
+  []
+  (let [template-dir (fs/file template-dir-prefix "global")]
+    (println "copying template files from" (.toString template-dir) "to" staging-dir)
+    (doseq [f (fs/glob (fs/file template-dir) "*")]
+      (if (fs/directory? f)
+        (fs/copy-dir f staging-dir)
+        (fs/copy+ f (format "%s/%s" staging-dir (fs/base-name f)))))))
+
 (defn cp-project-file
   [project-file]
   (println "copying ezbake lein packaging project file" project-file)
@@ -361,6 +370,7 @@ Bundled packages: %s
   [build-target project template-dir project-file]
   (clean)
   (cp-template-files template-dir)
+  (cp-shared-files)
   (let [lein-project (project/read project-file)
         config-files (cp-shared-config-files lein-project)
         config-files (cp-project-config-files project config-files)]
