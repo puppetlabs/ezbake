@@ -232,8 +232,8 @@ Bundled packages: %s
 (defn get-local-ezbake-var
   "Get the value of a variable from the local ezbake config (inside of the
   ezbake lein project file."
-  [lein-project build-target key default]
-  (get-in lein-project [:ezbake (keyword build-target) key]
+  [lein-project key default]
+  (get-in lein-project [:ezbake key]
           default))
 
 (defn get-ezbake-vars
@@ -241,7 +241,7 @@ Bundled packages: %s
   ;; This function should build up a map of variables that are allowed to
   ;; be interpolated into an upstream ezbake config file.  For now, the only one
   ;; we've had a need for is :user.
-  {:user (get-local-ezbake-var lein-project build-target :user (:name lein-project))})
+  {:user (get-local-ezbake-var lein-project :user (:name lein-project))})
 
 (defn interpolate-ezbake-config
   [ezbake-vars s]
@@ -341,9 +341,9 @@ Bundled packages: %s
       (stencil/render-string
         (slurp "./staging-templates/ezbake.rb.mustache")
         {:project         (:name lein-project)
-         :user            (get-local-ezbake-var lein-project build-target :user
+         :user            (get-local-ezbake-var lein-project :user
                                                 (:name lein-project))
-         :group           (get-local-ezbake-var lein-project build-target :group
+         :group           (get-local-ezbake-var lein-project :group
                                                 (:name lein-project))
          :uberjar-name    (:uberjar-name lein-project)
          :config-files    (quoted-list config-files)
@@ -353,7 +353,7 @@ Bundled packages: %s
          :redhat-preinst  (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :redhat))}))))
 
 (defn generate-project-data-yaml
-  [lein-project]
+  [lein-project build-target]
   (println "generating project_data.yaml file")
   (spit
     (fs/file staging-dir "ext" "project_data.yaml")
@@ -370,12 +370,15 @@ Bundled packages: %s
        })))
 
 (defn stage-all-the-things
-  [build-target project template-dir project-file]
+  [project project-file]
+  (let [lein-project (project/read project-file)
+        build-target (get-local-ezbake-var lein-project :build-type "foss")
+        template-dir (fs/file template-dir-prefix build-target)
+        ]
   (clean)
   (cp-template-files template-dir)
   (cp-shared-files)
-  (let [lein-project (project/read project-file)
-        config-files (cp-shared-config-files lein-project)
+  (let [config-files (cp-shared-config-files lein-project)
         config-files (cp-project-config-files project config-files)]
     (cp-doc-files lein-project)
     (cp-project-file project-file)
@@ -384,24 +387,21 @@ Bundled packages: %s
     (rename-debian-init-file lein-project)
     (rename-debian-default-file lein-project)
     (generate-ezbake-config-file lein-project build-target config-files)
-    (generate-project-data-yaml lein-project)
+    (generate-project-data-yaml lein-project build-target)
     (generate-manifest-file lein-project)
-    (create-git-repo lein-project)))
+    (create-git-repo lein-project))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Main
 
 (defn -main
   [& args]
-  ;; TODO: these will be configurable and allow us to build other projects besides
-  ;; just jvm-puppet, and choose between foss and pe templates
-  (let [build-target "foss"
-        project      "jvm-puppet"
-        template-dir (fs/file template-dir-prefix build-target)
-        project-file (.toString (fs/file "./configs" project (str project ".clj")))]
-    (try
-      (stage-all-the-things build-target project template-dir project-file)
-      (finally
-        ;; this is required in order to make the threads started by sh/sh terminate,
-        ;; and thus allow the jvm to exit
-        (shutdown-agents)))))
+  (if-let [project      (first args)]
+    (let [project-file (.toString (fs/file "./configs" project (str project ".clj")))]
+      (try
+        (stage-all-the-things project project-file)
+        (finally
+          ;; this is required in order to make the threads started by sh/sh terminate,
+          ;; and thus allow the jvm to exit
+          (shutdown-agents))))
+    (println "EZBake requires 1 argument, the project to build" "\nreceived:" args)))
