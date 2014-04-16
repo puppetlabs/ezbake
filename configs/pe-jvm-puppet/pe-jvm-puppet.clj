@@ -1,5 +1,5 @@
-(defproject puppetlabs.packages/jvm-puppet "0.1.1-SNAPSHOT"
-  :description "Release artifacts for jvm-puppet"
+(defproject puppetlabs.packages/pe-jvm-puppet "0.1.1-SNAPSHOT"
+  :description "Release artifacts for pe-jvm-puppet"
   :pedantic? :warn
   :dependencies [[puppetlabs/jvm-puppet "0.1.0"]
                  [puppetlabs/trapperkeeper-webserver-jetty9 "0.3.4"]]
@@ -10,8 +10,8 @@
                  ["snapshots" "http://nexus.delivery.puppetlabs.net/content/repositories/snapshots/"]]
   :main puppetlabs.trapperkeeper.main
 
-  :ezbake { :user "puppet"
-            :group "puppet"
-            :build-type "foss"
+  :ezbake { :user "pe-puppet"
+            :group "pe-puppet"
+            :build-type "pe"
             }
   )

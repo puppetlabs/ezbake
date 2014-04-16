@@ -1,0 +1,179 @@
+%global realname <%= EZBake::Config[:project] %>
+%global realversion <%= @version %>
+%global rpmversion <%= @rpmversion %>
+
+%global puppet_libdir     %(/opt/puppet/bin/ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
+
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
+%global _with_systemd 1
+%else
+%global _with_systemd 0
+%endif
+
+%if 0%{?p_vendor:1}
+     %global name_prefix %{p_vendor}-
+
+     # Grab the "real" directories so we can reference the system's files.
+     %{!?_real_prefix:          %global _real_prefix          %{_prefix}}
+     %{!?_real_initrddir:       %global _real_initrddir       %{_initrddir}}
+     %{!?_real_libdir:          %global _real_libdir          %{_libdir}}
+     %{!?_real_sbindir:         %global _real_sbindir         %{_sbindir}}
+     %{!?_real_sysconfdir:      %global _real_sysconfdir      %{_sysconfdir}}
+     %{!?_real_datadir:         %global _real_datadir         %{_datadir}}
+     %{!?_real_sharedstatedir:  %global _real_sharedstatedir  %{_sharedstatedir}}
+     %{!?_real_bindir:          %global _real_bindir          %{_bindir}}
+     # Use the alternate locations for things.
+     %global _initrddir       %{_real_initrddir}
+     %define _lib             lib
+     %global _sysconfdir      %{_real_sysconfdir}/puppetlabs
+     %global _prefix          /opt/puppet
+     %global _datadir         %{_prefix}/share
+     %global _mandir          %{_datadir}/man
+     %global _libdir          %{_prefix}/lib
+     %global _sharedstatedir  %{_prefix}/var/lib
+     %global _bindir          %{_prefix}/bin
+%endif
+
+# These macros are not always defined on much older rpm-based systems
+%global  _rundir         /var/run
+
+%define __jar_repack     0
+
+Name:             <%= EZBake::Config[:project] %>
+Version:          <%= @rpmversion %>
+Release:          <%= @rpmrelease %>%{?dist}
+BuildRoot:        %{_tmppath}/%{realname}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+Summary:          Puppet Labs - <%= EZBake::Config[:project] %>
+License:          ASL 2.0
+
+URL:              http://github.com/puppetlabs/ezbake
+Source0:          <%= EZBake::Config[:project] %>-<%= @rpmversion %>.tar.gz
+
+Group:            System Environment/Daemons
+BuildArch:        noarch
+
+BuildRequires:    pe-ruby
+BuildRequires:    /usr/sbin/useradd
+%if %{_with_systemd}
+Requires(post):   systemd
+Requires(preun):  systemd
+Requires(postun): systemd
+BuildRequires:    systemd
+%else
+Requires:         chkconfig
+%endif
+
+Requires:         pe-java
+<% EZBake::Config[:redhat][:additional_dependencies].each do |dep| %>
+Requires:         <%= dep %>
+<% end %>
+
+%description
+<%= Pkg::Config.config[:description] -%>
+
+#%package terminus
+#Summary: Puppet terminus files to connect to PuppetDB
+#Group: Development/Libraries
+#Requires: puppet >= 3.3
+
+#%description terminus
+#A Puppet Node Terminus for the classifier
+
+%prep
+%setup -q -n %{realname}-%{realversion}
+
+%build
+
+%install
+
+rm -rf $RPM_BUILD_ROOT
+
+env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> make -e install-<%= EZBake::Config[:project] %>
+%if %{_with_systemd}
+install -d -m0755 %{buildroot}%{_unitdir}
+install -m 0644 ext/redhat/<%= EZBake::Config[:project] %>.service %{buildroot}%{_unitdir}/<%= EZBake::Config[:project] %>.service
+%else
+install -d -m 0755 %{buildroot}%{_initrddir}
+install -m 0755 ext/redhat/init %{buildroot}%{_initrddir}/<%= EZBake::Config[:project] %>
+%endif
+install -d -m 0755 %{buildroot}%{_sysconfdir}/sysconfig
+install -m 0755 ext/default %{buildroot}%{_sysconfdir}/sysconfig/<%= EZBake::Config[:project] %>
+#env DESTDIR=%{buildroot} prefix=%{_prefix} make -e install-terminus
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%pre
+# Add <%= EZBake::Config[:group] %> group
+getent group <%= EZBake::Config[:group] %> > /dev/null || \
+  groupadd -r <%= EZBake::Config[:group] %> || :
+# Add <%= EZBake::Config[:user] %> user
+getent passwd <%= EZBake::Config[:user] %> > /dev/null || \
+  useradd -r -g <%= EZBake::Config[:group] %> -d %{_datadir}/%{realname} -s /sbin/nologin \
+     -c "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
+<% EZBake::Config[:redhat][:additional_preinst].each do |cmd| -%>
+<%= cmd %>
+<% end -%>
+
+%post
+%if %{_with_systemd}
+%systemd_post <%= EZBake::Config[:project] %>.service
+%else
+# If this is an install (as opposed to an upgrade)...
+if [ "$1" = "1" ]; then
+  # Register the <%= EZBake::Config[:project] %> service
+  /sbin/chkconfig --add %{name}
+fi
+%endif
+
+%preun
+%if %{_with_systemd}
+%systemd_preun <%= EZBake::Config[:project] %>.service
+%else
+# If this is an uninstall (as opposed to an upgrade) then
+#  we want to shut down and disable the service.
+if [ "$1" = "0" ] ; then
+    /sbin/service %{name} stop >/dev/null 2>&1
+    /sbin/chkconfig --del %{name}
+fi
+%endif
+
+%postun
+%if %{_with_systemd}
+%systemd_postun_with_restart <%= EZBake::Config[:project] %>.service
+%else
+# Remove the rundir if this is an uninstall (as opposed to an upgrade)...
+if [ "$1" = "0" ]; then
+    rm -rf %{_rundir}/%{name} || :
+fi
+
+# Only restart it if it is running
+if [ "$1" = "1" ] ; then
+    /sbin/service %{name} condrestart >/dev/null 2>&1
+fi
+%endif
+
+%files
+%defattr(-, root, root)
+<% if File.exists?("ext/docs") %>
+%doc ext/docs
+<% end %>
+%{_datadir}/%{realname}
+%if %{_with_systemd}
+%{_unitdir}/%{name}.service
+%else
+%{_initrddir}/%{name}
+%endif
+%config(noreplace) %{_sysconfdir}/%{name}
+%{_sysconfdir}/sysconfig/%{name}
+%ghost %attr(0755, root, root) %{_rundir}/%{name}
+
+#%files terminus
+#%defattr(-, root, root)
+#%{puppet_libdir}/puppet/indirector/node/classifier.rb
+
+%changelog
+* <%= Time.now.strftime("%a %b %d %Y") %> Puppet Labs Release <info@puppetlabs.com> -  <%= @rpmversion %>-<%= @rpmrelease %>
+- Build for <%= @version %>
+

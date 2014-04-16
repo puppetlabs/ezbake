@@ -1,7 +1,7 @@
 require 'rake'
 require './ezbake.rb'
 
-puts "EZBAKE PROJECT NAME: EZBake::Config[:project]"
+puts "EZBAKE PROJECT NAME: #{EZBake::Config[:project]}"
 
 
 RAKE_ROOT = File.dirname(__FILE__)
