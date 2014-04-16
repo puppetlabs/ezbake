@@ -49,7 +49,9 @@
           (every? #(instance? File %) %)]}
   (let [dir   (first iter-entry)
         files (get iter-entry 2)]
-    (map #(fs/file dir %) files)))
+    (->> files
+         (remove (partial re-find #"^\."))
+         (map #(fs/file dir %)))))
 
 (defn find-files-recursively
   "Given a File object representing a directory, walks the directory (recursively)
