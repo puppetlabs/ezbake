@@ -13,7 +13,5 @@
 
   :profiles {:dev {:dependencies [[io.aviso/pretty "0.1.10"]]}}
 
-  :aliases {
-            "stage" ["run" "-m" "puppetlabs.ezbake.stage"]
-            "build" ["run" "-m" "puppetlabs.ezbake.build"]}
+  :main puppetlabs.ezbake.stage
   )
