@@ -1,4 +1,4 @@
-(ns puppetlabs.ezbake.stage
+(ns puppetlabs.ezbake.core
   (:import (java.io File InputStreamReader))
   (:require [me.raynes.fs :as fs]
             [leiningen.core.project :as project]

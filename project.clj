@@ -13,5 +13,5 @@
 
   :profiles {:dev {:dependencies [[io.aviso/pretty "0.1.10"]]}}
 
-  :main puppetlabs.ezbake.stage
+  :main puppetlabs.ezbake.core
   )
