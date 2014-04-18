@@ -11,8 +11,6 @@
 
   :main puppetlabs.trapperkeeper.main
 
-  :ezbake { :user "classifier"
-            :group "classifier"
-            :build-type "foss"
-            }
-  )
+  :ezbake {:user "classifier"
+           :group "classifier"
+           :build-type "foss"})
