@@ -198,7 +198,7 @@ Bundled packages: %s
 (defn cp-project-config-files
   [project config-files]
   (let [project-config-dir    (fs/file "." "configs" project "config")
-        project-config-files  (find-files-recursively project-config-dir)
+        project-config-files  (if (fs/directory? project-config-dir) (find-files-recursively project-config-dir))
         rel-files             (for [config-file project-config-files]
                                 (cp-project-config-file project-config-dir config-file))]
     (concat config-files rel-files)))
