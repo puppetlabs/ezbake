@@ -18,6 +18,9 @@ install-<%= EZBake::Config[:project] %>: <%= EZBake::Config[:uberjar_name] %>
 <% end -%>
 	install -d -m 0755 "$(DESTDIR)$(rundir)"
 
-#install-terminus:
-#    install -d -m 0755 "$(DESTDIR)$(rubylibdir)/puppet/indirector/node"
-#    install -m 0644 puppet/lib/puppet/indirector/node/<%= EZBake::Config[:project] %>.rb "$(DESTDIR)$(rubylibdir)/puppet/indirector/node/<%= EZBake::Config[:project] %>.rb"
+<% EZBake::Config[:terminus_files].each do |proj_name, files| -%>
+install-<%= proj_name -%>-terminus:
+<% files.each do |file| -%>
+	install -Dm 0644 <%= file -%> "$(DESTDIR)$(rubylibdir)/<%= file -%>"
+<% end -%>
+<% end -%>
