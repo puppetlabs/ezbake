@@ -1,4 +1,4 @@
-(ns puppetlabs.ezbake.stage
+(ns puppetlabs.ezbake.core
   (:import (java.io File InputStreamReader))
   (:require [me.raynes.fs :as fs]
             [leiningen.core.project :as project]
@@ -369,38 +369,78 @@ Bundled packages: %s
        :uberjar-name  (:uberjar-name lein-project)
        :is-pe-build   (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))})))
 
-(defn stage-all-the-things
-  [project project-file]
-  (let [lein-project (project/read project-file)
+(defn usage
+  []
+  (str/join \newline ["EZBake can be used to generate native packages suitable for"
+                      "consumption or an artifact ready for packaging"
+                      ""
+                      "Usage: lein run action"
+                      ""
+                      "Actions:"
+                      "  stage <project-name>      Generate and stage ezbake artifacts"
+                      "  build <project-name>      Build native packages from staged artifacts"
+                      ""]))
+
+(defn exit
+  [status msg]
+  (println msg)
+  (System/exit status))
+
+(defmulti ezbake-action
+  (fn [action & params] action))
+
+(defmethod ezbake-action "stage"
+  [_ project project-file lein-project build-target template-dir]
+  (clean)
+  (cp-template-files template-dir)
+  (cp-shared-files)
+  (let [config-files (cp-shared-config-files lein-project)
+        config-files (cp-project-config-files project config-files)]
+    (cp-doc-files lein-project)
+    (cp-project-file project-file)
+    (rename-redhat-spec-file lein-project)
+    (rename-redhat-systemd-file lein-project)
+    (rename-debian-init-file lein-project)
+    (rename-debian-default-file lein-project)
+    (generate-ezbake-config-file lein-project build-target config-files)
+    (generate-project-data-yaml lein-project build-target)
+    (generate-manifest-file lein-project)
+    (create-git-repo lein-project)))
+
+; TODO: make PE_VER either command line or config file driven
+(defmethod ezbake-action "build"
+  [_ project project-file lein-project build-target template-dir]
+  (ezbake-action "stage" project project-file lein-project build-target template-dir)
+  (exec "rake" "package:bootstrap" :dir staging-dir)
+  (if (= build-target "foss")
+    (println (:out (exec "rake" "pl:jenkins:uber_build" :dir staging-dir)))
+    (println (:out (exec "rake" "pe:jenkins:uber_build" "PE_VER=3.3" :dir staging-dir)))))
+
+(defmethod ezbake-action :default
+  [action & params]
+  (exit 1 (str/join \newline ["Unrecognized option:" action "" (usage)])))
+
+(defn ezbake-init
+  [action project]
+  (let [project-file (.toString (fs/file "./configs" project (str project ".clj")))
+        lein-project (project/read project-file)
         build-target (get-local-ezbake-var lein-project :build-type "foss")
         template-dir (fs/file template-dir-prefix build-target)]
-    (clean)
-    (cp-template-files template-dir)
-    (cp-shared-files)
-    (let [config-files (cp-shared-config-files lein-project)
-          config-files (cp-project-config-files project config-files)]
-      (cp-doc-files lein-project)
-      (cp-project-file project-file)
-      (rename-redhat-spec-file lein-project)
-      (rename-redhat-systemd-file lein-project)
-      (rename-debian-init-file lein-project)
-      (rename-debian-default-file lein-project)
-      (generate-ezbake-config-file lein-project build-target config-files)
-      (generate-project-data-yaml lein-project build-target)
-      (generate-manifest-file lein-project)
-      (create-git-repo lein-project))))
+    (ezbake-action action project project-file lein-project build-target template-dir)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Main
 
 (defn -main
   [& args]
-  (if-let [project      (first args)]
-    (let [project-file (.toString (fs/file "./configs" project (str project ".clj")))]
+  (if (= (count args) 2)
+    (let [action  (first args)
+          project (second args)]
       (try
-        (stage-all-the-things project project-file)
+        (ezbake-init action project)
         (finally
           ;; this is required in order to make the threads started by sh/sh terminate,
           ;; and thus allow the jvm to exit
           (shutdown-agents))))
-    (println "EZBake requires 1 argument, the project to build" "\nreceived:" args)))
+    (println "Incorrect # of arguments. Expected 2, received:" (count args) "\n\n" (usage))))
