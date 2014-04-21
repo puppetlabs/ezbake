@@ -16,6 +16,7 @@
 (def staging-dir "./target/staging")
 (def shared-config-prefix "ext/config/shared/")
 (def docs-prefix "ext/docs/")
+(def terminus-prefix "puppet/indirector")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Shell / Filesystem Helpers
@@ -179,6 +180,13 @@ Bundled packages: %s
       (fs/file staging-dir "ext" "config" "conf.d" parent)
       (fs/file staging-dir "ext" "config" "conf.d"))))
 
+(defn get-out-dir-for-terminus-file
+  [dep jar-entry]
+  (let [rel-path (relativize terminus-prefix (File. (.getName jar-entry)))]
+    (if-let [parent (.getParent rel-path)]
+      (fs/file staging-dir "puppet" "indirector" parent)
+      (fs/file staging-dir "puppet" "indirector" ))))
+
 (defn cp-shared-config-files
   [lein-project]
   (mapv (partial relativize staging-dir)
@@ -282,6 +290,20 @@ Bundled packages: %s
   (let [upstream-config-streams (deputils/file-file-in-jars lein-project "ext/ezbake.conf")]
     (reduce add-ezbake-config-to-map {} upstream-config-streams)))
 
+(defn cp-terminus-files
+  [lein-project]
+  (let [deps (deputils/get-relevant-deps lein-project)
+        files (for [dep deps]
+                [(name (first dep))
+                 (mapv (partial relativize staging-dir)
+                       (deputils/cp-files-for-dep
+                         "terminus"
+                         terminus-prefix
+                         get-out-dir-for-terminus-file
+                         lein-project
+                         dep))])]
+    (remove (comp empty? second) files)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Ephemeral Git Repo functions
 
@@ -334,10 +356,13 @@ Bundled packages: %s
 ;; file from that.  All of these options sound unappealing in their own special
 ;; ways.
 (defn generate-ezbake-config-file
-  [lein-project build-target config-files]
+  [lein-project build-target config-files terminus-files]
   (println "generating ezbake config file")
   (let [upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)
-        ezbake-vars             (get-ezbake-vars lein-project build-target)]
+        ezbake-vars             (get-ezbake-vars lein-project build-target)
+        termini (for [[name files] terminus-files]
+                  {:name name
+                   :files (quoted-list files)})]
     (spit
       (fs/file staging-dir "ezbake.rb")
       (stencil/render-string
@@ -352,7 +377,8 @@ Bundled packages: %s
          :deb-deps        (quoted-list (get-deps upstream-ezbake-configs build-target :debian))
          :deb-preinst     (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :debian))
          :redhat-deps     (quoted-list (get-deps upstream-ezbake-configs build-target :redhat))
-         :redhat-preinst  (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :redhat))}))))
+         :redhat-preinst  (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :redhat))
+         :terminus-map    termini}))))
 
 (defn generate-project-data-yaml
   [lein-project build-target]
@@ -395,14 +421,15 @@ Bundled packages: %s
   (cp-template-files template-dir)
   (cp-shared-files)
   (let [config-files (cp-shared-config-files lein-project)
-        config-files (cp-project-config-files project config-files)]
+        config-files (cp-project-config-files project config-files)
+        terminus-files (cp-terminus-files lein-project)]
     (cp-doc-files lein-project)
     (cp-project-file project-file)
     (rename-redhat-spec-file lein-project)
     (rename-redhat-systemd-file lein-project)
     (rename-debian-init-file lein-project)
     (rename-debian-default-file lein-project)
-    (generate-ezbake-config-file lein-project build-target config-files)
+    (generate-ezbake-config-file lein-project build-target config-files terminus-files)
     (generate-project-data-yaml lein-project build-target)
     (generate-manifest-file lein-project)
     (create-git-repo lein-project)))
