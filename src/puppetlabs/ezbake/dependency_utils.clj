@@ -105,6 +105,35 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Public
 
+(defn get-dependencies-with-jars
+  "Get a list of maps representing the dependencies in a lein project. Each
+  map has :project, :version, and :jar keys."
+  [lein-project]
+  (let [dependencies (get-relevant-deps lein-project)]
+    (for [[project version :as dep] dependencies]
+      {:project project
+       :version version
+       :jar (find-maven-jar-file dep lein-project)})))
+
+(defn cp-files-from-jar
+  "Given a list of jar entries, a jar, and a destination dir, copy the files
+  out of the jar. This will recreate the directory structure in the jar in the
+  destination.
+
+  e.g.
+  (copy-files-from-jar [#<JarFileEntry test/file.txt>] my-jar \"destination\")
+  will create \"destination/test/file.txt\". "
+  [files jar destination]
+  {:pre [(every? #(instance? JarEntry %) files)
+         (instance? JarFile jar)
+         (string? destination)]}
+  (doseq [file files]
+    (let [filename (.getName file)
+          destname (fs/file destination filename)
+          destdir (.getParent destname)]
+      (fs/mkdirs destdir)
+      (spit destname (slurp (.getInputStream jar file))))))
+
 (defn file-file-in-jars
   "Given a lein project file and a path to a file that may exist in the upstream
   jars, return a map whose keys are the project names whose jar contained the

@@ -1,5 +1,6 @@
 (ns puppetlabs.ezbake.core
-  (:import (java.io File InputStreamReader))
+  (:import (java.io File InputStreamReader)
+           (java.util.jar JarFile JarEntry))
   (:require [me.raynes.fs :as fs]
             [leiningen.core.project :as project]
             [clojure.java.shell :as sh]
@@ -180,13 +181,6 @@ Bundled packages: %s
       (fs/file staging-dir "ext" "config" "conf.d" parent)
       (fs/file staging-dir "ext" "config" "conf.d"))))
 
-(defn get-out-dir-for-terminus-file
-  [dep jar-entry]
-  (let [rel-path (relativize terminus-prefix (File. (.getName jar-entry)))]
-    (if-let [parent (.getParent rel-path)]
-      (fs/file staging-dir "puppet" "indirector" parent)
-      (fs/file staging-dir "puppet" "indirector" ))))
-
 (defn cp-shared-config-files
   [lein-project]
   (mapv (partial relativize staging-dir)
@@ -290,19 +284,31 @@ Bundled packages: %s
   (let [upstream-config-streams (deputils/file-file-in-jars lein-project "ext/ezbake.conf")]
     (reduce add-ezbake-config-to-map {} upstream-config-streams)))
 
+(defn- terminus-file?
+  [jar-entry]
+  {:pre [(instance? JarEntry jar-entry)]}
+  (and (.startsWith (.getName jar-entry) terminus-prefix)
+       (not (.isDirectory jar-entry))))
+
+(defn- get-terminus-files-in
+  [jar]
+  {:pre [(instance? JarFile jar)]}
+  (filter terminus-file? (enumeration-seq (.entries jar))))
+
 (defn cp-terminus-files
+  "Stage all terminus files. Returns a sequence zipping project names and
+  their terminus files."
   [lein-project]
-  (let [deps (deputils/get-relevant-deps lein-project)
-        files (for [dep deps]
-                [(name (first dep))
-                 (mapv (partial relativize staging-dir)
-                       (deputils/cp-files-for-dep
-                         "terminus"
-                         terminus-prefix
-                         get-out-dir-for-terminus-file
-                         lein-project
-                         dep))])]
-    (remove (comp empty? second) files)))
+  (let [dependencies (deputils/get-dependencies-with-jars lein-project)
+        files (for [{:keys [project jar]} dependencies
+                    :let [terminus-files (get-terminus-files-in jar)]
+                    :when (not (empty? terminus-files))]
+                [project terminus-files jar])]
+    (doseq [[project terminus-files jar] files]
+      (println (str "Staging terminus files for " (name project)))
+      (deputils/cp-files-from-jar terminus-files jar staging-dir))
+    ;; Remove the jars from the returned data
+    (map (partial take 2) files)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Ephemeral Git Repo functions
