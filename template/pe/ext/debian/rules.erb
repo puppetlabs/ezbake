@@ -13,5 +13,7 @@ install/<%= EZBake::Config[:project] %>::
 	echo "PATH IS: ${PATH}"
 	make -e install-<%= EZBake::Config[:project] %>
 
-#install/classifier-terminus::
-#	make -e install-terminus
+<% EZBake::Config[:terminus_files].each do |proj_name, _| -%>
+install/pe-<%= proj_name -%>-terminus::
+	make -e install-<%= proj_name -%>-terminus
+<% end -%>

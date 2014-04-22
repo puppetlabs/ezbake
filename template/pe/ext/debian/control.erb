@@ -15,7 +15,9 @@ Depends: ${misc:Depends}, pe-java, adduser<%=
 Description: Puppet Labs <%= EZBake::Config[:project] %>
  Contains: <%= Pkg::Config.config[:description] -%>
 
-#Package: classifier-terminus
-#Architecture: all
-#Depends: ${misc:Depends}, puppet (>> 3.3.0)
-#Description: Node Terminus for Puppet Classifier
+<% EZBake::Config[:terminus_files].each do |proj_name, _| %>
+Package: pe-<%= proj_name %>-terminus
+Architecture: all
+Depends: ${misc:Depends}, pe-puppet
+Description: Terminus for <%= proj_name %>
+<% end %>
