@@ -14,7 +14,7 @@
 
 (def template-dir-prefix "./template")
 (def staging-dir "./target/staging")
-(def shared-config-prefix "ext/config/shared/")
+(def shared-config-prefix "ext/config/conf.d/")
 (def docs-prefix "ext/docs/")
 (def terminus-prefix "puppet/indirector")
 
@@ -173,19 +173,18 @@ Bundled packages: %s
              (fs/file staging-dir "ext" "debian" (format "%s.default.erb"
                                                          (:name lein-project)))))
 
-(defn get-out-dir-for-shared-config-file
-  [dep jar-entry]
-  (let [rel-path (relativize shared-config-prefix (File. (.getName jar-entry)))]
-    (if-let [parent (.getParent rel-path)]
-      (fs/file staging-dir "ext" "config" "conf.d" parent)
-      (fs/file staging-dir "ext" "config" "conf.d"))))
+(defn- get-config-files-in
+  [jar]
+  (deputils/find-files-in-dir-in-jar jar shared-config-prefix))
 
 (defn cp-shared-config-files
-  [lein-project]
-  (mapv (partial relativize staging-dir)
-        (deputils/cp-files-of-type lein-project "shared config"
-                                   shared-config-prefix
-                                   get-out-dir-for-shared-config-file)))
+  [dependencies]
+  (let [files (for [{:keys [project jar]} dependencies]
+                [project jar (get-config-files-in jar)])]
+    (doseq [[project jar config-files] files]
+      (deputils/cp-files-from-jar config-files jar staging-dir))
+    ;; Return just a list of the files
+    (mapcat last files)))
 
 (defn cp-project-config-file
   [project-config-dir config-file]
@@ -290,9 +289,8 @@ Bundled packages: %s
 (defn cp-terminus-files
   "Stage all terminus files. Returns a sequence zipping project names and
   their terminus files."
-  [lein-project]
-  (let [dependencies (deputils/get-dependencies-with-jars lein-project)
-        files (for [{:keys [project jar]} dependencies
+  [dependencies]
+  (let [files (for [{:keys [project jar]} dependencies
                     :let [terminus-files (get-terminus-files-in jar)]
                     :when (not (empty? terminus-files))]
                 [project terminus-files jar])]
@@ -418,9 +416,10 @@ Bundled packages: %s
   (clean)
   (cp-template-files template-dir)
   (cp-shared-files)
-  (let [config-files (cp-shared-config-files lein-project)
+  (let [dependencies (deputils/get-dependencies-with-jars lein-project)
+        config-files (cp-shared-config-files dependencies)
         config-files (cp-project-config-files project config-files)
-        terminus-files (cp-terminus-files lein-project)]
+        terminus-files (cp-terminus-files dependencies)]
     (cp-doc-files lein-project)
     (cp-project-file project-file)
     (rename-redhat-spec-file lein-project)
