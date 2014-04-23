@@ -290,15 +290,15 @@ Bundled packages: %s
   "Stage all terminus files. Returns a sequence zipping project names and
   their terminus files."
   [dependencies]
-  (let [files (for [{:keys [project jar]} dependencies
+  (let [files (for [{:keys [project version jar]} dependencies
                     :let [terminus-files (get-terminus-files-in jar)]
                     :when (not (empty? terminus-files))]
-                [project terminus-files jar])]
-    (doseq [[project terminus-files jar] files]
-      (println (str "Staging terminus files for " (name project)))
+                [project version terminus-files jar])]
+    (doseq [[project version terminus-files jar] files]
+      (println (str "Staging terminus files for " (name project) " version " version))
       (deputils/cp-files-from-jar terminus-files jar staging-dir))
     ;; Remove the jars from the returned data
-    (map (partial take 2) files)))
+    (map (partial take 3) files)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Ephemeral Git Repo functions
@@ -356,8 +356,9 @@ Bundled packages: %s
   (println "generating ezbake config file")
   (let [upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)
         ezbake-vars             (get-ezbake-vars lein-project build-target)
-        termini (for [[name files] terminus-files]
+        termini (for [[name version files] terminus-files]
                   {:name name
+                   :version version
                    :files (quoted-list files)})]
     (spit
       (fs/file staging-dir "ezbake.rb")
