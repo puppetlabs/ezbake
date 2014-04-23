@@ -7,11 +7,19 @@ summary: '{{{summary}}}'
 description: '{{{description}}}'
 version_file: 'version'
 # files and gem_files are space separated lists
-files: 'ext *.md {{{uberjar-name}}} version Rakefile Makefile.erb puppet'
+files:
+  - ext
+  - "*.md"
+  - {{{uberjar-name}}}
+  - version
+  - Rakefile
+  - Makefile.erb
+  - puppet
 templates:
   - ext/**/*.erb
   - Makefile.erb
-tar_excludes: '.gitignore'
+tar_excludes:
+  - .gitignore
 build_pe: {{{is-pe-build}}}
 gem_files:
 gem_require_path:

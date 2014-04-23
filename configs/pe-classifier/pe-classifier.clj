@@ -1,7 +1,9 @@
-(defproject puppetlabs.packages/classifier "0.2.4-SNAPSHOT"
+(def classifier-version "0.2.3")
+
+(defproject puppetlabs.packages/pe-classifier "0.2.4-SNAPSHOT"
   :description "Release artifacts for classifier"
   :pedantic? :abort
-  :dependencies [[puppetlabs/classifier "0.2.3"]]
+  :dependencies [[puppetlabs/classifier ~classifier-version]]
 
   :uberjar-name "classifier-release.jar"
 
@@ -10,6 +12,6 @@
 
   :main puppetlabs.trapperkeeper.main
 
-  :ezbake {:user "classifier"
-           :group "classifier"
-           :build-type "foss"})
+  :ezbake {:user "pe-classifier"
+           :group "pe-classifier"
+           :build-type "pe"})

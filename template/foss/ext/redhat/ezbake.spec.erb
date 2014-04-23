@@ -56,13 +56,15 @@ Requires:         <%= dep %>
 %description
 <%= Pkg::Config.config[:description] -%>
 
-#%package terminus
-#Summary: Puppet terminus files to connect to PuppetDB
-#Group: Development/Libraries
-#Requires: puppet >= 3.3
+<% EZBake::Config[:terminus_files].each do |proj_name, _| -%>
+%package -n <%= proj_name -%>-terminus
+Group: Development/Libraries
+Summary: Terminus for <%= proj_name %>
+Requires: puppet
 
-#%description terminus
-#A Puppet Node Terminus for the classifier
+%description -n <%= proj_name %>-terminus
+Terminus for <%= proj_name %>
+<% end %>
 
 %prep
 %setup -q -n %{realname}-%{realversion}
@@ -83,7 +85,10 @@ install -m 0755 ext/redhat/init %{buildroot}%{_initrddir}/<%= EZBake::Config[:pr
 %endif
 install -d -m 0755 %{buildroot}%{_sysconfdir}/sysconfig
 install -m 0755 ext/default %{buildroot}%{_sysconfdir}/sysconfig/<%= EZBake::Config[:project] %>
-#env DESTDIR=%{buildroot} prefix=%{_prefix} make -e install-terminus
+
+<% EZBake::Config[:terminus_files].each do |proj_name, _| -%>
+	env DESTDIR=%{buildroot} rubylibdir=%{puppet_libdir} prefix=%{_prefix} make -e install-<%= proj_name -%>-terminus
+<% end -%>
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -153,9 +158,14 @@ fi
 %{_sysconfdir}/sysconfig/%{name}
 %ghost %attr(0755, root, root) %{_rundir}/%{name}
 
-#%files terminus
-#%defattr(-, root, root)
-#%{puppet_libdir}/puppet/indirector/node/classifier.rb
+
+<% EZBake::Config[:terminus_files].each do |proj_name, files| -%>
+%files -n <%= proj_name -%>-terminus
+%defattr(-, root, root)
+<% files.each do |file| -%>
+%{puppet_libdir}/<%= file -%>
+<% end -%>
+<% end -%>
 
 %changelog
 * <%= Time.now.strftime("%a %b %d %Y") %> Puppet Labs Release <info@puppetlabs.com> -  <%= @rpmversion %>-<%= @rpmrelease %>

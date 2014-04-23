@@ -5,6 +5,11 @@ module EZBake
       :group => '{{{group}}}',
       :uberjar_name => '{{{uberjar-name}}}',
       :config_files => [{{{config-files}}}],
+      :terminus_files => {
+                         {{#terminus-map}}
+                           "{{{name}}}" => [{{{files}}}],
+                         {{/terminus-map}}
+                         },
       :debian => {
                     :additional_dependencies => [{{{deb-deps}}}],
                     :additional_preinst => [{{{deb-preinst}}}],
