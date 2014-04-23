@@ -42,7 +42,6 @@
   {:pre [(instance? JarFile jar-file)]
    :post [(every? #(instance? JarEntry %) %)]}
   (filter #(and (.startsWith (.getName %) prefix)
-                (not= prefix (.getName %))
                 (not (.isDirectory %)))
           (enumeration-seq (.entries jar-file))))
 

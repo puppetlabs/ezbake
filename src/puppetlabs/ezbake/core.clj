@@ -1,6 +1,5 @@
 (ns puppetlabs.ezbake.core
-  (:import (java.io File InputStreamReader)
-           (java.util.jar JarFile JarEntry))
+  (:import (java.io File InputStreamReader))
   (:require [me.raynes.fs :as fs]
             [leiningen.core.project :as project]
             [clojure.java.shell :as sh]
@@ -284,16 +283,9 @@ Bundled packages: %s
   (let [upstream-config-streams (deputils/file-file-in-jars lein-project "ext/ezbake.conf")]
     (reduce add-ezbake-config-to-map {} upstream-config-streams)))
 
-(defn- terminus-file?
-  [jar-entry]
-  {:pre [(instance? JarEntry jar-entry)]}
-  (and (.startsWith (.getName jar-entry) terminus-prefix)
-       (not (.isDirectory jar-entry))))
-
 (defn- get-terminus-files-in
   [jar]
-  {:pre [(instance? JarFile jar)]}
-  (filter terminus-file? (enumeration-seq (.entries jar))))
+  (deputils/find-files-in-dir-in-jar jar terminus-prefix))
 
 (defn cp-terminus-files
   "Stage all terminus files. Returns a sequence zipping project names and

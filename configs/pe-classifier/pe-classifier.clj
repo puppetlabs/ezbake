@@ -1,10 +1,9 @@
-(def classifier-version "0.2.2")
+(def classifier-version "0.2.3")
 
-(defproject puppetlabs.packages/pe-classifier "0.2.3-SNAPSHOT"
+(defproject puppetlabs.packages/pe-classifier "0.2.4-SNAPSHOT"
   :description "Release artifacts for classifier"
   :pedantic? :abort
-  :dependencies [[puppetlabs/classifier ~classifier-version :exclusions [puppetlabs/trapperkeeper-webserver-jetty9]]
-                 [puppetlabs/trapperkeeper-webserver-jetty9 "0.3.4"]]
+  :dependencies [[puppetlabs/classifier ~classifier-version]]
 
   :uberjar-name "classifier-release.jar"
 
