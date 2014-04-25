@@ -16,7 +16,7 @@ Description: Puppet Labs <%= EZBake::Config[:project] %>
  Contains: <%= Pkg::Config.config[:description] -%>
 
 <% EZBake::Config[:terminus_info].each do |proj_name, _| %>
-Package: pe-<%= proj_name %>-terminus
+Package: <%= proj_name %>-terminus
 Architecture: all
 Depends: ${misc:Depends}, pe-puppet
 Description: Terminus for <%= proj_name %>

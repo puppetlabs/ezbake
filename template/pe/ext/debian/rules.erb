@@ -14,6 +14,6 @@ install/<%= EZBake::Config[:project] %>::
 	make -e install-<%= EZBake::Config[:project] %>
 
 <% EZBake::Config[:terminus_info].each do |proj_name, _| -%>
-install/pe-<%= proj_name -%>-terminus::
+install/<%= proj_name -%>-terminus::
 	make -e install-<%= proj_name -%>-terminus
 <% end -%>
