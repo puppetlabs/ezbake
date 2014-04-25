@@ -321,7 +321,6 @@ Bundled packages: %s
             (get-timestamp-string))
     lein-version))
 
-
 ;; TODO: this is a horrible, horrible hack; I can't yet see a good way to
 ;; let the packaging library know what the version number is without faking
 ;; up a git tag; it seems like the packaging code is pretty well hard-coded
