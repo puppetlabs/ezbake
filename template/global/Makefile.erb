@@ -18,9 +18,11 @@ install-<%= EZBake::Config[:project] %>: <%= EZBake::Config[:uberjar_name] %>
 <% end -%>
 	install -d -m 0755 "$(DESTDIR)$(rundir)"
 
+<% unless EZBake::Config[:terminus_info].empty? %>
+install-<%= EZBake::Config[:project] %>-termini:
 <% EZBake::Config[:terminus_info].each do |proj_name, info| -%>
-install-<%= proj_name -%>-terminus:
 <% info[:files].each do |file| -%>
 	install -Dm 0644 <%= file -%> "$(DESTDIR)$(rubylibdir)/<%= file -%>"
+<% end -%>
 <% end -%>
 <% end -%>
