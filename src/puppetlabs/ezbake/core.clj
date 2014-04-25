@@ -290,7 +290,7 @@ Bundled packages: %s
   [project build-target]
     (if (= build-target "pe")
       (str "pe-" (name project))
-      (str (name project))))
+      (name project)))
 
 (defn generate-terminus-map
   [dependencies build-target]
