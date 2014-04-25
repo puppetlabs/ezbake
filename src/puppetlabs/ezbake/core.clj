@@ -292,7 +292,7 @@ Bundled packages: %s
       (str "pe-" (name project))
       (name project)))
 
-(defn generate-terminus-map
+(defn generate-terminus-list
   [dependencies build-target]
   (for [{:keys [project version jar]} dependencies
         :let [terminus-files (get-terminus-files-in jar)]
@@ -303,7 +303,7 @@ Bundled packages: %s
   "Stage all terminus files. Returns a sequence zipping project names and
   their terminus files."
   [dependencies build-target]
-  (let [files (generate-terminus-map dependencies build-target)]
+  (let [files (generate-terminus-list dependencies build-target)]
     (doseq [[project version terminus-files jar] files]
       (println (str "Staging terminus files for " project " version " version))
       (deputils/cp-files-from-jar terminus-files jar staging-dir))
