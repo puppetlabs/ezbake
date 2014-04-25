@@ -56,15 +56,23 @@ Requires:         <%= dep %>
 %description
 <%= Pkg::Config.config[:description] -%>
 
-<% EZBake::Config[:terminus_files].each do |proj_name, _| -%>
-%package -n <%= proj_name -%>-terminus
+<% unless EZBake::Config[:terminus_info].empty? -%>
+%package termini
 Group: Development/Libraries
-Summary: Terminus for <%= proj_name %>
+Summary: Termini for <%= EZBake::Config[:project] %>
 Requires: puppet
+<% EZBake::Config[:terminus_info].each do |proj_name, info| -%>
+Obsoletes: <%= proj_name -%>-terminus < <%= info[:version] %>
+Provides:  <%= proj_name -%>-terminus >= <%= info[:version] %>
+<% end -%>
 
-%description -n <%= proj_name %>-terminus
-Terminus for <%= proj_name %>
-<% end %>
+%description termini
+Termini for <%= EZBake::Config[:project] %>
+Contains terminus for:
+<% EZBake::Config[:terminus_info].each do |proj_name, info| -%>
+  <%= proj_name %> (version <%= info[:version] %>)
+<% end -%>
+<% end -%>
 
 %prep
 %setup -q -n %{realname}-%{realversion}
@@ -86,8 +94,8 @@ install -m 0755 ext/redhat/init %{buildroot}%{_initrddir}/<%= EZBake::Config[:pr
 install -d -m 0755 %{buildroot}%{_sysconfdir}/sysconfig
 install -m 0755 ext/default %{buildroot}%{_sysconfdir}/sysconfig/<%= EZBake::Config[:project] %>
 
-<% EZBake::Config[:terminus_files].each do |proj_name, _| -%>
-	env DESTDIR=%{buildroot} rubylibdir=%{puppet_libdir} prefix=%{_prefix} make -e install-<%= proj_name -%>-terminus
+<% unless EZBake::Config[:terminus_info].empty? -%>
+env DESTDIR=%{buildroot} rubylibdir=%{puppet_libdir} prefix=%{_prefix} make -e install-<%= EZBake::Config[:project] %>-termini
 <% end -%>
 
 %clean
@@ -159,13 +167,15 @@ fi
 %ghost %attr(0755, root, root) %{_rundir}/%{name}
 
 
-<% EZBake::Config[:terminus_files].each do |proj_name, files| -%>
-%files -n <%= proj_name -%>-terminus
+<% unless EZBake::Config[:terminus_info].empty? -%>
+%files termini
+<% EZBake::Config[:terminus_info].each do |proj_name, info| -%>
 %defattr(-, root, root)
-<% files.each do |file| -%>
+<% info[:files].each do |file| -%>
 %{puppet_libdir}/<%= file -%>
 <% end -%>
 <% end -%>
+<% end %>
 
 %changelog
 * <%= Time.now.strftime("%a %b %d %Y") %> Puppet Labs Release <info@puppetlabs.com> -  <%= @rpmversion %>-<%= @rpmrelease %>

@@ -13,7 +13,7 @@ install/<%= EZBake::Config[:project] %>::
 	echo "PATH IS: ${PATH}"
 	make -e install-<%= EZBake::Config[:project] %>
 
-<% EZBake::Config[:terminus_files].each do |proj_name, _| -%>
-install/<%= proj_name -%>-terminus::
-	make -e install-<%= proj_name -%>-terminus
+<% unless EZBake::Config[:terminus_info].empty? -%>
+install/<%= EZBake::Config[:project] %>-termini::
+	make -e install-<%= EZBake::Config[:project] %>-termini
 <% end -%>

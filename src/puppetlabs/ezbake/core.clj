@@ -286,19 +286,29 @@ Bundled packages: %s
   [jar]
   (deputils/find-files-in-dir-in-jar jar terminus-prefix))
 
+(defn- prefix-project-name
+  [project build-target]
+    (if (= build-target "pe")
+      (str "pe-" (name project))
+      (name project)))
+
+(defn generate-terminus-list
+  [dependencies build-target]
+  (for [{:keys [project version jar]} dependencies
+        :let [terminus-files (get-terminus-files-in jar)]
+        :when (not (empty? terminus-files))]
+    [(prefix-project-name project build-target) version terminus-files jar]))
+
 (defn cp-terminus-files
   "Stage all terminus files. Returns a sequence zipping project names and
   their terminus files."
-  [dependencies]
-  (let [files (for [{:keys [project jar]} dependencies
-                    :let [terminus-files (get-terminus-files-in jar)]
-                    :when (not (empty? terminus-files))]
-                [project terminus-files jar])]
-    (doseq [[project terminus-files jar] files]
-      (println (str "Staging terminus files for " (name project)))
+  [dependencies build-target]
+  (let [files (generate-terminus-list dependencies build-target)]
+    (doseq [[project version terminus-files jar] files]
+      (println (str "Staging terminus files for " project " version " version))
       (deputils/cp-files-from-jar terminus-files jar staging-dir))
     ;; Remove the jars from the returned data
-    (map (partial take 2) files)))
+    (map (partial take 3) files)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Ephemeral Git Repo functions
@@ -320,7 +330,6 @@ Bundled packages: %s
             (str/replace lein-version "-" ".")
             (get-timestamp-string))
     lein-version))
-
 
 ;; TODO: this is a horrible, horrible hack; I can't yet see a good way to
 ;; let the packaging library know what the version number is without faking
@@ -356,8 +365,9 @@ Bundled packages: %s
   (println "generating ezbake config file")
   (let [upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)
         ezbake-vars             (get-ezbake-vars lein-project build-target)
-        termini (for [[name files] terminus-files]
+        termini (for [[name version files] terminus-files]
                   {:name name
+                   :version version
                    :files (quoted-list files)})]
     (spit
       (fs/file staging-dir "ezbake.rb")
@@ -419,7 +429,7 @@ Bundled packages: %s
   (let [dependencies (deputils/get-dependencies-with-jars lein-project)
         config-files (cp-shared-config-files dependencies)
         config-files (cp-project-config-files project config-files)
-        terminus-files (cp-terminus-files dependencies)]
+        terminus-files (cp-terminus-files dependencies build-target)]
     (cp-doc-files lein-project)
     (cp-project-file project-file)
     (rename-redhat-spec-file lein-project)
