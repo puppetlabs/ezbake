@@ -15,7 +15,7 @@ Depends: ${misc:Depends}, java7-runtime-headless, adduser<%=
 Description: Puppet Labs <%= EZBake::Config[:project] %>
  Contains: <%= Pkg::Config.config[:description] -%>
 
-<% EZBake::Config[:terminus_files].each do |proj_name, _| %>
+<% EZBake::Config[:terminus_info].each do |proj_name, _| %>
 Package: <%= proj_name %>-terminus
 Architecture: all
 Depends: ${misc:Depends}, puppet
