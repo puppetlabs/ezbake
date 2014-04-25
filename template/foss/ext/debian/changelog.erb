@@ -1,4 +1,4 @@
-<%= EZBake::Config[:project] %> (<%= @debversion -%>) lucid unstable sid squeeze wheezy precise; urgency=low
+<%= EZBake::Config[:project] %> (<%= @debversion -%>) <%= Pkg::Config.cow_list %>; urgency=low
 
   * Update to version <%= @debversion %>
 
