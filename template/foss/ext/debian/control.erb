@@ -21,6 +21,7 @@ Architecture: all
 Depends: ${misc:Depends}, puppet
 Provides: <%=  EZBake::Config[:terminus_info].map {|proj_name, _| "#{proj_name}-terminus"}.join(",") %>
 Replaces: <%=  EZBake::Config[:terminus_info].map {|proj_name, _| "#{proj_name}-terminus"}.join(",") %>
+Conflicts: <%=  EZBake::Config[:terminus_info].map {|proj_name, _| "#{proj_name}-terminus"}.join(",") %>
 Description: Termini for <%= EZBake::Config[:project] %>
  Contains terminus for:
 <% EZBake::Config[:terminus_info].each do |proj_name, info| -%>
