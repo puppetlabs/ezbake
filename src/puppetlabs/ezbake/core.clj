@@ -345,7 +345,9 @@ Bundled packages: %s
          :deb-preinst     (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :debian))
          :redhat-deps     (quoted-list (get-deps upstream-ezbake-configs build-target :redhat))
          :redhat-preinst  (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :redhat))
-         :terminus-map    termini}))))
+         :terminus-map    termini
+         :java-args       (get-local-ezbake-var lein-project :java-args
+                                                "-Xmx192m")}))))
 
 (defn generate-project-data-yaml
   [lein-project build-target]
