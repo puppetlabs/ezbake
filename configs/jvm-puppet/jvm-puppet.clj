@@ -1,4 +1,4 @@
-(def jvm-puppet-version (or (System/getenv "JVMPUPPET_NEXUS_VERSION") "0.1.1"))
+(def jvm-puppet-version (or (System/getenv "NEXUS_VERSION") "0.1.1"))
 
 (defproject puppetlabs.packages/jvm-puppet jvm-puppet-version
   :description "Release artifacts for jvm-puppet"
@@ -6,6 +6,7 @@
   :dependencies [[puppetlabs/jvm-puppet ~jvm-puppet-version]
                  [puppetlabs/trapperkeeper-webserver-jetty9 "0.5.1"]]
 
+  :nexus-version ~jvm-puppet-version
   :uberjar-name "jvm-puppet-release.jar"
 
   :repositories [["releases" "http://nexus.delivery.puppetlabs.net/content/repositories/releases/"]

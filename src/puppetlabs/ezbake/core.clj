@@ -360,6 +360,7 @@ Bundled packages: %s
                               (:description lein-project)
                               (deputils/generate-manifest-string lein-project))
        :uberjar-name  (:uberjar-name lein-project)
+       :nexus-version (:nexus-version lein-project)
        :is-pe-build   (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))})))
 
 (defn usage
