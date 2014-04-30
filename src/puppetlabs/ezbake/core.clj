@@ -134,45 +134,6 @@ Bundled packages: %s
             (:version lein-project)
             (deputils/generate-manifest-string lein-project))))
 
-;; TODO: The following four functions will not be needed if RE-1533 is resolved
-(defn rename-redhat-spec-file
-  "The packaging framework expects for the redhat spec file to be
-  named `<project-name>.spec`, but we have the file on disk as `ezbake.spec`, so
-  we need to rename it after it's been copied to the staging dir."
-  [lein-project]
-  (fs/rename (fs/file staging-dir "ext" "redhat" "ezbake.spec.erb")
-             (fs/file staging-dir "ext" "redhat" (format "%s.spec.erb"
-                                                         (:name lein-project)))))
-
-(defn rename-redhat-systemd-file
-  "The redhat packaging expects for the redhat spec file to be
-  named `<project-name>.spec`, but we have the file on disk as `ezbake.spec`, so
-  we need to rename it after it's been copied to the staging dir."
-  [lein-project]
-  (fs/rename (fs/file staging-dir "ext" "redhat" "ezbake.service.erb")
-             (fs/file staging-dir "ext" "redhat" (format "%s.service.erb"
-                                                         (:name lein-project)))))
-
-(defn rename-debian-init-file
-  "In order for debian to automatically populate the correct pre and post
-  scripts for service startup, it expects to find a file named
-  `<project-name>.init` to install as the init script. This function renames
-  ezbake.init.erb to match that convention."
-  [lein-project]
-  (fs/rename (fs/file staging-dir "ext" "debian" "ezbake.init.erb")
-             (fs/file staging-dir "ext" "debian" (format "%s.init.erb"
-                                                         (:name lein-project)))))
-
-(defn rename-debian-default-file
-  "In order for debian to automatically populate the correct pre and post
-  scripts for service startup, it expects to find a file named
-  `<project-name>.default` to install as the defaults file. This function
-  renames ezbake.default.erb to match that convention."
-  [lein-project]
-  (fs/rename (fs/file staging-dir "ext" "debian" "ezbake.default.erb")
-             (fs/file staging-dir "ext" "debian" (format "%s.default.erb"
-                                                         (:name lein-project)))))
-
 (defn- get-config-files-in
   [jar]
   (deputils/find-files-in-dir-in-jar jar shared-config-prefix))
@@ -432,10 +393,6 @@ Bundled packages: %s
         terminus-files (cp-terminus-files dependencies build-target)]
     (cp-doc-files lein-project)
     (cp-project-file project-file)
-    (rename-redhat-spec-file lein-project)
-    (rename-redhat-systemd-file lein-project)
-    (rename-debian-init-file lein-project)
-    (rename-debian-default-file lein-project)
     (generate-ezbake-config-file lein-project build-target config-files terminus-files)
     (generate-project-data-yaml lein-project build-target)
     (generate-manifest-file lein-project)

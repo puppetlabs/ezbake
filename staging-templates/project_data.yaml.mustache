@@ -16,7 +16,22 @@ files:
   - Makefile.erb
   - puppet
 templates:
-  - ext/**/*.erb
+  - source: ext/redhat/ezbake.spec.erb
+    target: ext/redhat/{{{project}}}.spec
+  - source: ext/redhat/ezbake.service.erb
+    target: ext/redhat/{{{project}}}.service
+  - source: ext/debian/ezbake.default.erb
+    target: ext/debian/{{{project}}}.default
+  - source: ext/debian/ezbake.init.erb
+    target: ext/debian/{{{project}}}.init
+  - ext/redhat/init.erb
+  - ext/debian/changelog.erb
+  - ext/debian/control.erb
+  - ext/debian/docs.erb
+  - ext/debian/postrm.erb
+  - ext/debian/preinst.erb
+  - ext/debian/rules.erb
+  - ext/default.erb
   - Makefile.erb
 tar_excludes:
   - .gitignore
