@@ -1,4 +1,4 @@
-(def jvm-puppet-version (or (System/getenv "JVMPUPPET_NEXUS_VERSION") "0.1.1"))
+(def jvm-puppet-version (or (System/getenv "JVMPUPPET_NEXUS_VERSION") "0.1.2-SNAPSHOT"))
 
 (defproject puppetlabs.packages/jvm-puppet jvm-puppet-version
   :description "Release artifacts for jvm-puppet"
