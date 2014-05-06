@@ -1,7 +1,7 @@
-(defproject puppetlabs.packages/classifier "0.2.4-SNAPSHOT"
+(defproject puppetlabs.packages/classifier "{{{classifier-version}}}"
   :description "Release artifacts for classifier"
   :pedantic? :abort
-  :dependencies [[puppetlabs/classifier "0.2.3"]]
+  :dependencies [[puppetlabs/classifier "{{{classifier-version}}}"]]
 
   :uberjar-name "classifier-release.jar"
 

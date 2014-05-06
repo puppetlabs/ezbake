@@ -101,7 +101,10 @@
 (defn cp-template-files
   [template-dir]
   (println "copying template files from" (.toString template-dir) "to" staging-dir)
-  (fs/copy-dir template-dir staging-dir))
+  (doseq [f (fs/glob (fs/file template-dir) "*")]
+    (if (fs/directory? f)
+      (fs/copy-dir f staging-dir)
+      (fs/copy+ f (format "%s/%s" staging-dir (fs/base-name f))))))
 
 (defn cp-shared-files
   []
@@ -113,9 +116,10 @@
         (fs/copy+ f (format "%s/%s" staging-dir (fs/base-name f)))))))
 
 (defn cp-project-file
-  [project-file]
+  [project-file template-vars]
   (println "copying ezbake lein packaging project file" project-file)
-  (fs/copy project-file (fs/file staging-dir "project.clj")))
+  (spit (fs/file staging-dir "project.clj")
+        (stencil/render-string (slurp project-file) template-vars)))
 
 (defn generate-manifest-file
   [lein-project]
@@ -260,8 +264,7 @@ Bundled packages: %s
         :when (not (empty? terminus-files))]
     [(prefix-project-name project build-target) version terminus-files jar]))
 
-(defn cp-terminus-files
-  "Stage all terminus files. Returns a sequence zipping project names and
+(defn cp-terminus-files "Stage all terminus files. Returns a sequence zipping project names and
   their terminus files."
   [dependencies build-target]
   (let [files (generate-terminus-list dependencies build-target)]
@@ -386,7 +389,6 @@ Bundled packages: %s
 
 (defmethod ezbake-action "stage"
   [_ project project-file lein-project build-target template-dir]
-  (clean)
   (cp-template-files template-dir)
   (cp-shared-files)
   (let [dependencies (deputils/get-dependencies-with-jars lein-project)
@@ -394,7 +396,6 @@ Bundled packages: %s
         config-files (cp-project-config-files project config-files)
         terminus-files (cp-terminus-files dependencies build-target)]
     (cp-doc-files lein-project)
-    (cp-project-file project-file)
     (generate-ezbake-config-file lein-project build-target config-files terminus-files)
     (generate-project-data-yaml lein-project build-target)
     (generate-manifest-file lein-project)
@@ -414,12 +415,18 @@ Bundled packages: %s
   (exit 1 (str/join \newline ["Unrecognized option:" action "" (usage)])))
 
 (defn ezbake-init
-  [action project]
+  [action project template-vars]
+  (clean)
+  (fs/mkdirs staging-dir)
   (let [project-file (.toString (fs/file "./configs" project (str project ".clj")))
-        lein-project (project/read project-file)
-        build-target (get-local-ezbake-var lein-project :build-type "foss")
-        template-dir (fs/file template-dir-prefix build-target)]
-    (ezbake-action action project project-file lein-project build-target template-dir)))
+        template-vars (->> template-vars
+                        (map #(str/split % #"="))  
+                        (into {}))]
+    (cp-project-file project-file template-vars)
+    (let [lein-project (project/read (.toString (fs/file staging-dir "project.clj")))
+          build-target (get-local-ezbake-var lein-project :build-type "foss")
+          template-dir (fs/file template-dir-prefix build-target)]
+      (ezbake-action action project project-file lein-project build-target template-dir))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -427,13 +434,14 @@ Bundled packages: %s
 
 (defn -main
   [& args]
-  (if (= (count args) 2)
-    (let [action  (first args)
-          project (second args)]
-      (try
-        (ezbake-init action project)
-        (finally
-          ;; this is required in order to make the threads started by sh/sh terminate,
-          ;; and thus allow the jvm to exit
-          (shutdown-agents))))
+  (if (>= (count args) 2)
+    (let [[action project & template-vars] args]
+      (if-not (every? (partial re-find #"=") template-vars)
+        (println "Arguments after the project name are expected to be variable bindings of the form <variable>=<value>")
+        (try
+          (ezbake-init action project template-vars)
+          (finally
+            ;; this is required in order to make the threads started by sh/sh terminate,
+            ;; and thus allow the jvm to exit
+            (shutdown-agents)))))
     (println "Incorrect # of arguments. Expected 2, received:" (count args) "\n\n" (usage))))
