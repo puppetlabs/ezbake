@@ -62,8 +62,8 @@ Group: Development/Libraries
 Summary: Termini for <%= EZBake::Config[:project] %>
 Requires: puppet
 <% EZBake::Config[:terminus_info].each do |proj_name, info| -%>
-Obsoletes: <%= proj_name -%>-terminus < <%= info[:version] %>
-Provides:  <%= proj_name -%>-terminus >= <%= info[:version] %>
+Obsoletes: <%= proj_name -%>-terminus < <%= info[:version].gsub('-', '.') %>
+Provides:  <%= proj_name -%>-terminus >= <%= info[:version].gsub('-', '.') %>
 <% end -%>
 
 %description termini
