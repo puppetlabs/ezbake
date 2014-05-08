@@ -49,7 +49,7 @@ Summary:          Puppet Labs - <%= EZBake::Config[:project] %>
 License:          ASL 2.0
 
 URL:              http://github.com/puppetlabs/ezbake
-Source0:          <%= EZBake::Config[:project] %>-<%= @rpmversion %>.tar.gz
+Source0:          %{name}-%{realversion}.tar.gz
 
 Group:            System Environment/Daemons
 BuildArch:        noarch
@@ -79,8 +79,8 @@ Group: Development/Libraries
 Summary: Termini for <%= EZBake::Config[:project] %>
 Requires: pe-puppet
 <% EZBake::Config[:terminus_info].each do |proj_name, info| -%>
-Obsoletes: <%= proj_name -%>-terminus < <%= info[:version] %>
-Provides:  <%= proj_name -%>-terminus >= <%= info[:version] %>
+Obsoletes: <%= proj_name -%>-terminus < <%= info[:version].gsub('-', '.') %>
+Provides:  <%= proj_name -%>-terminus >= <%= info[:version].gsub('-', '.') %>
 <% end -%>
 
 %description termini
@@ -92,7 +92,7 @@ Contains terminus for:
 <% end -%>
 
 %prep
-%setup -q -n %{realname}-%{realversion}
+%setup -q -n %{name}-%{realversion}
 
 %build
 
