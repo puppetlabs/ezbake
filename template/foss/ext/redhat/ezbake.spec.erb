@@ -32,7 +32,7 @@ Summary:          Puppet Labs - <%= EZBake::Config[:project] %>
 License:          ASL 2.0
 
 URL:              http://github.com/puppetlabs/ezbake
-Source0:          <%= EZBake::Config[:project] %>-<%= @rpmversion %>.tar.gz
+Source0:          %{name}-%{realversion}.tar.gz
 
 Group:            System Environment/Daemons
 BuildArch:        noarch
@@ -75,7 +75,7 @@ Contains terminus for:
 <% end -%>
 
 %prep
-%setup -q -n %{realname}-%{realversion}
+%setup -q -n %{name}-%{realversion}
 
 %build
 
