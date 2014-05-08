@@ -8,7 +8,7 @@ EnvironmentFile=/etc/sysconfig/<%= EZBake::Config[:project] %>
 User=$USER
 
 ExecStart=/opt/puppet/bin/java $JAVA_ARGS \
-          -cp "${INSTALL_DIR}/<%= EZBake::Config[:project] %>.jar" clojure.main \
+          -cp "${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %>" clojure.main \
           -m puppetlabs.trapperkeeper.main --config "${CONFIG}" $@
 
 ExecStop=/bin/kill $MAINPID
