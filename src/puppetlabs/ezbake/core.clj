@@ -338,6 +338,7 @@ Bundled packages: %s
       (stencil/render-string
         (slurp "./staging-templates/ezbake.rb.mustache")
         {:project         (:name lein-project)
+         :real-name       (str/replace-first (:name lein-project) #"^pe-" "")
          :user            (get-local-ezbake-var lein-project :user
                                                 (:name lein-project))
          :group           (get-local-ezbake-var lein-project :group
