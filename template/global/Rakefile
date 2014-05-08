@@ -66,12 +66,3 @@ end
 task :version do
   puts @version
 end
-
-
-desc 'Build deb package'
-#task :deb => [ 'package:implode', 'package:bootstrap', 'package:deb' ]
-task :deb => [ 'package:deb' ]
-
-desc "Build a Source rpm for EZBake::Config[:project]"
-task :srpm => [ 'package:implode', 'package:bootstrap', 'package:srpm' ]
-
