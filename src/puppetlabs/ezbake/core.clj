@@ -503,18 +503,19 @@ Bundled packages: %s
   (exit 1 (str/join \newline ["Unrecognized option:" action "" (usage)])))
 
 (defn ezbake-init
-  [action project template-vars]
+  [action project-dir template-vars]
   (clean)
   (fs/mkdirs staging-dir)
-  (let [project-file (.toString (fs/file "./configs" project (str project ".clj")))
+  (let [project-file (.toString (fs/file project-dir "project.clj"))
         template-vars (->> template-vars
                         (map #(str/split % #"="))
                         (into {}))]
     (cp-project-file project-file template-vars)
     (let [lein-project (project/read (.toString (fs/file staging-dir "project.clj")))
           build-target (get-local-ezbake-var lein-project :build-type "foss")
-          template-dir (fs/file template-dir-prefix build-target)]
-      (ezbake-action action project project-file lein-project build-target template-dir))))
+          template-dir (fs/file template-dir-prefix build-target)
+          project-name (:name lein-project)]
+      (ezbake-action action project-name project-file lein-project build-target template-dir))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -523,11 +524,11 @@ Bundled packages: %s
 (defn -main
   [& args]
   (if (>= (count args) 2)
-    (let [[action project & template-vars] args]
+    (let [[action project-dir & template-vars] args]
       (if-not (every? (partial re-find #"=") template-vars)
         (exit 1 "Arguments after the project name are expected to be variable bindings of the form <variable>=<value>")
         (try
-          (ezbake-init action project template-vars)
+          (ezbake-init action project-dir template-vars)
           (finally
             ;; this is required in order to make the threads started by sh/sh terminate,
             ;; and thus allow the jvm to exit
