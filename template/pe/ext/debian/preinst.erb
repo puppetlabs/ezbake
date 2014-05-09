@@ -3,7 +3,7 @@
 if [ "$1" = install ] || [ "$1" = upgrade ]; then
  # Create the "<%= EZBake::Config[:user] %>" user
     if ! getent passwd <%= EZBake::Config[:user] %>  > /dev/null; then
-        adduser --quiet --system --group --home /opt/puppet/share/<%= EZBake::Config[:project] %>  \
+        adduser --quiet --system --group --home /opt/puppet/share/<%= EZBake::Config[:real_name] %>  \
             --no-create-home                                 \
             --gecos "<%= EZBake::Config[:project] %>" \
             <%= EZBake::Config[:user] %>

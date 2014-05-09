@@ -1,4 +1,4 @@
-%global realname <%= EZBake::Config[:project] %>
+%global realname <%= EZBake::Config[:real_name] %>
 %global realversion <%= @version %>
 %global rpmversion <%= @rpmversion %>
 
@@ -179,7 +179,7 @@ fi
 %else
 %{_initrddir}/%{name}
 %endif
-%config(noreplace) %{_sysconfdir}/%{name}
+%config(noreplace) %{_sysconfdir}/%{realname}
 %{_real_sysconfdir}/sysconfig/%{name}
 %ghost %attr(0755, root, root) %{_rundir}/%{name}
 
