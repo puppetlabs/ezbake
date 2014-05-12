@@ -3,6 +3,7 @@
            (java.util.jar JarEntry))
   (:require [me.raynes.fs :as fs]
             [leiningen.core.project :as project]
+            [clojure.java.io :as io]
             [clojure.java.shell :as sh]
             [clojure.string :as str]
             [clj-time.local :as local-time]
@@ -30,6 +31,20 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Shell / Filesystem Helpers
+
+(defn get-resource-file
+  [resource-type args]
+  (->> (concat [resource-path resource-prefix resource-type] args)
+       (str/join "/")
+       io/file))
+
+(defn get-template-file
+  [& args]
+  (get-resource-file "template" args))
+
+(defn get-staging-template-file
+  [& args]
+  (get-resource-file "staging-templates" args))
 
 (defn exec
   [& args]
@@ -127,12 +142,15 @@
       (fs/copy-dir f staging-dir)
       (fs/copy+ f (format "%s/%s" staging-dir (fs/base-name f))))))
 
-(defn cp-shared-files
-  []
-  (let [template-dir (fs/file template-dir-prefix "global")]
-    (cp-template-files template-dir)))
+(defn get-project-config-dir
+  [project]
+  (let [configs-by-dir (fs/file "config")
+        configs-by-name (fs/file "configs/" project "config")]
+    (if (.isDirectory configs-by-dir)
+      configs-by-dir
+      configs-by-name)))
 
-(defn get-project-file
+(defn get-project-file-path
   [project]
   (let [project-file-by-dir (.toString (fs/file project "project.clj"))
         project-file-by-name (.toString (fs/file "configs/" project
@@ -188,8 +206,9 @@ Bundled packages: %s
 
 (defn cp-project-config-files
   [project config-files]
-  (let [project-config-dir    (fs/file "." "configs" project "config")
-        project-config-files  (if (fs/directory? project-config-dir) (find-files-recursively project-config-dir))
+  (let [project-config-dir    (get-project-config-dir project)
+        project-config-files  (if (fs/directory? project-config-dir)
+                                (find-files-recursively project-config-dir))
         rel-files             (for [config-file project-config-files]
                                 (cp-project-config-file project-config-dir config-file))]
     (concat config-files rel-files)))
@@ -217,7 +236,7 @@ Bundled packages: %s
 
 (defn cp-cli-wrapper-scripts
   [project]
-  (fs/copy+ "./staging-templates/cli-app.erb"
+  (fs/copy+ (get-staging-template-file "cli-app.erb")
             (fs/file staging-dir "ext" "bin" (str (get-real-name project) ".erb"))))
 
 (defn get-out-dir-for-doc-file
@@ -244,7 +263,6 @@ Bundled packages: %s
   (mapv (partial relativize staging-dir)
         (deputils/cp-files-of-type lein-project "doc"
                                    docs-prefix get-out-dir-for-doc-file)))
-
 
 (defn- get-bin-files-in
   [jar]
@@ -395,7 +413,7 @@ Bundled packages: %s
     (spit
       (fs/file staging-dir "ezbake.rb")
       (stencil/render-string
-        (slurp "./staging-templates/ezbake.rb.mustache")
+        (slurp (get-staging-template-file "ezbake.rb.mustache"))
         {:project                   (:name lein-project)
          :real-name                 (get-real-name (:name lein-project))
          :user                      (get-local-ezbake-var lein-project :user
@@ -432,7 +450,7 @@ Bundled packages: %s
   (spit
     (fs/file staging-dir "ext" "project_data.yaml")
     (stencil/render-string
-      (slurp "./staging-templates/project_data.yaml.mustache")
+      (slurp (get-staging-template-file "project_data.yaml.mustache"))
       {:project       (:name lein-project)
        :summary       (:description lein-project)
        :description   (format "%s (%s)"
@@ -491,7 +509,7 @@ Bundled packages: %s
 (defmethod ezbake-action "stage"
   [_ project project-file lein-project build-target template-dir]
   (cp-template-files template-dir)
-  (cp-shared-files)
+  (cp-template-files (get-template-file "global"))
   (let [dependencies (deputils/get-dependencies-with-jars lein-project)
         config-files (cp-shared-config-files dependencies)
         config-files (cp-project-config-files project config-files)
@@ -526,18 +544,29 @@ Bundled packages: %s
   [action & params]
   (exit 1 (str/join \newline ["Unrecognized option:" action "" (usage)])))
 
+(defn ezbake-project
+  [ezbake-project-name]
+  (let [lein-project (-> (fs/file staging-dir "project.clj")
+                         .toString
+                         project/read)
+        ezbake-dependencies (-> (:lein-ezbake lein-project)
+                                (get :dependencies))]
+    (if ezbake-dependencies
+      (merge lein-project {:dependencies ezbake-dependencies})
+      lein-project)))
+
 (defn ezbake-init
   [action project template-vars]
   (clean)
   (fs/mkdirs staging-dir)
-  (let [project-file (get-project-file project)
+  (let [project-file (get-project-file-path project)
         template-vars (->> template-vars
                         (map #(str/split % #"="))
                         (into {}))]
     (cp-project-file project-file template-vars)
-    (let [lein-project (project/read (.toString (fs/file staging-dir "project.clj")))
+    (let [lein-project (ezbake-project project)
           build-target (get-local-ezbake-var lein-project :build-type "foss")
-          template-dir (fs/file template-dir-prefix build-target)
+          template-dir (get-template-file build-target)
           project-name (:name lein-project)]
       (ezbake-action action project-name project-file lein-project build-target template-dir))))
 
