@@ -5,10 +5,10 @@ After=syslog.target network.target
 [Service]
 Type=simple
 EnvironmentFile=/etc/sysconfig/<%= EZBake::Config[:project] %>
-User=$USER
+User=<%= EZBake::Config[:user] %>
 
 ExecStart=/usr/bin/java $JAVA_ARGS \
-          -cp "${INSTALL_DIR}/<%= EZBake::Config[:uber_jar] %>" clojure.main \
+          -cp "${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %>" clojure.main \
           -m puppetlabs.trapperkeeper.main --config "${CONFIG}" $@
 
 ExecStop=/bin/kill $MAINPID
