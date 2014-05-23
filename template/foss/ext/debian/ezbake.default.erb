@@ -6,10 +6,10 @@
 JAVA_BIN="/usr/bin/java"
 
 # Modify this if you'd like to change the memory allocation, enable JMX, etc
-JAVA_ARGS="-Xmx192m "
+JAVA_ARGS="<%= EZBake::Config[:java_args] %>"
 
 # These normally shouldn't need to be edited if using OS packages
 USER="<%= EZBake::Config[:user] %>"
 INSTALL_DIR="/usr/share/<%= EZBake::Config[:project] %>"
-CONFIG="/etc/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>.conf"
+CONFIG="/etc/<%= EZBake::Config[:project] %>/conf.d"
 BOOTSTRAP_CONFIG="/etc/<%= EZBake::Config[:project] %>/bootstrap.cfg"
