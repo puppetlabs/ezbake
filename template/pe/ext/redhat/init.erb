@@ -75,12 +75,14 @@ start() {
 stop() {
     echo -n $"Stopping $prog: "
     find_my_pid
-    if [ -s "$PIDFILE" ] ; then
-        kill `cat $PIDFILE`
-    elif [ "$pid" != "" ] ; then
-        kill $pid
+
+    if [ ! -s "$PIDFILE" ] ; then
+      echo $pid > $PIDFILE
     fi
+
+    killproc -p $PIDFILE -d 10s $prog
     retval=$?
+
     [ $retval -eq 0 ] && success $"$base stopped" || failure $"$base stopped"
     echo
     [ $retval -eq 0 ] && rm -f $lockfile $PIDFILE
