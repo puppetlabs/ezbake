@@ -421,7 +421,7 @@ Bundled packages: %s
   (fs/mkdirs staging-dir)
   (let [project-file (.toString (fs/file "./configs" project (str project ".clj")))
         template-vars (->> template-vars
-                        (map #(str/split % #"="))  
+                        (map #(str/split % #"="))
                         (into {}))]
     (cp-project-file project-file template-vars)
     (let [lein-project (project/read (.toString (fs/file staging-dir "project.clj")))
