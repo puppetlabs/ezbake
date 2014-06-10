@@ -368,6 +368,33 @@ Bundled packages: %s
        :uberjar-name  (:uberjar-name lein-project)
        :is-pe-build   (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))})))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Downstream Job Handling
+
+(defn get-package-build-version
+  "Grabs the ephemeral repo version from packaging."
+  []
+  (let [raw-version-string (exec "rake" "pl:print_build_param[ref]" :dir staging-dir)]
+    (second (re-matches #".*\n(.*)\n" (:out raw-version-string)))))
+
+(defn get-downstream-job
+  "Creates a DOWNSTREAM_JOB string for passing to pl:jenkins:uber_build rake
+  task. Requires DOWNSTREAM_JOB_URL environment variable to be defined otherwise
+  returns nil."
+  []
+  (let [base-url (System/getenv "DOWNSTREAM_JOB_URL")
+        build-parameters {:PACKAGE_BUILD_VERSION (get-package-build-version)
+                          :token (System/getenv "TOKEN_NAME")}]
+    (if base-url
+      (if-not (:token build-parameters)
+        (throw (RuntimeException. (str "Environment variable $TOKEN_NAME "
+                                       "required to trigger $DOWNSTREAM_JOB "
+                                       "remotely.")))
+        (str "DOWNSTREAM_JOB=" base-url "/buildWithParameters?"
+             (str/join "&" (map #(str (name %1) "=" %2)
+                                (keys build-parameters)
+                                (vals build-parameters))))))))
+
 (defn usage
   []
   (str/join \newline ["EZBake can be used to generate native packages suitable for"
@@ -407,9 +434,16 @@ Bundled packages: %s
   [_ project project-file lein-project build-target template-dir]
   (ezbake-action "stage" project project-file lein-project build-target template-dir)
   (exec "rake" "package:bootstrap" :dir staging-dir)
-  (if (= build-target "foss")
-    (println (:out (exec "rake" "pl:jenkins:uber_build" :dir staging-dir)))
-    (println (:out (exec "rake" "pe:jenkins:uber_build" "PE_VER=3.3" :dir staging-dir)))))
+  (let [downstream-job (get-downstream-job)
+        rake-call (if (= build-target "foss")
+                    ["rake" "pl:jenkins:uber_build"]
+                    ["rake" "pe:jenkins:uber_build" "PE_VER=3.3"])
+        full-command (if downstream-job
+                       ["env" downstream-job rake-call]
+                       rake-call)]
+    (if downstream-job
+      (println "Using" downstream-job))
+    (println (:out (apply exec (flatten [full-command :dir staging-dir]))))))
 
 (defmethod ezbake-action :default
   [action & params]
