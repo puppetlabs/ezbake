@@ -2,7 +2,7 @@
   :description "Release artifacts for pe-jvm-puppet"
   :pedantic? :abort
   :dependencies [[puppetlabs/jvm-puppet "{{{pe-jvm-puppet-version}}}"]
-                 [puppetlabs/trapperkeeper-webserver-jetty9 "0.3.4"]]
+                 [puppetlabs/trapperkeeper-webserver-jetty9 "0.5.2"]]
 
   :uberjar-name "jvm-puppet-release.jar"
 
@@ -13,5 +13,6 @@
   :ezbake { :user "pe-puppet"
             :group "pe-puppet"
             :build-type "pe"
+            :java-args "-Xmx1g"
             }
   )
