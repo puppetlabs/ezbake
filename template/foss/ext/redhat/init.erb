@@ -80,7 +80,7 @@ stop() {
       echo $pid > $PIDFILE
     fi
 
-    killproc -p $PIDFILE -d 10s $prog
+    killproc -p $PIDFILE -d ${SERVICE_STOP_RETRIES}s $prog
     retval=$?
 
     [ $retval -eq 0 ] && success $"$base stopped" || failure $"$base stopped"
