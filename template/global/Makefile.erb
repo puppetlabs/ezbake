@@ -29,16 +29,16 @@ install-<%= EZBake::Config[:project] %>-termini:
 
 install-rpm-sysv-init: install-rpm-preinst
 	install -d -m 0755 "$(DESTDIR)$(initdir)"
-	install -m 0755 ext/redhat/init "$(DESTDIR)$(initdir)/<%= EZBake::Config[:real_name] %>"
+	install -m 0755 ext/redhat/init "$(DESTDIR)$(initdir)/<%= EZBake::Config[:project] %>"
 	install -d -m 0755 "$(DESTDIR)$(defaultsdir)"
-	install -m 0644 ext/default "$(DESTDIR)$(defaultsdir)/<%= EZBake::Config[:real_name] %>"
+	install -m 0644 ext/default "$(DESTDIR)$(defaultsdir)/<%= EZBake::Config[:project] %>"
 	install -d -m 0755 "$(DESTDIR)$(rundir)"
 
 install-rpm-systemd: install-rpm-preinst
 	install -d -m 0755 "$(DESTDIR)$(defaultsdir)"
-	install -m 0644 ext/default "$(DESTDIR)$(defaultsdir)/<%= EZBake::Config[:real_name] %>"
+	install -m 0644 ext/default "$(DESTDIR)$(defaultsdir)/<%= EZBake::Config[:project] %>"
 	install -d -m 0755 "$(DESTDIR)$(unitdir)"
-	install -m 0755 ext/<%= EZBake::Config[:real_name] %>.service "$(DESTDIR)$(unitdir)/<%= EZBake::Config[:project] %>.service"
+	install -m 0755 ext/<%= EZBake::Config[:project] %>.service "$(DESTDIR)$(unitdir)/<%= EZBake::Config[:project] %>.service"
 
 install-rpm-preinst:
 <% EZBake::Config[:redhat][:additional_preinst].each do |preinst| -%>
@@ -49,7 +49,7 @@ install-deb-sysv-init: install-deb-preinst
 	install -d -m 0755 "$(DESTDIR)$(initdir)"
 	install -m 0755 ext/redhat/init "$(DESTDIR)$(initdir)/<%= EZBake::Config[:real_name] %>"
 	install -d -m 0755 "$(DESTDIR)$(defaultsdir)"
-	install -m 0644 ext/default "$(DESTDIR)$(defaultsdir)/<%= EZBake::Config[:real_name] %>"
+	install -m 0644 ext/default "$(DESTDIR)$(defaultsdir)/<%= EZBake::Config[:project] %>"
 	install -d -m 0755 "$(DESTDIR)$(rundir)"
 
 install-deb-preinst:
