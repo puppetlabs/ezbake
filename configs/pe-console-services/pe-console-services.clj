@@ -1,4 +1,4 @@
-(defproject puppetlabs.packages/pe-console-services "{{{pe-console-services-verison}}}"
+(defproject puppetlabs.packages/pe-console-services "{{{pe-console-services-version}}}"
   :description "Release artifacts for console services"
   :pedantic? :abort
   :dependencies [[puppetlabs/rbac-ui "{{{pe-rbac-ui-version}}}"]
