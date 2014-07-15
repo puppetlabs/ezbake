@@ -57,6 +57,32 @@ This file is actually a regular leiningen project file.  It must define:
   at some point if we decide to get rid of the tiny bit of aot that we are still
   doing.)
 
+Additional ezbake configuration options can be specified in the project file.
+These configurations must be specified in the :ezbake section. Some tweaks that
+can be configured here include the following:
+
+* `:user`: The user that the package will create on install and that the
+  service will run as (defaults to project name)
+* `:group`: The group that the package will create on install and that the
+  service will run as (defaults to project name)
+* `:build-type`: Defines the packaging templates that will be used when
+  creating the package (current options are 'foss' and 'pe')
+* `:java-args`: Sets options that will be passed to the jvm when the service is
+  started
+* `:replaces-pkgs`: A list of maps of packages and versions that this ezbake
+  package will replace
+
+Here is an example ezbake section:
+
+```
+  :ezbake { :user "foo"
+            :group "bar"
+            :build-type "pe"
+            :java-args "-Ddontcrashonmejava"
+            :replaces-pkgs [{:package "puppet", :version "3.6.2"}]
+  }
+```
+
 ### Additional Config Files
 
 Inside of your project dir (e.g., `/configs/jvm-puppet`) you may optionally
