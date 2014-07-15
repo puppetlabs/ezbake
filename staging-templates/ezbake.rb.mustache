@@ -13,7 +13,7 @@ module EZBake
                              :version => "{{{version}}}"
                            }
                          {{/terminus-map}}
-                         },
+                        },
       :debian => {
                     :additional_dependencies => [{{{deb-deps}}}],
                     :additional_preinst => [{{{deb-preinst}}}],
@@ -23,5 +23,10 @@ module EZBake
                     :additional_preinst => [{{{redhat-preinst}}}],
                  },
       :java_args => '{{{java-args}}}',
+      :replaces_pkgs => {
+                          {{#replaces-pkgs}}
+                            "{{package}}" => "{{version}}",
+                          {{/replaces-pkgs}}
+                        },
   }
 end
