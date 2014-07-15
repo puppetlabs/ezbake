@@ -472,7 +472,7 @@ Bundled packages: %s
   (if (>= (count args) 2)
     (let [[action project & template-vars] args]
       (if-not (every? (partial re-find #"=") template-vars)
-        (println "Arguments after the project name are expected to be variable bindings of the form <variable>=<value>")
+        (exit 1 "Arguments after the project name are expected to be variable bindings of the form <variable>=<value>")
         (try
           (ezbake-init action project template-vars)
           (finally
