@@ -54,6 +54,11 @@ Source0:          %{name}-%{realversion}.tar.gz
 Group:            System Environment/Daemons
 BuildArch:        noarch
 
+<% EZBake::Config[:replaces_pkgs].each do |package, version| %>
+Obsoletes:        <%=package-%> <= <%=version-%>-1
+Conflicts:        <%=package-%> <= <%=version-%>-1
+<% end %>
+
 BuildRequires:    pe-ruby
 BuildRequires:    /usr/sbin/useradd
 %if %{_with_systemd}

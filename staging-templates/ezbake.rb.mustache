@@ -23,5 +23,10 @@ module EZBake
                     :additional_preinst => [{{{redhat-preinst}}}],
                  },
       :java_args => '{{{java-args}}}',
+      :replaces_pkgs => {
+                          {{#replaces-pkgs}}
+                            "{{package}}" => "{{version}}",
+                          {{/replaces-pkgs}}
+                        },
   }
 end

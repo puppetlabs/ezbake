@@ -350,6 +350,7 @@ Bundled packages: %s
          :redhat-deps     (quoted-list (get-deps upstream-ezbake-configs build-target :redhat))
          :redhat-preinst  (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :redhat))
          :terminus-map    termini
+         :replaces-pkgs   (get-local-ezbake-var lein-project :replaces-pkgs [])
          :java-args       (get-local-ezbake-var lein-project :java-args
                                                 "-Xmx192m")}))))
 
