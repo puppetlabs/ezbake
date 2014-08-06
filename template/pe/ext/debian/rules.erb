@@ -9,10 +9,14 @@ export DESTDIR=$(BUILD_ROOT)
 export prefix=/opt/puppet
 export rubylibdir
 export confdir=/etc/puppetlabs
+export realname=<%= EZBake::Config[:real_name] %>
 
 install/<%= EZBake::Config[:project] %>::
 	echo "PATH IS: ${PATH}"
 	make -e install-<%= EZBake::Config[:project] %>
+<% EZBake::Config[:debian][:additional_install].each do |install| -%>
+	<%= install %>
+<% end -%>
 
 <% unless EZBake::Config[:terminus_info].empty?  -%>
 install/<%= EZBake::Config[:project] %>-termini::

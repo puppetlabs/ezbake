@@ -17,10 +17,12 @@ module EZBake
       :debian => {
                     :additional_dependencies => [{{{deb-deps}}}],
                     :additional_preinst => [{{{deb-preinst}}}],
+                    :additional_install => [{{{debian-install}}}],
                  },
       :redhat => {
                     :additional_dependencies => [{{{redhat-deps}}}],
                     :additional_preinst => [{{{redhat-preinst}}}],
+                    :additional_install => [{{{redhat-install}}}],
                  },
       :java_args => '{{{java-args}}}',
       :replaces_pkgs => {

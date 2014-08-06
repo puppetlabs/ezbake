@@ -8,10 +8,15 @@ rubylibdir=$(shell ruby -rrbconfig -e "puts RbConfig::CONFIG['vendordir']")
 export DESTDIR=$(BUILD_ROOT)
 export prefix=/usr
 export rubylibdir
+export confdir=/etc
+export realname=<%= EZBake::Config[:real_name] %>
 
 install/<%= EZBake::Config[:project] %>::
 	echo "PATH IS: ${PATH}"
 	make -e install-<%= EZBake::Config[:project] %>
+<% EZBake::Config[:debian][:additional_install].each do |install| -%>
+	<%= install %>
+<% end -%>
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
 install/<%= EZBake::Config[:project] %>-termini::
