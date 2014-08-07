@@ -238,6 +238,16 @@ Bundled packages: %s
        (mapcat #(get-in % [:ezbake (keyword build-target) os :preinst])
                (vals upstream-ezbake-configs))))
 
+(defn get-extra-install
+  [ezbake-vars upstream-ezbake-configs build-target os]
+  {:pre [(map? ezbake-vars)
+         (map? upstream-ezbake-configs)
+         (string? build-target)
+         (contains? #{:redhat :debian} os)]}
+  (map (partial interpolate-ezbake-config ezbake-vars)
+       (mapcat #(get-in % [:ezbake (keyword build-target) os :install])
+               (vals upstream-ezbake-configs))))
+
 (defn add-ezbake-config-to-map
   [acc [proj-name config-stream]]
   (assoc acc proj-name (ts/reader->map config-stream)))
@@ -345,10 +355,12 @@ Bundled packages: %s
                                                 (:name lein-project))
          :uberjar-name    (:uberjar-name lein-project)
          :config-files    (quoted-list config-files)
-         :deb-deps        (quoted-list (get-deps upstream-ezbake-configs build-target :debian))
-         :deb-preinst     (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :debian))
+         :debian-deps     (quoted-list (get-deps upstream-ezbake-configs build-target :debian))
+         :debian-preinst  (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :debian))
+         :debian-install  (quoted-list (get-extra-install ezbake-vars upstream-ezbake-configs build-target :debian))
          :redhat-deps     (quoted-list (get-deps upstream-ezbake-configs build-target :redhat))
          :redhat-preinst  (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :redhat))
+         :redhat-install  (quoted-list (get-extra-install ezbake-vars upstream-ezbake-configs build-target :redhat))
          :terminus-map    termini
          :replaces-pkgs   (get-local-ezbake-var lein-project :replaces-pkgs [])
          :java-args       (get-local-ezbake-var lein-project :java-args

@@ -116,6 +116,10 @@ install -m 0755 ext/redhat/init %{buildroot}%{_initrddir}/<%= EZBake::Config[:pr
 install -d -m 0755 %{buildroot}%{_real_sysconfdir}/sysconfig
 install -m 0755 ext/default %{buildroot}%{_real_sysconfdir}/sysconfig/<%= EZBake::Config[:project] %>
 
+<% EZBake::Config[:redhat][:additional_install].each do |install| -%>
+<%= install %>
+<% end -%>
+
 <% unless EZBake::Config[:terminus_info].empty? -%>
 env DESTDIR=%{buildroot} rubylibdir=%{puppet_libdir} prefix=%{_prefix} make -e install-<%= EZBake::Config[:project] %>-termini
 <% end -%>
