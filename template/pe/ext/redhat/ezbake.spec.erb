@@ -144,7 +144,12 @@ install -d -m0755 %{buildroot}%{_unitdir}
 install -m 0644 ext/redhat/<%= EZBake::Config[:project] %>.service %{buildroot}%{_unitdir}/<%= EZBake::Config[:project] %>.service
 %else
 install -d -m 0755 %{buildroot}%{_initrddir}
+%endif
+%if %{_old_el}
 install -m 0755 ext/redhat/init %{buildroot}%{_initrddir}/<%= EZBake::Config[:project] %>
+%endif
+%if %{_old_sles}
+install -m 0755 ext/redhat/init.suse %{buildroot}%{_initrddir}/<%= EZBake::Config[:project] %>
 %endif
 install -d -m 0755 %{buildroot}%{_real_sysconfdir}/sysconfig
 install -m 0755 ext/default %{buildroot}%{_real_sysconfdir}/sysconfig/<%= EZBake::Config[:project] %>

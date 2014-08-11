@@ -1,0 +1,130 @@
+#!/bin/sh
+#
+# Puppet Labs <%= EZBake::Config[:project] %>
+#
+# chkconfig: - 20 80
+# description: Puppet Labs <%= EZBake::Config[:project] %>
+
+### BEGIN INIT INFO
+# Provides:          <%= EZBake::Config[:project] %>
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: <%= EZBake::Config[:project] %>
+# Description:       Start <%= EZBake::Config[:project] %> daemon placed in /etc/init.d.
+### END INIT INFO
+
+# Copyright 2014 Puppet Labs
+
+# Source function library.
+[ -e /etc/rc.status ] && . /etc/rc.status
+
+prog="<%= EZBake::Config[:project] %>"
+
+##########################################
+#  You should not have to edit this init script.
+#  Please attempt to make changes in /etc/sysconfig/<%= EZBake::Config[:project] %>
+##########################################
+
+[ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog
+
+config=$CONFIG
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+JARFILE="<%= EZBake::Config[:uberjar_name] %>"
+JAVA_ARGS="${JAVA_ARGS} -jar ${INSTALL_DIR}/${JARFILE} --config ${CONFIG} --bootstrap-config ${BOOTSTRAP_CONFIG}"
+EXTRA_ARGS="--chuid $USER --background --make-pidfile"
+lockfile=/var/lock/subsys/$prog
+EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" $JAVA_ARGS"
+PIDFILE="/var/run/$prog/$prog"
+
+if `which runuser &> /dev/null` ; then
+    SU=runuser
+else
+    SU=su
+fi
+
+# First reset status of this service
+rc_reset
+
+find_my_pid() {
+    if [ ! -d  "/var/run/$prog" ] ; then
+      mkdir -p /var/run/$prog
+      chown -R $USER:$USER /var/run/$prog
+    fi
+    pid=`ps -ef | grep $JAVA_BIN | grep $JARFILE | awk '{print $2}'`
+}
+
+start() {
+    [ -x $JAVA_BIN ] || exit 5
+    [ -e $config ] || exit 6
+    mkdir -p /var/log/<%= EZBake::Config[:project] %>
+    chown -R $USER /var/log/<%= EZBake::Config[:project] %>
+    # Move any heap dumps aside
+    echo -n $"Starting $prog: "
+    startproc --u $USER --p $PIDFILE "$EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1 &"
+    sleep 1
+    find_my_pid
+    echo $pid > $PIDFILE
+    [ -s $PIDFILE ] && success $"$base startup" || failure $"$base startup"
+    echo
+    [ -s $PIDFILE ] && touch $lockfile
+    # call status here and figure out current state
+    rc_status -v
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    find_my_pid
+
+    if [ ! -s "$PIDFILE" ] ; then
+      echo $pid > $PIDFILE
+    fi
+
+    killproc -p $PIDFILE -d ${SERVICE_STOP_RETRIES}s $prog
+    retval=$?
+
+    [ $retval -eq 0 ] && success $"$base stopped" || failure $"$base stopped"
+    echo
+    [ $retval -eq 0 ] && rm -f $lockfile $PIDFILE
+    rc_status -v
+}
+
+restart() {
+    stop
+    start
+}
+sl_status_q() {
+  sl_status > /dev/null 2>&1
+}
+sl_status() {
+    checkproc -p ${PIDFILE} ${prog}
+    rc_status -v
+}
+
+
+case "$1" in
+    start)
+        sl_status_q && exit 0
+        $1
+        ;;
+    stop)
+        sl_status_q || exit 0
+        $1
+        ;;
+    restart)
+        $1
+        ;;
+    condrestart|try-restart)
+        sl_status_q || exit 0
+        restart
+        ;;
+    status)
+        sl_status
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|restart|condrestart|try-restart|status}"
+        exit 2
+esac
+exit $?
