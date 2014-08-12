@@ -42,17 +42,18 @@ install-rpm-systemd: install-rpm-preinst
 
 install-rpm-preinst:
 <% EZBake::Config[:redhat][:additional_preinst].each do |preinst| -%>
-	<%= preinst -%> 
+	<%= preinst %>
 <% end -%>
 
 install-deb-sysv-init: install-deb-preinst
 	install -d -m 0755 "$(DESTDIR)$(initdir)"
-	install -m 0755 ext/redhat/init "$(DESTDIR)$(initdir)/<%= EZBake::Config[:real_name] %>"
+	install -m 0755 ext/debian/<%= EZBake::Config[:real_name] %>.init "$(DESTDIR)$(initdir)/<%= EZBake::Config[:real_name] %>"
 	install -d -m 0755 "$(DESTDIR)$(defaultsdir)"
 	install -m 0644 ext/default "$(DESTDIR)$(defaultsdir)/<%= EZBake::Config[:project] %>"
 	install -d -m 0755 "$(DESTDIR)$(rundir)"
 
 install-deb-preinst:
 <% EZBake::Config[:debian][:additional_preinst].each do |preinst| -%>
-	<%= preinst -%> 
+	<%= preinst %>
 <% end -%>
+
