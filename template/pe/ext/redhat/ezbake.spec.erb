@@ -5,10 +5,32 @@
 %global puppet_libdir     %(/opt/puppet/bin/ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
 %global p_vendor          pe
 
+%global _with_systemd  0
+%global _with_sysvinit 0
+%global _systemd_el    0
+%global _systemd_sles  0
+%global _old_sles      0
+%global _old_el        0
+
+
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
 %global _with_systemd 1
-%else
-%global _with_systemd 0
+%global _systemd_el   1
+%endif
+
+%if 0%{?suse_version} >= 1210
+%global _with_systemd 1
+%global _systemd_sles 1
+%endif
+
+%if 0%{?rhel} && 0%{?rhel} < 7
+%global _with_sysvinit 1
+%global _old_el        1
+%endif
+
+%if 0%{?suse_version} && 0%{?suse_version} < 1210
+%global _with_sysvinit 1
+%global _old_sles      1
 %endif
 
 %if 0%{?p_vendor:1}
@@ -62,12 +84,23 @@ Conflicts:        <%=package-%> <= <%=version-%>-1
 BuildRequires:    pe-ruby
 BuildRequires:    /usr/sbin/useradd
 %if %{_with_systemd}
+BuildRequires:    systemd
+%endif
+%if %{_old_el}
+Requires:         chkconfig
+%endif
+%if %{_old_sles}
+Requires:         aaa_base
+%endif
+
+%if %{_systemd_el}
 Requires(post):   systemd
 Requires(preun):  systemd
 Requires(postun): systemd
-BuildRequires:    systemd
-%else
-Requires:         chkconfig
+%endif
+
+%if %{_systemd_sles}
+%{?systemd_requires}
 %endif
 
 Requires:         pe-java
@@ -111,7 +144,12 @@ install -d -m0755 %{buildroot}%{_unitdir}
 install -m 0644 ext/redhat/<%= EZBake::Config[:project] %>.service %{buildroot}%{_unitdir}/<%= EZBake::Config[:project] %>.service
 %else
 install -d -m 0755 %{buildroot}%{_initrddir}
+%endif
+%if %{_old_el}
 install -m 0755 ext/redhat/init %{buildroot}%{_initrddir}/<%= EZBake::Config[:project] %>
+%endif
+%if %{_old_sles}
+install -m 0755 ext/redhat/init.suse %{buildroot}%{_initrddir}/<%= EZBake::Config[:project] %>
 %endif
 install -d -m 0755 %{buildroot}%{_real_sysconfdir}/sysconfig
 install -m 0755 ext/default %{buildroot}%{_real_sysconfdir}/sysconfig/<%= EZBake::Config[:project] %>
@@ -140,9 +178,13 @@ getent passwd <%= EZBake::Config[:user] %> > /dev/null || \
 <% end -%>
 
 %post
-%if %{_with_systemd}
+%if %{_systemd_el}
 %systemd_post <%= EZBake::Config[:project] %>.service
-%else
+%endif
+%if %{_systemd_sles}
+%service_add_post <%= EZBake::Config[:project] %>.service
+%endif
+%if %{_with_sysvinit}
 # If this is an install (as opposed to an upgrade)...
 if [ "$1" = "1" ]; then
   # Register the <%= EZBake::Config[:project] %> service
@@ -151,9 +193,13 @@ fi
 %endif
 
 %preun
-%if %{_with_systemd}
+%if %{_systemd_el}
 %systemd_preun <%= EZBake::Config[:project] %>.service
-%else
+%endif
+%if %{_systemd_sles}
+%service_del_preun <%= EZBake::Config[:project] %>.service
+%endif
+%if %{_with_sysvinit}
 # If this is an uninstall (as opposed to an upgrade) then
 #  we want to shut down and disable the service.
 if [ "$1" = "0" ] ; then
@@ -163,9 +209,13 @@ fi
 %endif
 
 %postun
-%if %{_with_systemd}
+%if %{_systemd_el}
 %systemd_postun_with_restart <%= EZBake::Config[:project] %>.service
-%else
+%endif
+%if %{_systemd_sles}
+%service_del_postun <%= EZBake::Config[:project] %>.service
+%endif
+%if %{_with_sysvinit}
 # Remove the rundir if this is an uninstall (as opposed to an upgrade)...
 if [ "$1" = "0" ]; then
     rm -rf %{_rundir}/%{name} || :
