@@ -7,7 +7,7 @@
                  [puppetlabs/rbac-ui "{{{pe-rbac-ui-version}}}"]
                  ;[puppetlabs/pe-activity-service "{{{pe-classifier-version}}}"]
                  ;[puppetlabs/pe-trapperkeeper-proxy "{{{pe-trapperkeeper-proxy}}}"]
-                 [puppetlabs/trapperkeeper-webserver-jetty9 "0.5.2"]]
+                 [puppetlabs/trapperkeeper-webserver-jetty9 "0.6.0"]]
 
   :uberjar-name "console-services-release.jar"
 
