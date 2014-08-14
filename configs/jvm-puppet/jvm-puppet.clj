@@ -13,6 +13,6 @@
   :ezbake { :user "puppet"
             :group "puppet"
             :build-type "foss"
-            :java-args "-Xmx2g"
+            :java-args "-Xms2g -Xmx2g"
             }
   )
