@@ -1,4 +1,4 @@
-(defproject puppetlabs.packages/puppet-server "{{{puppet-server-version}}}"
+(defproject puppetlabs.packages/puppetserver "{{{puppet-server-version}}}"
   :description "Release artifacts for puppet-server"
   :pedantic? :abort
   :dependencies [[puppetlabs/puppet-server "{{{puppet-server-version}}}"]
