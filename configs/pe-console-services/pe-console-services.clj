@@ -5,8 +5,8 @@
                  [puppetlabs/classifier-ui "{{{pe-classifier-ui-version}}}"]
                  [puppetlabs/pe-rbac-service "{{{pe-rbac-version}}}"]
                  [puppetlabs/rbac-ui "{{{pe-rbac-ui-version}}}"]
-                 ;[puppetlabs/pe-activity-service "{{{pe-classifier-version}}}"]
-                 ;[puppetlabs/pe-trapperkeeper-proxy "{{{pe-trapperkeeper-proxy}}}"]
+                 [puppetlabs/pe-activity-service "{{{pe-activity-service-version}}}"]
+                 ;[puppetlabs/pe-trapperkeeper-proxy "{{{pe-trapperkeeper-proxy-version}}}"]
                  [puppetlabs/trapperkeeper-webserver-jetty9 "0.7.0"]]
 
   :uberjar-name "console-services-release.jar"
