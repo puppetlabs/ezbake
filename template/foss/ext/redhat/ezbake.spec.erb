@@ -20,6 +20,7 @@
 %global  _sharedstatedir /var/lib
 %global  _realsysconfdir /etc
 %global  _rundir         /var/run
+%global  _bindir         /usr/bin
 
 %define __jar_repack     0
 
@@ -173,6 +174,7 @@ fi
 %endif
 %config(noreplace) %{_sysconfdir}/%{name}
 %{_sysconfdir}/sysconfig/%{name}
+%{_bindir}/%{name}
 %ghost %attr(0755, root, root) %{_rundir}/%{name}
 
 

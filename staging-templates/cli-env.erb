@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -r "/etc/default/<%= EZBake::Config[:real_name] -%>" ] ; then
+    . /etc/default/<%= EZBake::Config[:real_name] %>
+elif [ -r  "/etc/sysconfig/<%= EZBake::Config[:real_name] -%>" ] ; then
+    . /etc/sysconfig/<%= EZBake::Config[:real_name] %>
+else
+    TODO: DIE!!!
+fi

@@ -3,6 +3,7 @@ datadir = $(prefix)/share
 confdir = /etc
 rubylibdir = $(shell ruby -rrbconfig -e "puts RbConfig::CONFIG['sitelibdir']")
 rundir = /var/run
+bindir = /usr/bin
 
 <%= EZBake::Config[:uberjar_name] %>:
 	lein uberjar
@@ -15,6 +16,16 @@ install-<%= EZBake::Config[:project] %>: <%= EZBake::Config[:uberjar_name] %>
 	install -d -m 0755 "$(DESTDIR)$(confdir)/<%= EZBake::Config[:real_name] %>/conf.d"
 <% EZBake::Config[:config_files].each do |config_file| -%>
 	install -m 0644 <%= config_file %> "$(DESTDIR)$(confdir)/<%= EZBake::Config[:real_name] %>/<%= config_file.sub(/^ext\/config\//, "") %>"
+<% end -%>
+<% if ! EZBake::Config[:cli_app_files].empty? -%>
+	install -d -m 0755 "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>/cli"
+	install -m 0644 "ext/cli/<%= EZBake::Config[:real_name] %>-env" "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>/cli/<%= EZBake::Config[:real_name] %>-env"
+	install -d -m 0755 "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>/cli/apps"
+	install -d -m 0755 "$(DESTDIR)$(bindir)"
+	install -m 0755 "ext/bin/<%= EZBake::Config[:real_name] %>" "$(DESTDIR)$(bindir)/<%= EZBake::Config[:real_name] %>"
+<% end -%>
+<% EZBake::Config[:cli_app_files].each do |cli_app_file| -%>
+	install -m 0755 <%= cli_app_file %> "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>/cli/apps/<%= cli_app_file.sub(/^ext\/cli\//, "") %>"
 <% end -%>
 	install -d -m 0755 "$(DESTDIR)$(rundir)"
 
