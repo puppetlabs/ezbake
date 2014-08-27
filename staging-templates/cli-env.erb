@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ -r "/etc/default/<%= EZBake::Config[:real_name] -%>" ] ; then
+    . /etc/default/<%= EZBake::Config[:real_name] %>
+elif [ -r  "/etc/sysconfig/<%= EZBake::Config[:real_name] -%>" ] ; then
+    . /etc/sysconfig/<%= EZBake::Config[:real_name] %>
+else
+    echo "You seem to be missing some important configuration files; could not find /etc/default/<%= EZBake::Config[:real_name] -%> or /etc/sysconfig/<%= EZBake::Config[:real_name] -%>" >&2
+    exit 1
+fi

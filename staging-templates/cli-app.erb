@@ -1,0 +1,69 @@
+#!/bin/bash
+
+INSTALL_DIR=`getent passwd <%= EZBake::Config[:user] %> |awk -F':' '{print $6}'`
+CLI_DIR="${INSTALL_DIR}/cli"
+CLI_APP_DIR="${CLI_DIR}/apps"
+APPS=`ls ${CLI_APP_DIR} 2>/dev/null`
+
+#############
+# FUNCTIONS #
+#############
+
+# Display usage then exit
+function usage {
+
+    if [ "$APPS" == "" ]; then
+        echo "ERROR: No sub-commands found in ${CLI_APP_DIR}"
+        exit 1
+    fi
+
+    cat <<EOD
+usage: $(basename $0) [--help] <command> [<args>]
+
+The most commonly used <%= EZBake::Config[:real_name] %> commands are:
+EOD
+
+    # Iterate and display commands in the CLI_APP_DIR
+    for f in $APPS; do
+        echo "   $f"
+    done
+
+    cat << EOD
+
+See '$(basename $0) <command> -h' for more information on a specific command.
+EOD
+    exit 0
+}
+
+# Execute the subcommand if available.
+#
+# $1 - subcommand
+# $n - arguments
+#
+# Example:
+#
+#   execsubcommand export -o test.dump -H 1.1.1.1
+#
+function execsubcommand {
+    sub=$1
+    shift
+    cmd="${CLI_APP_DIR}/${sub}"
+
+    if [ -e ${cmd} ]; then
+        set -o allexport
+        . ${CLI_DIR}/<%= EZBake::Config[:real_name] %>-env
+        exec "${cmd}" "$@"
+    else
+        echo "<%= EZBake::Config[:real_name] %>: '${sub}' is not a <%= EZBake::Config[:real_name] %> command. See '$(basename $0) --help'."
+    fi
+}
+
+########
+# MAIN #
+########
+
+if [ -z $1 ] || [ $1 = "--help" ] || [ $1 = "-h" ]; then
+    usage
+fi
+
+execsubcommand "$@"

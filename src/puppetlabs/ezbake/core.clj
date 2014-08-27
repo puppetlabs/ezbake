@@ -1,5 +1,6 @@
 (ns puppetlabs.ezbake.core
-  (:import (java.io File InputStreamReader))
+  (:import (java.io File InputStreamReader)
+           (java.util.jar JarEntry))
   (:require [me.raynes.fs :as fs]
             [leiningen.core.project :as project]
             [clojure.java.shell :as sh]
@@ -15,6 +16,7 @@
 (def template-dir-prefix "./template")
 (def staging-dir "./target/staging")
 (def shared-config-prefix "ext/config/conf.d/")
+(def shared-cli-apps-prefix "ext/cli/")
 (def docs-prefix "ext/docs/")
 (def terminus-prefix "puppet/indirector")
 
@@ -94,6 +96,14 @@
         .getPath
         (File.))))
 
+(defn remove-erb-extension
+  [f]
+  {:pre [(instance? JarEntry f)]}
+  (let [filename (.getName f)]
+    (if (.endsWith filename ".erb")
+      (.substring filename 0 (- (.length filename) 4))
+      filename)))
+
 (defn quoted-list
   [l]
   (if (empty? l) "" (format "\"%s\"" (str/join "\",\"" l))))
@@ -167,6 +177,26 @@ Bundled packages: %s
         rel-files             (for [config-file project-config-files]
                                 (cp-project-config-file project-config-dir config-file))]
     (concat config-files rel-files)))
+
+(defn- get-cli-app-files-in
+  [jar]
+  (deputils/find-files-in-dir-in-jar jar shared-cli-apps-prefix))
+
+(defn cp-shared-cli-app-files
+  [dependencies]
+  (let [files (for [{:keys [project jar]} dependencies]
+                [project jar (get-cli-app-files-in jar)])]
+    (doseq [[project jar cli-app-files] files]
+      (deputils/cp-files-from-jar cli-app-files jar staging-dir))
+    ;; Return just a list of the files
+    (mapcat last files)))
+
+(defn cp-cli-wrapper-scripts
+  [project]
+  (fs/copy+ "./staging-templates/cli-app.erb"
+            (fs/file staging-dir "ext" "bin" (str project ".erb")))
+  (fs/copy+ "./staging-templates/cli-env.erb"
+            (fs/file staging-dir "ext" "cli" (str project "-env.erb"))))
 
 (defn get-out-dir-for-doc-file
   [dep jar-entry]
@@ -335,7 +365,7 @@ Bundled packages: %s
 ;; file from that.  All of these options sound unappealing in their own special
 ;; ways.
 (defn generate-ezbake-config-file
-  [lein-project build-target config-files terminus-files]
+  [lein-project build-target config-files cli-app-files terminus-files]
   (println "generating ezbake config file")
   (let [upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)
         ezbake-vars             (get-ezbake-vars lein-project build-target)
@@ -355,6 +385,7 @@ Bundled packages: %s
                                                 (:name lein-project))
          :uberjar-name    (:uberjar-name lein-project)
          :config-files    (quoted-list config-files)
+         :cli-app-files   (quoted-list (map remove-erb-extension cli-app-files))
          :debian-deps     (quoted-list (get-deps upstream-ezbake-configs build-target :debian))
          :debian-preinst  (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :debian))
          :debian-install  (quoted-list (get-extra-install ezbake-vars upstream-ezbake-configs build-target :debian))
@@ -435,9 +466,12 @@ Bundled packages: %s
   (let [dependencies (deputils/get-dependencies-with-jars lein-project)
         config-files (cp-shared-config-files dependencies)
         config-files (cp-project-config-files project config-files)
+        cli-app-files (cp-shared-cli-app-files dependencies)
         terminus-files (cp-terminus-files dependencies build-target)]
+    (if cli-app-files
+      (cp-cli-wrapper-scripts project))
     (cp-doc-files lein-project)
-    (generate-ezbake-config-file lein-project build-target config-files terminus-files)
+    (generate-ezbake-config-file lein-project build-target config-files cli-app-files terminus-files)
     (generate-project-data-yaml lein-project build-target)
     (generate-manifest-file lein-project)
     (create-git-repo lein-project)))

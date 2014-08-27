@@ -173,6 +173,7 @@ fi
 %endif
 %config(noreplace) %{_sysconfdir}/%{name}
 %{_sysconfdir}/sysconfig/%{name}
+%{_bindir}/%{name}
 %ghost %attr(0755, root, root) %{_rundir}/%{name}
 
 
