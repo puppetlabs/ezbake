@@ -9,7 +9,8 @@ User=<%= EZBake::Config[:user] %>
 
 ExecStart=/opt/puppet/bin/java $JAVA_ARGS \
           -cp "${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %>" clojure.main \
-          -m puppetlabs.trapperkeeper.main --config "${CONFIG}" $@
+          -m puppetlabs.trapperkeeper.main --config "${CONFIG}" \
+          -b "${BOOTSTRAP_CONFIG}" $@
 
 ExecStop=/bin/kill $MAINPID
 
