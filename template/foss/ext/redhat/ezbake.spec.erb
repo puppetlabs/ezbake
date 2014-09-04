@@ -103,6 +103,8 @@ install -m 0755 ext/default %{buildroot}%{_sysconfdir}/sysconfig/<%= EZBake::Con
 <%= install %>
 <% end -%>
 
+install -d -m 700 %{buildroot}%{_localstatedir}/log/<%= EZBake::Config[:project] %>
+
 <% unless EZBake::Config[:terminus_info].empty? -%>
 env DESTDIR=%{buildroot} rubylibdir=%{puppet_libdir} prefix=%{_prefix} make -e install-<%= EZBake::Config[:project] %>-termini
 <% end -%>
@@ -162,6 +164,7 @@ fi
 
 %files
 %defattr(-, root, root)
+%dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_localstatedir}/log/%{name}
 <% if File.exists?("ext/docs") %>
 %doc ext/docs
 <% end %>
