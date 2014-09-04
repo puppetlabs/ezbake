@@ -18,7 +18,7 @@
 # Copyright 2014 Puppet Labs
 
 # Source function library.
-[ -e /etc/rc.status ] && . /etc/rc.status
+[ -e /lib/lsb/init-functions ] && . /lib/lsb/init-functions
 
 prog="<%= EZBake::Config[:project] %>"
 
@@ -27,68 +27,57 @@ prog="<%= EZBake::Config[:project] %>"
 #  Please attempt to make changes in /etc/sysconfig/<%= EZBake::Config[:project] %>
 ##########################################
 
-[ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog
+[ -e "/etc/sysconfig/${prog}" ] && . "/etc/sysconfig/${prog}"
 
 config=$CONFIG
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 JAVA_ARGS="${JAVA_ARGS} -jar ${INSTALL_DIR}/${JARFILE} --config ${CONFIG} --bootstrap-config ${BOOTSTRAP_CONFIG}"
-EXTRA_ARGS="--chuid $USER --background --make-pidfile"
-lockfile=/var/lock/subsys/$prog
-EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" $JAVA_ARGS"
-PIDFILE="/var/run/$prog/$prog"
+lockfile="/var/lock/subsys/${prog}"
+PIDFILE="/var/run/${prog}/${prog}.pid"
+LOGFILE="/var/log/${prog}/${prog}.log"
 
-if `which runuser &> /dev/null` ; then
-    SU=runuser
-else
-    SU=su
-fi
 
 # First reset status of this service
 rc_reset
 
 find_my_pid() {
-    if [ ! -d  "/var/run/$prog" ] ; then
-      mkdir -p /var/run/$prog
-      chown -R $USER:$USER /var/run/$prog
+    if [ ! -d  "/var/run/${prog}" ] ; then
+      install --owner "${USER}" --group "${USER}" --directory "/var/run/${prog}"
     fi
-    pid=`ps -ef | grep $JAVA_BIN | grep $JARFILE | awk '{print $2}'`
+    pid="$(pgrep -f "${JAVA_BIN}.*${JARFILE}")"
 }
 
 start() {
-    [ -x $JAVA_BIN ] || exit 5
-    [ -e $config ] || exit 6
-    mkdir -p /var/log/<%= EZBake::Config[:project] %>
-    chown -R $USER /var/log/<%= EZBake::Config[:project] %>
-    # Move any heap dumps aside
-    echo -n $"Starting $prog: "
-    startproc --u $USER --p $PIDFILE "$EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1 &"
+    [ -x "${JAVA_BIN}" ] || exit 5
+    [ -e "${config}" ] || exit 6
+    install --owner "${USER}" --group "${USER}" --directory "/var/log/${prog}"
+    echo -n $"Starting ${prog}: "
+    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p"' "${JAVA_ARGS}"
+    rc_status -v
     sleep 1
     find_my_pid
-    echo $pid > $PIDFILE
-    [ -s $PIDFILE ] && success $"$base startup" || failure $"$base startup"
+    echo "${pid}" > "${PIDFILE}"
+    [ -s "${PIDFILE}" ] && log_success_msg $"${prog} startup" || log_failure_msg $"${prog} startup"
     echo
-    [ -s $PIDFILE ] && touch $lockfile
-    # call status here and figure out current state
-    rc_status -v
+    [ -s "${PIDFILE}" ] && touch "${lockfile}"
 }
 
 stop() {
-    echo -n $"Stopping $prog: "
+    echo -n $"Stopping ${prog}: "
     find_my_pid
 
-    if [ ! -s "$PIDFILE" ] ; then
-      echo $pid > $PIDFILE
+    if [ ! -s "${PIDFILE}" ] ; then
+      echo "${pid}" > "${PIDFILE}"
     fi
 
-    killproc -p $PIDFILE -d ${SERVICE_STOP_RETRIES}s $prog
-    retval=$?
-
-    [ $retval -eq 0 ] && success $"$base stopped" || failure $"$base stopped"
-    echo
-    [ $retval -eq 0 ] && rm -f $lockfile $PIDFILE
+    killproc -p "${PIDFILE}" -t"${SERVICE_STOP_RETRIES}"s -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p"' "${JAVA_ARGS}"
     rc_status -v
+    retval=$?
+    [ $retval -eq 0 ] && log_success_msg $"${prog} stopped" || log_failure_msg $"${prog} stopped"
+    echo
+    [ $retval -eq 0 ] && rm -f "${lockfile}" "${PIDFILE}"
 }
 
 restart() {
@@ -99,7 +88,7 @@ sl_status_q() {
   sl_status > /dev/null 2>&1
 }
 sl_status() {
-    checkproc -p ${PIDFILE} ${prog}
+    checkproc -p "${PIDFILE}" -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p"' "${JAVA_ARGS}"
     rc_status -v
 }
 
@@ -124,7 +113,7 @@ case "$1" in
         sl_status
         ;;
     *)
-        echo $"Usage: $0 {start|stop|restart|condrestart|try-restart|status}"
+        echo $"Usage: ${0} {start|stop|restart|condrestart|try-restart|status}"
         exit 2
 esac
 exit $?
