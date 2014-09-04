@@ -1,0 +1,4 @@
+#!/bin/sh
+
+chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> /var/log/<%= EZBake::Config[:project] %>
+chmod 700 /var/log/<%= EZBake::Config[:project] %>
