@@ -44,7 +44,7 @@ rc_reset
 
 find_my_pid() {
     if [ ! -d  "/var/run/${prog}" ] ; then
-      install --owner "${USER}" --group "${USER}" --directory "/var/run/${prog}"
+        install --owner "${USER}" --group "${USER}" --directory "/var/run/${prog}"
     fi
     pid="$(pgrep -f "${JAVA_BIN}.*${JARFILE}")"
 }
@@ -52,7 +52,6 @@ find_my_pid() {
 start() {
     [ -x "${JAVA_BIN}" ] || exit 5
     [ -e "${config}" ] || exit 6
-    install --owner "${USER}" --group "${USER}" --directory "/var/log/${prog}"
     echo -n $"Starting ${prog}: "
     startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p"' ${JAVA_ARGS}
     rc_status -v
@@ -69,7 +68,7 @@ stop() {
     find_my_pid
 
     if [ ! -s "${PIDFILE}" ] ; then
-      echo "${pid}" > "${PIDFILE}"
+        echo "${pid}" > "${PIDFILE}"
     fi
 
     killproc -p "${PIDFILE}" -t"${SERVICE_STOP_RETRIES}"s -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p"' "${JAVA_ARGS}"
@@ -84,9 +83,11 @@ restart() {
     stop
     start
 }
+
 sl_status_q() {
   sl_status > /dev/null 2>&1
 }
+
 sl_status() {
     checkproc -p "${PIDFILE}" -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p"' "${JAVA_ARGS}"
     rc_status -v

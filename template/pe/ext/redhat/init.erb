@@ -47,8 +47,8 @@ fi
 
 find_my_pid() {
     if [ ! -d  "/var/run/$prog" ] ; then
-      mkdir -p /var/run/$prog
-      chown -R $USER:$USER /var/run/$prog
+        mkdir -p /var/run/$prog
+        chown -R $USER:$USER /var/run/$prog
     fi
     pid=`ps -ef | grep $JAVA_BIN | grep $JARFILE | awk '{print $2}'`
 }
@@ -58,8 +58,6 @@ start() {
     rh_status_q
     [ -x $JAVA_BIN ] || exit 5
     [ -e $config ] || exit 6
-    mkdir -p /var/log/<%= EZBake::Config[:project] %>
-    chown -R $USER /var/log/<%= EZBake::Config[:project] %>
     # Move any heap dumps aside
     echo -n $"Starting $prog: "
     daemon --user $USER --pidfile $PIDFILE "$EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1 &"
@@ -77,7 +75,7 @@ stop() {
     find_my_pid
 
     if [ ! -s "$PIDFILE" ] ; then
-      echo $pid > $PIDFILE
+        echo $pid > $PIDFILE
     fi
 
     killproc -p $PIDFILE -d ${SERVICE_STOP_RETRIES}s $prog
