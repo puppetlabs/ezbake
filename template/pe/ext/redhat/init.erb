@@ -39,12 +39,6 @@ lockfile=/var/lock/subsys/$prog
 EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" $JAVA_ARGS"
 PIDFILE="/var/run/$prog/$prog"
 
-if `which runuser &> /dev/null` ; then
-    SU=runuser
-else
-    SU=su
-fi
-
 find_my_pid() {
     if [ ! -d  "/var/run/$prog" ] ; then
         mkdir -p /var/run/$prog
