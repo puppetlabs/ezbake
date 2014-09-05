@@ -58,8 +58,6 @@ start() {
     rh_status_q
     [ -x $JAVA_BIN ] || exit 5
     [ -e $config ] || exit 6
-    mkdir -p /var/log/<%= EZBake::Config[:project] %>
-    chown -R $USER /var/log/<%= EZBake::Config[:project] %>
     # Move any heap dumps aside
     echo -n $"Starting $prog: "
     daemon --user $USER --pidfile $PIDFILE "$EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1 &"

@@ -52,7 +52,6 @@ find_my_pid() {
 start() {
     [ -x "${JAVA_BIN}" ] || exit 5
     [ -e "${config}" ] || exit 6
-    install --owner "${USER}" --group "${USER}" --directory "/var/log/${prog}"
     echo -n $"Starting ${prog}: "
     startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p"' ${JAVA_ARGS}
     rc_status -v

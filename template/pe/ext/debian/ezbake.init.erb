@@ -48,9 +48,6 @@ EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" $JAVA_ARGS"
 #
 do_start()
 {
-    mkdir -p /var/log/<%= EZBake::Config[:project] %>
-    chown -R $USER /var/log/<%= EZBake::Config[:project] %>
-
     start-stop-daemon --start $EXTRA_ARGS --quiet --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
         --startas /bin/bash -- -c "exec $EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1"
 }
