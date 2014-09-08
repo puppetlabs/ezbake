@@ -55,6 +55,16 @@ start() {
     echo -n $"Starting ${prog}: "
     startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p"' ${JAVA_ARGS}
     rc_status -v
+
+    <% if EZBake::Config[:redhat][:post_start_action] -%>
+    if [ "$?" -eq 0]; then
+    <% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
+        <%= action %>
+    <% end -%>
+    fi
+    <% end -%>
+
+    fi
     sleep 1
     find_my_pid
     echo "${pid}" > "${PIDFILE}"

@@ -250,32 +250,15 @@ Bundled packages: %s
   ;; with it as well.
   (stencil/render-string s ezbake-vars))
 
-(defn get-deps
-  [upstream-ezbake-configs build-target os]
-  {:pre [(map? upstream-ezbake-configs)
-         (string? build-target)
-         (contains? #{:redhat :debian} os)]}
-  (set (mapcat #(get-in % [:ezbake (keyword build-target) os :dependencies])
-               (vals upstream-ezbake-configs))))
-
-(defn get-preinst
-  [ezbake-vars upstream-ezbake-configs build-target os]
+(defn get-ezbake-value
+  [ezbake-vars upstream-ezbake-configs build-target os ezbake-keyword]
   {:pre [(map? ezbake-vars)
          (map? upstream-ezbake-configs)
          (string? build-target)
-         (contains? #{:redhat :debian} os)]}
+         (contains? #{:redhat :debian} os)
+         (keyword? ezbake-keyword)]}
   (map (partial interpolate-ezbake-config ezbake-vars)
-       (mapcat #(get-in % [:ezbake (keyword build-target) os :preinst])
-               (vals upstream-ezbake-configs))))
-
-(defn get-extra-install
-  [ezbake-vars upstream-ezbake-configs build-target os]
-  {:pre [(map? ezbake-vars)
-         (map? upstream-ezbake-configs)
-         (string? build-target)
-         (contains? #{:redhat :debian} os)]}
-  (map (partial interpolate-ezbake-config ezbake-vars)
-       (mapcat #(get-in % [:ezbake (keyword build-target) os :install])
+       (mapcat #(get-in % [:ezbake (keyword build-target) os ezbake-keyword])
                (vals upstream-ezbake-configs))))
 
 (defn add-ezbake-config-to-map
@@ -377,25 +360,27 @@ Bundled packages: %s
       (fs/file staging-dir "ezbake.rb")
       (stencil/render-string
         (slurp "./staging-templates/ezbake.rb.mustache")
-        {:project         (:name lein-project)
-         :real-name       (str/replace-first (:name lein-project) #"^pe-" "")
-         :user            (get-local-ezbake-var lein-project :user
-                                                (:name lein-project))
-         :group           (get-local-ezbake-var lein-project :group
-                                                (:name lein-project))
-         :uberjar-name    (:uberjar-name lein-project)
-         :config-files    (quoted-list config-files)
-         :cli-app-files   (quoted-list (map remove-erb-extension cli-app-files))
-         :debian-deps     (quoted-list (get-deps upstream-ezbake-configs build-target :debian))
-         :debian-preinst  (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :debian))
-         :debian-install  (quoted-list (get-extra-install ezbake-vars upstream-ezbake-configs build-target :debian))
-         :redhat-deps     (quoted-list (get-deps upstream-ezbake-configs build-target :redhat))
-         :redhat-preinst  (quoted-list (get-preinst ezbake-vars upstream-ezbake-configs build-target :redhat))
-         :redhat-install  (quoted-list (get-extra-install ezbake-vars upstream-ezbake-configs build-target :redhat))
-         :terminus-map    termini
-         :replaces-pkgs   (get-local-ezbake-var lein-project :replaces-pkgs [])
-         :java-args       (get-local-ezbake-var lein-project :java-args
-                                                "-Xmx192m")}))))
+        {:project                   (:name lein-project)
+         :real-name                 (str/replace-first (:name lein-project) #"^pe-" "")
+         :user                      (get-local-ezbake-var lein-project :user
+                                                          (:name lein-project))
+         :group                     (get-local-ezbake-var lein-project :group
+                                                          (:name lein-project))
+         :uberjar-name              (:uberjar-name lein-project)
+         :config-files              (quoted-list config-files)
+         :cli-app-files             (quoted-list (map remove-erb-extension cli-app-files))
+         :debian-deps               (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :dependencies))
+         :debian-preinst            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :preinst))
+         :debian-install            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :install))
+         :debian-post-start-action  (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :post-start-action))
+         :redhat-deps               (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :dependencies))
+         :redhat-preinst            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :preinst))
+         :redhat-install            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :install))
+         :redhat-post-start-action  (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :post-start-action))
+         :terminus-map              termini
+         :replaces-pkgs             (get-local-ezbake-var lein-project :replaces-pkgs [])
+         :java-args                 (get-local-ezbake-var lein-project :java-args
+                                                          "-Xmx192m")}))))
 
 (defn generate-project-data-yaml
   [lein-project build-target]

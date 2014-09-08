@@ -19,11 +19,13 @@ module EZBake
                     :additional_dependencies => [{{{debian-deps}}}],
                     :additional_preinst => [{{{debian-preinst}}}],
                     :additional_install => [{{{debian-install}}}],
+                    :post_start_action => [{{{debian-post-start-action}}}],
                  },
       :redhat => {
                     :additional_dependencies => [{{{redhat-deps}}}],
                     :additional_preinst => [{{{redhat-preinst}}}],
                     :additional_install => [{{{redhat-install}}}],
+                    :post_start_action => [{{{redhat-post-start-action}}}],
                  },
       :java_args => '{{{java-args}}}',
       :replaces_pkgs => {

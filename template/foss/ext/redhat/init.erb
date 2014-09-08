@@ -39,12 +39,6 @@ lockfile=/var/lock/subsys/$prog
 EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" $JAVA_ARGS"
 PIDFILE="/var/run/$prog/$prog"
 
-if `which runuser &> /dev/null` ; then
-    SU=runuser
-else
-    SU=su
-fi
-
 find_my_pid() {
     if [ ! -d  "/var/run/$prog" ] ; then
       mkdir -p /var/run/$prog
@@ -61,12 +55,22 @@ start() {
     # Move any heap dumps aside
     echo -n $"Starting $prog: "
     daemon --user $USER --pidfile $PIDFILE "$EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1 &"
+    retval=$?
     sleep 1
     find_my_pid
     echo $pid > $PIDFILE
     [ -s $PIDFILE ] && success $"$base startup" || failure $"$base startup"
     echo
     [ -s $PIDFILE ] && touch $lockfile
+
+    <% if EZBake::Config[:redhat][:post_start_action] -%>
+    if [ "$retval" -eq 0 ]; then
+    <% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
+        <%= action %>
+    <% end -%>
+    fi
+    <% end -%>
+
     return $retval
 }
 
