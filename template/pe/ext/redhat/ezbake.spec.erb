@@ -243,6 +243,9 @@ fi
 %endif
 %config(noreplace) %{_sysconfdir}/%{realname}
 %{_real_sysconfdir}/sysconfig/%{name}
+<% if ! EZBake::Config[:cli_app_files].empty? -%>
+%{_bindir}/%{name}
+<% end -%>
 %ghost %attr(0755, root, root) %{_rundir}/%{name}
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
