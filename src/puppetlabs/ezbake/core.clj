@@ -372,9 +372,11 @@ Bundled packages: %s
          :debian-deps               (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :dependencies))
          :debian-preinst            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :preinst))
          :debian-install            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :install))
+         :debian-post-start-action  (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :post-start-action))
          :redhat-deps               (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :dependencies))
          :redhat-preinst            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :preinst))
          :redhat-install            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :install))
+         :redhat-post-start-action  (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :post-start-action))
          :terminus-map              termini
          :replaces-pkgs             (get-local-ezbake-var lein-project :replaces-pkgs [])
          :java-args                 (get-local-ezbake-var lein-project :java-args
