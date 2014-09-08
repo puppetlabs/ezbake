@@ -88,7 +88,7 @@ Contains terminus for:
 
 rm -rf $RPM_BUILD_ROOT
 
-env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> make -e install-<%= EZBake::Config[:project] %>
+env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> make -e install-<%= EZBake::Config[:project] %>
 %if %{_with_systemd}
 install -d -m0755 %{buildroot}%{_unitdir}
 install -m 0644 ext/redhat/<%= EZBake::Config[:project] %>.service %{buildroot}%{_unitdir}/<%= EZBake::Config[:project] %>.service
@@ -165,9 +165,9 @@ fi
 %files
 %defattr(-, root, root)
 %dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_localstatedir}/log/%{name}
-<% if File.exists?("ext/docs") %>
+<% if File.exists?("ext/docs") -%>
 %doc ext/docs
-<% end %>
+<% end -%>
 %{_datadir}/%{realname}
 %if %{_with_systemd}
 %{_unitdir}/%{name}.service
@@ -176,9 +176,12 @@ fi
 %endif
 %config(noreplace) %{_sysconfdir}/%{name}
 %{_sysconfdir}/sysconfig/%{name}
-<% if ! EZBake::Config[:cli_app_files].empty? %>
+<% if ! EZBake::Config[:cli_app_files].empty? -%>
 %{_bindir}/%{name}
-<% end %>
+<% end -%>
+<% EZBake::Config[:bin_files].each do |bin_file| -%>
+%{_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
+<% end -%>
 %ghost %attr(0755, root, root) %{_rundir}/%{name}
 
 
