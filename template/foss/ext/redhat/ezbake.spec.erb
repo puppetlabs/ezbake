@@ -165,9 +165,9 @@ fi
 %files
 %defattr(-, root, root)
 %dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_localstatedir}/log/%{name}
-<% if File.exists?("ext/docs") %>
+<% if File.exists?("ext/docs") -%>
 %doc ext/docs
-<% end %>
+<% end -%>
 %{_datadir}/%{realname}
 %if %{_with_systemd}
 %{_unitdir}/%{name}.service
@@ -176,9 +176,9 @@ fi
 %endif
 %config(noreplace) %{_sysconfdir}/%{name}
 %{_sysconfdir}/sysconfig/%{name}
-<% if ! EZBake::Config[:cli_app_files].empty? %>
+<% if ! EZBake::Config[:cli_app_files].empty? -%>
 %{_bindir}/%{name}
-<% end %>
+<% end -%>
 %ghost %attr(0755, root, root) %{_rundir}/%{name}
 
 
