@@ -15,6 +15,7 @@
 
 (def template-dir-prefix "./template")
 (def staging-dir "./target/staging")
+(def shared-bin-prefix "ext/bin/")
 (def shared-config-prefix "ext/config/conf.d/")
 (def shared-cli-apps-prefix "ext/cli/")
 (def docs-prefix "ext/docs/")
@@ -223,6 +224,20 @@ Bundled packages: %s
         (deputils/cp-files-of-type lein-project "doc"
                                    docs-prefix get-out-dir-for-doc-file)))
 
+
+(defn- get-bin-files-in
+  [jar]
+  (deputils/find-files-in-dir-in-jar jar shared-bin-prefix))
+
+(defn cp-shared-bin-files
+  [dependencies]
+  (let [files (for [{:keys [project jar]} dependencies]
+                [project jar (get-bin-files-in jar)])]
+    (doseq [[project jar bin-files] files]
+      (deputils/cp-files-from-jar bin-files jar staging-dir))
+    ;; Return just a list of the files
+    (mapcat last files)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Upstream EZBake config handling
 
@@ -348,7 +363,7 @@ Bundled packages: %s
 ;; file from that.  All of these options sound unappealing in their own special
 ;; ways.
 (defn generate-ezbake-config-file
-  [lein-project build-target config-files cli-app-files terminus-files]
+  [lein-project build-target config-files cli-app-files bin-files terminus-files]
   (println "generating ezbake config file")
   (let [upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)
         ezbake-vars             (get-ezbake-vars lein-project build-target)
@@ -369,6 +384,7 @@ Bundled packages: %s
          :uberjar-name              (:uberjar-name lein-project)
          :config-files              (quoted-list config-files)
          :cli-app-files             (quoted-list (map remove-erb-extension cli-app-files))
+         :bin-files                 (quoted-list bin-files)
          :debian-deps               (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :dependencies))
          :debian-preinst            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :preinst))
          :debian-install            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :install))
@@ -452,11 +468,12 @@ Bundled packages: %s
         config-files (cp-shared-config-files dependencies)
         config-files (cp-project-config-files project config-files)
         cli-app-files (cp-shared-cli-app-files dependencies)
+        bin-files (cp-shared-bin-files dependencies)
         terminus-files (cp-terminus-files dependencies build-target)]
     (if cli-app-files
       (cp-cli-wrapper-scripts project))
     (cp-doc-files lein-project)
-    (generate-ezbake-config-file lein-project build-target config-files cli-app-files terminus-files)
+    (generate-ezbake-config-file lein-project build-target config-files cli-app-files bin-files terminus-files)
     (generate-project-data-yaml lein-project build-target)
     (generate-manifest-file lein-project)
     (create-git-repo lein-project)))

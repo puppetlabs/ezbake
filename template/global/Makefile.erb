@@ -27,6 +27,9 @@ install-<%= EZBake::Config[:project] %>: <%= EZBake::Config[:uberjar_name] %>
 <% EZBake::Config[:cli_app_files].each do |cli_app_file| -%>
 	install -m 0755 <%= cli_app_file %> "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>/cli/apps/<%= cli_app_file.sub(/^ext\/cli\//, "") %>"
 <% end -%>
+<% EZBake::Config[:bin_files].each do |bin_file| -%>
+	install -m 0755 <%= bin_file %> "$(DESTDIR)$(bindir)"
+<% end -%>
 	install -d -m 0755 "$(DESTDIR)$(rundir)"
 
 <% unless EZBake::Config[:terminus_info].empty? %>
