@@ -63,7 +63,7 @@ start() {
     echo
     [ -s $PIDFILE ] && touch $lockfile
 
-    <% if EZBake::Config[:redhat][:post_start_action] -%>
+    <% if not EZBake::Config[:redhat][:post_start_action].empty? -%>
     if [ "$retval" -eq 0 ]; then
     <% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
         <%= action %>
