@@ -2,6 +2,7 @@
   :description "Release artifacts for classifier"
   :pedantic? :abort
   :dependencies [[puppetlabs/classifier "{{{classifier-version}}}"]
+                 [puppetlabs/pe-rbac-service "{{{pe-rbac-version}}}"]
                  [puppetlabs/trapperkeeper-webserver-jetty9 "0.7.2"]]
 
   :uberjar-name "classifier-release.jar"
