@@ -56,7 +56,7 @@ start() {
     startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p"' ${JAVA_ARGS}
     rc_status -v
 
-    <% if EZBake::Config[:redhat][:post_start_action] -%>
+    <% if not EZBake::Config[:redhat][:post_start_action].empty? -%>
     if [ "$?" -eq 0]; then
     <% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
         <%= action %>

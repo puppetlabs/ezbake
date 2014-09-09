@@ -52,7 +52,7 @@ do_start()
         --startas /bin/bash -- -c "exec $EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1"
     retval=$?
 
-    <% if EZBake::Config[:debian][:post_start_action] -%>
+    <% if not EZBake::Config[:debian][:post_start_action].empty? -%>
     if [ "$retval" -eq 0 ]; then
     <% EZBake::Config[:debian][:post_start_action].each do |action| -%>
         <%= action %>
