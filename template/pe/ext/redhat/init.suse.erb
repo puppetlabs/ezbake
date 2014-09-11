@@ -53,6 +53,7 @@ start() {
     [ -x "${JAVA_BIN}" ] || exit 5
     [ -e "${config}" ] || exit 6
     echo -n $"Starting ${prog}: "
+    export HOME="$(getent passwd ${USER} | cut -d':' -f6)"
     startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p"' ${JAVA_ARGS}
     rc_status -v
 
