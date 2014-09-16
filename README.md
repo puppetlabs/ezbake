@@ -8,14 +8,14 @@ TODO: best practices and other docs.
 ## How to Run
 
 ```
-lein stage
+lein run stage [ project-name ] [ param1=value1... ]
 cd target/staging
 rake package:bootstrap
 rake pl:jenkins:uber_build
 ```
 or the equivalent
 ```
-lein build
+lein run build
 ```
 TODO: `stage` command needs to support some CLI args, to allow you to specify
 FOSS vs PE and select which project to build.
@@ -85,10 +85,10 @@ Here is an example ezbake section:
 
 ### Additional Config Files
 
-Inside of your project dir (e.g., `/configs/jvm-puppet`) you may optionally
+Inside of your project dir (e.g., `/configs/puppetserver`) you may optionally
 create a directory called `config`.  Any files/directories therein will be assumed
 to be config files that you'd like to include in the packaging.  They'll be deployed
-to the confdir that is used by the relevant packaging system; e.g., `/etc/jvm-puppet`.
+to the confdir that is used by the relevant packaging system; e.g., `/etc/puppetserver`.
 
 It is likely that you'll want to put at least two files here:
 
@@ -101,13 +101,13 @@ and define what services you would like to see enabled by default when the
 package is installed.  (An installer / puppet module could always be used after
 deploying the package to turn some services on/off.)
 
-#### conf.d/webserver.ini
+#### conf.d/webserver.conf
 
 Any files that you put in `conf.d` will be available to the trapperkeeper config
 service on startup.  In the most common case, we'll probably be pulling some of
 these files from the upstream TK projects, but there are some config files that
 are likely to be duplicated, so we'll need an authoritative copy in ezbake.  The
-most likely culprit is `webserver.ini`; probably almost every TK project will
+most likely culprit is `webserver.conf`; probably almost every TK project will
 have some web interface, and thus will need to configure a web server (interface,
 port, SSL config, etc.).  In ezbake we'll probably usually want to control this
 centrally for a given project/bundle, rather than trying to merge webserver config
@@ -124,10 +124,10 @@ conventions for what files ezbake will look for:
 
 ### Shared Config Files
 
-Any files found in your jar under the path `ext/config/shared` will be treated
+Any files found in your jar under the path `ext/config/conf.d` will be treated
 as config files that need to ship in the ezbake packages.  These files will be
-dropped into the package inside of the `conf.d` directory.  (e.g: `classifier.ini`,
-`rbac.ini`, etc.)
+dropped into the package inside of the `conf.d` directory.  (e.g: `classifier.conf`,
+`rbac.conf`, etc.)
 
 ### Doc Files
 
