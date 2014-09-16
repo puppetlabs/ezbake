@@ -5,7 +5,6 @@ default_cow: 'base-squeeze-i386.cow'
 cows: 'base-lucid-i386.cow base-precise-i386.cow base-squeeze-i386.cow base-wheezy-i386.cow base-trusty-i386.cow'
 pbuild_conf: '/etc/pbuilderrc'
 packager: 'puppet'
-gpg_name: 'info@puppetlabs.com'
 gpg_key: '4BD6EC30'
 sign_tar: FALSE
 # a space separated list of mock configs
