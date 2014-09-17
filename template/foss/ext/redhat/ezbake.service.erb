@@ -8,7 +8,6 @@ EnvironmentFile=/etc/sysconfig/<%= EZBake::Config[:project] %>
 User=<%= EZBake::Config[:user] %>
 
 ExecStart=/usr/bin/java $JAVA_ARGS \
-          -XX:OnOutOfMemoryError=\"kill -9 %p\" \
           -XX:+HeapDumpOnOutOfMemoryError \
           -XX:HeapDumpPath=/var/log/$NAME.hprof \
           -cp "${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %>" clojure.main \
