@@ -20,7 +20,7 @@ function usage {
     cat <<EOD
 usage: $(basename $0) [--help] <command> [<args>]
 
-The most commonly used <%= EZBake::Config[:real_name] %> commands are:
+The most commonly used <%= EZBake::Config[:project] %> commands are:
 EOD
 
     # Iterate and display commands in the CLI_APP_DIR
@@ -51,10 +51,10 @@ function execsubcommand {
 
     if [ -e ${cmd} ]; then
         set -o allexport
-        . ${CLI_DIR}/<%= EZBake::Config[:real_name] %>-env
+        . ${CLI_DIR}/<%= EZBake::Config[:project] %>-env
         exec "${cmd}" "$@"
     else
-        echo "<%= EZBake::Config[:real_name] %>: '${sub}' is not a <%= EZBake::Config[:real_name] %> command. See '$(basename $0) --help'."
+        echo "<%= EZBake::Config[:project] %>: '${sub}' is not a <%= EZBake::Config[:project] %> command. See '$(basename $0) --help'."
     fi
 }
 

@@ -19,10 +19,10 @@ install-<%= EZBake::Config[:project] %>: <%= EZBake::Config[:uberjar_name] %>
 <% end -%>
 <% if ! EZBake::Config[:cli_app_files].empty? -%>
 	install -d -m 0755 "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>/cli"
-	install -m 0644 "ext/cli/<%= EZBake::Config[:real_name] %>-env" "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>/cli/<%= EZBake::Config[:real_name] %>-env"
+	install -m 0644 "ext/cli/<%= EZBake::Config[:project] %>-env" "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>/cli/<%= EZBake::Config[:real_name] %>-env"
 	install -d -m 0755 "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>/cli/apps"
 	install -d -m 0755 "$(DESTDIR)$(bindir)"
-	install -m 0755 "ext/bin/<%= EZBake::Config[:real_name] %>" "$(DESTDIR)$(bindir)/<%= EZBake::Config[:real_name] %>"
+	install -m 0755 "ext/bin/<%= EZBake::Config[:project] %>" "$(DESTDIR)$(bindir)/<%= EZBake::Config[:project] %>"
 <% end -%>
 <% EZBake::Config[:cli_app_files].each do |cli_app_file| -%>
 	install -m 0755 <%= cli_app_file %> "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>/cli/apps/<%= cli_app_file.sub(/^ext\/cli\//, "") %>"
