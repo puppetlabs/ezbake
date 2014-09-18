@@ -10,6 +10,7 @@ User=<%= EZBake::Config[:user] %>
 ExecStart=/opt/puppet/bin/java $JAVA_ARGS \
           -XX:OnOutOfMemoryError=kill\ -9\ %p \
           -XX:+HeapDumpOnOutOfMemoryError \
+          -XX:HeapDumpPath=/var/log/<%= EZBake::Config[:project] %>.hprof \
           -cp "${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %>" clojure.main \
           -m puppetlabs.trapperkeeper.main --config "${CONFIG}" \
           -b "${BOOTSTRAP_CONFIG}" $@
