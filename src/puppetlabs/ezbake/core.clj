@@ -192,12 +192,16 @@ Bundled packages: %s
     ;; Return just a list of the files
     (mapcat last files)))
 
+(defn get-real-name
+  [project-name]
+  (str/replace-first project-name #"^pe-" ""))
+
 (defn cp-cli-wrapper-scripts
   [project]
   (fs/copy+ "./staging-templates/cli-app.erb"
-            (fs/file staging-dir "ext" "bin" (str project ".erb")))
+            (fs/file staging-dir "ext" "bin" (str (get-real-name project) ".erb")))
   (fs/copy+ "./staging-templates/cli-env.erb"
-            (fs/file staging-dir "ext" "cli" (str project "-env.erb"))))
+            (fs/file staging-dir "ext" "cli" (str (get-real-name project) "-env.erb"))))
 
 (defn get-out-dir-for-doc-file
   [dep jar-entry]
@@ -376,7 +380,7 @@ Bundled packages: %s
       (stencil/render-string
         (slurp "./staging-templates/ezbake.rb.mustache")
         {:project                   (:name lein-project)
-         :real-name                 (str/replace-first (:name lein-project) #"^pe-" "")
+         :real-name                 (get-real-name (:name lein-project))
          :user                      (get-local-ezbake-var lein-project :user
                                                           (:name lein-project))
          :group                     (get-local-ezbake-var lein-project :group

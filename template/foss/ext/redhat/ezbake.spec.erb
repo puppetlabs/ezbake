@@ -177,7 +177,7 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}
 %{_sysconfdir}/sysconfig/%{name}
 <% if ! EZBake::Config[:cli_app_files].empty? -%>
-%{_bindir}/%{name}
+%{_bindir}/<%= EZBake::Config[:real_name] %>
 <% end -%>
 <% EZBake::Config[:bin_files].each do |bin_file| -%>
 %{_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
