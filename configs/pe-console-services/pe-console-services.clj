@@ -19,4 +19,4 @@
   :ezbake {:user "pe-console-services"
            :group "pe-console-services"
            :build-type "pe"
-           :replaces-pkgs [{:package "pe-rubycas-server", :version "1.1.17.3"}]})
+           :replaces-pkgs [{:package "pe-rubycas-server", :version "1.1.18"}]})
