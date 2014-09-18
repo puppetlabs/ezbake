@@ -36,7 +36,7 @@ JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 JAVA_ARGS="${JAVA_ARGS} -jar ${INSTALL_DIR}/${JARFILE} --config ${CONFIG} --bootstrap-config ${BOOTSTRAP_CONFIG}"
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile=/var/lock/subsys/$prog
-EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/$NAME.hprof $JAVA_ARGS"
+EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/$prog $JAVA_ARGS"
 PIDFILE="/var/run/$prog/$prog"
 
 find_my_pid() {
