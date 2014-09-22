@@ -54,7 +54,7 @@ start() {
     [ -e "${config}" ] || exit 6
     echo -n $"Starting ${prog}: "
     export HOME="$(getent passwd ${USER} | cut -d':' -f6)"
-    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog}' ${JAVA_ARGS}
+    startproc -u "${USER}" -l "${LOGFILE}" -c "${INSTALL_DIR}" -p "${PIDFILE}" -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog}' ${JAVA_ARGS}
     rc_status -v
 
     <% if not EZBake::Config[:redhat][:post_start_action].empty? -%>
@@ -81,7 +81,7 @@ stop() {
         echo "${pid}" > "${PIDFILE}"
     fi
 
-    killproc -p "${PIDFILE}" -t"${SERVICE_STOP_RETRIES}"s -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog}' "${JAVA_ARGS}"
+    killproc -p "${PIDFILE}" -c "${INSTALL_DIR}" -t"${SERVICE_STOP_RETRIES}"s -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog}' "${JAVA_ARGS}"
     rc_status -v
     retval=$?
     [ $retval -eq 0 ] && log_success_msg $"${prog} stopped" || log_failure_msg $"${prog} stopped"
@@ -99,7 +99,7 @@ sl_status_q() {
 }
 
 sl_status() {
-    checkproc -p "${PIDFILE}" -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog}' "${JAVA_ARGS}"
+    checkproc -p "${PIDFILE}" -c "${INSTALL_DIR}" -- "${JAVA_BIN}" '-XX:OnOutOfMemoryError="kill -9 %p" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog}' "${JAVA_ARGS}"
     rc_status -v
 }
 
