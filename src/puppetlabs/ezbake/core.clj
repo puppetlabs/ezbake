@@ -126,6 +126,15 @@
         (fs/copy-dir f staging-dir)
         (fs/copy+ f (format "%s/%s" staging-dir (fs/base-name f)))))))
 
+(defn get-project-file
+  [project]
+  (let [project-file-by-dir (.toString (fs/file project "project.clj"))
+        project-file-by-name (.toString (fs/file "configs/" project
+                                                 (str project ".clj")))]
+    (if (fs/file? project-file-by-dir)
+      project-file-by-dir
+      project-file-by-name)))
+
 (defn cp-project-file
   [project-file template-vars]
   (println "copying ezbake lein packaging project file" project-file)
@@ -503,10 +512,10 @@ Bundled packages: %s
   (exit 1 (str/join \newline ["Unrecognized option:" action "" (usage)])))
 
 (defn ezbake-init
-  [action project-dir template-vars]
+  [action project template-vars]
   (clean)
   (fs/mkdirs staging-dir)
-  (let [project-file (.toString (fs/file project-dir "project.clj"))
+  (let [project-file (get-project-file project)
         template-vars (->> template-vars
                         (map #(str/split % #"="))
                         (into {}))]
@@ -524,11 +533,11 @@ Bundled packages: %s
 (defn -main
   [& args]
   (if (>= (count args) 2)
-    (let [[action project-dir & template-vars] args]
+    (let [[action project & template-vars] args]
       (if-not (every? (partial re-find #"=") template-vars)
         (exit 1 "Arguments after the project name are expected to be variable bindings of the form <variable>=<value>")
         (try
-          (ezbake-init action project-dir template-vars)
+          (ezbake-init action project template-vars)
           (finally
             ;; this is required in order to make the threads started by sh/sh terminate,
             ;; and thus allow the jvm to exit
