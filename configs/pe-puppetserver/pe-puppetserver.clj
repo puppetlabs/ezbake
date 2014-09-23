@@ -4,7 +4,7 @@
   :dependencies [[puppetlabs/pe-puppet-server-extensions "{{{pe-puppet-server-version}}}"]
                  [puppetlabs/trapperkeeper-webserver-jetty9 "0.7.4"]]
 
-  :uberjar-name "jvm-puppet-release.jar"
+  :uberjar-name "puppet-server-release.jar"
 
   :repositories [["releases" "http://nexus.delivery.puppetlabs.net/content/repositories/releases/"]
                  ["snapshots" "http://nexus.delivery.puppetlabs.net/content/repositories/snapshots/"]]
