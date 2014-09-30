@@ -15,7 +15,7 @@ ExecStart=/opt/puppet/bin/java $JAVA_ARGS \
           -m puppetlabs.trapperkeeper.main --config "${CONFIG}" \
           -b "${BOOTSTRAP_CONFIG}" $@
 
-ExecStop=/bin/kill $MAINPID
+KillMode=process
 
 <% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
 ExecStartPost=-<%= action %>
