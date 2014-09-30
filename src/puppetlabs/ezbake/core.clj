@@ -126,6 +126,15 @@
         (fs/copy-dir f staging-dir)
         (fs/copy+ f (format "%s/%s" staging-dir (fs/base-name f)))))))
 
+(defn get-project-file
+  [project]
+  (let [project-file-by-dir (.toString (fs/file project "project.clj"))
+        project-file-by-name (.toString (fs/file "configs/" project
+                                                 (str project ".clj")))]
+    (if (fs/file? project-file-by-dir)
+      project-file-by-dir
+      project-file-by-name)))
+
 (defn cp-project-file
   [project-file template-vars]
   (println "copying ezbake lein packaging project file" project-file)
@@ -506,15 +515,16 @@ Bundled packages: %s
   [action project template-vars]
   (clean)
   (fs/mkdirs staging-dir)
-  (let [project-file (.toString (fs/file "./configs" project (str project ".clj")))
+  (let [project-file (get-project-file project)
         template-vars (->> template-vars
                         (map #(str/split % #"="))
                         (into {}))]
     (cp-project-file project-file template-vars)
     (let [lein-project (project/read (.toString (fs/file staging-dir "project.clj")))
           build-target (get-local-ezbake-var lein-project :build-type "foss")
-          template-dir (fs/file template-dir-prefix build-target)]
-      (ezbake-action action project project-file lein-project build-target template-dir))))
+          template-dir (fs/file template-dir-prefix build-target)
+          project-name (:name lein-project)]
+      (ezbake-action action project-name project-file lein-project build-target template-dir))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
