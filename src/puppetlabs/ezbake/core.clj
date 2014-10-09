@@ -208,9 +208,7 @@ Bundled packages: %s
 (defn cp-cli-wrapper-scripts
   [project]
   (fs/copy+ "./staging-templates/cli-app.erb"
-            (fs/file staging-dir "ext" "bin" (str (get-real-name project) ".erb")))
-  (fs/copy+ "./staging-templates/cli-env.erb"
-            (fs/file staging-dir "ext" "cli" (str (get-real-name project) "-env.erb"))))
+            (fs/file staging-dir "ext" "bin" (str (get-real-name project) ".erb"))))
 
 (defn get-out-dir-for-doc-file
   [dep jar-entry]
