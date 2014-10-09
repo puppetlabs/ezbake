@@ -1,6 +1,16 @@
 #!/bin/bash
 
-INSTALL_DIR=`getent passwd <%= EZBake::Config[:user] %> |awk -F':' '{print $6}'`
+set -a
+if [ -r "/etc/default/<%= EZBake::Config[:real_name] -%>" ] ; then
+    . /etc/default/<%= EZBake::Config[:real_name] %>
+elif [ -r  "/etc/sysconfig/<%= EZBake::Config[:real_name] -%>" ] ; then
+    . /etc/sysconfig/<%= EZBake::Config[:real_name] %>
+else
+    echo "You seem to be missing some important configuration files; could not find /etc/default/<%= EZBake::Config[:real_name] -%> or /etc/sysconfig/<%= EZBake::Config[:real_name] -%>" >&2
+    exit 1
+fi
+set +a
+
 CLI_DIR="${INSTALL_DIR}/cli"
 CLI_APP_DIR="${CLI_DIR}/apps"
 APPS=`ls ${CLI_APP_DIR} 2>/dev/null`
@@ -50,8 +60,6 @@ function execsubcommand {
     cmd="${CLI_APP_DIR}/${sub}"
 
     if [ -e ${cmd} ]; then
-        set -o allexport
-        . ${CLI_DIR}/<%= EZBake::Config[:real_name] %>-env
         exec "${cmd}" "$@"
     else
         echo "<%= EZBake::Config[:real_name] %>: '${sub}' is not a <%= EZBake::Config[:real_name] %> command. See '$(basename $0) --help'."
