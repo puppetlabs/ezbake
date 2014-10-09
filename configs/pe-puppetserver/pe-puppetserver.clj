@@ -13,6 +13,6 @@
   :ezbake { :user "pe-puppet"
             :group "pe-puppet"
             :build-type "pe"
-            :java-args "-Xms2g -Xmx2g"
+            :java-args "-Xms2g -Xmx2g -XX:MaxPermSize=256m"
             }
   )
