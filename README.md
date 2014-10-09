@@ -17,6 +17,11 @@ or the equivalent
 ```
 lein run build
 ```
+
+If you are attempting to create a development build for local testing, and do
+not intend on actually releasing an artifact, please see [Developing ezbake][]
+before running these commands.
+
 TODO: `stage` command needs to support some CLI args, to allow you to specify
 FOSS vs PE and select which project to build.
 
@@ -170,3 +175,30 @@ manifest data will show up in three places:
 * In the `description` field of the deb metadata
 * In a file called `ezbake.manifest` that is included in the package (deployed to
   the same directory that the jar file is deployed to.)
+
+## Developing ezbake
+
+Here's a few quick notes if you are making changes to a configuration or ezbake 
+itself and would like to test them.
+
+* The variables that need to be passed into `lein run stage` are located in the
+  config's _project_.clj file and are book-ended by `{{{ }}}` characters. 
+  So if you look at `configs/puppetserver/puppetserver.clj` you will see the
+  variable `puppet-server-version` defined in a couple places where the
+  project's version number is needed. At this time, all ezbake projects have
+  some equivalent of this variable but some projects have more.
+* If you want to test changes to work in-progress, specify a snapshot version
+  in the project's version string, otherwise running the 
+  `rake pl:jenkins:uber_build` command could possibly overwrite a previously
+  released package to a storage server somewhere. 
+* The output of the `rake pl:jenkins:uber_build` command will display a couple
+  of URL's near the end of its output. The first one will tell you where to go
+  to view the Jenkins job which is building packages for you. The second URL
+  will tell you where to go to retrieve your packages when they are built.
+* If you don't want to manually browse to the newly built packages, you can 
+  retrieve them with the rake command `rake pl:jenkins:retrieve`
+ 
+
+  
+
+
