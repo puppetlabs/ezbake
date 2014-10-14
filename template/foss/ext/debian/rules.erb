@@ -12,6 +12,9 @@ export prefix=/usr
 export bindir=/usr/bin
 export rubylibdir
 export confdir=/etc
+export datadir=$(prefix)/share
+export sharedstatedir=/var/lib
+
 export realname=<%= EZBake::Config[:real_name] %>
 
 install/<%= EZBake::Config[:project] %>::

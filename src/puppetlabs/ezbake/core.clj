@@ -16,10 +16,10 @@
 (def template-dir-prefix "./template")
 (def staging-dir "./target/staging")
 (def shared-bin-prefix "ext/bin/")
-(def shared-config-prefix "ext/config/conf.d/")
+(def shared-config-prefix "ext/config/")
 (def shared-cli-apps-prefix "ext/cli/")
 (def docs-prefix "ext/docs/")
-(def terminus-prefix "puppet/indirector")
+(def terminus-prefix "puppet/")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Shell / Filesystem Helpers
@@ -99,8 +99,10 @@
 
 (defn remove-erb-extension
   [f]
-  {:pre [(instance? JarEntry f)]}
-  (let [filename (.getName f)]
+  {:pre [(or (instance? JarEntry f) (instance? File f))]}
+  (let [filename (condp instance? f
+                   JarEntry (.getName f)
+                   File (.getPath f))]
     (if (.endsWith filename ".erb")
       (.substring filename 0 (- (.length filename) 4))
       filename)))
@@ -120,11 +122,7 @@
 (defn cp-shared-files
   []
   (let [template-dir (fs/file template-dir-prefix "global")]
-    (println "copying template files from" (.toString template-dir) "to" staging-dir)
-    (doseq [f (fs/glob (fs/file template-dir) "*")]
-      (if (fs/directory? f)
-        (fs/copy-dir f staging-dir)
-        (fs/copy+ f (format "%s/%s" staging-dir (fs/base-name f)))))))
+    (cp-template-files template-dir)))
 
 (defn get-project-file
   [project]
@@ -393,20 +391,26 @@ Bundled packages: %s
          :group                     (get-local-ezbake-var lein-project :group
                                                           (:name lein-project))
          :uberjar-name              (:uberjar-name lein-project)
-         :config-files              (quoted-list config-files)
+         :config-files              (quoted-list (map remove-erb-extension config-files))
          :cli-app-files             (quoted-list (map remove-erb-extension cli-app-files))
          :bin-files                 (quoted-list bin-files)
+         :create-varlib             (str (boolean (get-local-ezbake-var lein-project :create-varlib false)))
          :debian-deps               (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :dependencies))
          :debian-preinst            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :preinst))
+         :debian-postinst           (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :postinst))
          :debian-install            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :install))
          :debian-post-start-action  (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :post-start-action))
          :redhat-deps               (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :dependencies))
          :redhat-preinst            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :preinst))
+         :redhat-postinst           (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :postinst))
          :redhat-install            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :install))
          :redhat-post-start-action  (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :post-start-action))
          :terminus-map              termini
          :replaces-pkgs             (get-local-ezbake-var lein-project :replaces-pkgs [])
          :start-timeout             (get-local-ezbake-var lein-project :start-timeout "60")
+         :main-namespace            (get-local-ezbake-var lein-project
+                                                          :main-namespace
+                                                          "puppetlabs.trapperkeeper.main")
          :java-args                 (get-local-ezbake-var lein-project :java-args
                                                           "-Xmx192m")}))))
 
