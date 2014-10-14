@@ -1,12 +1,12 @@
 #!/bin/bash
 
 set -a
-if [ -r "/etc/default/<%= EZBake::Config[:real_name] -%>" ] ; then
-    . /etc/default/<%= EZBake::Config[:real_name] %>
-elif [ -r  "/etc/sysconfig/<%= EZBake::Config[:real_name] -%>" ] ; then
-    . /etc/sysconfig/<%= EZBake::Config[:real_name] %>
+if [ -r "/etc/default/<%= EZBake::Config[:project] -%>" ] ; then
+    . /etc/default/<%= EZBake::Config[:project] %>
+elif [ -r  "/etc/sysconfig/<%= EZBake::Config[:project] -%>" ] ; then
+    . /etc/sysconfig/<%= EZBake::Config[:project] %>
 else
-    echo "You seem to be missing some important configuration files; could not find /etc/default/<%= EZBake::Config[:real_name] -%> or /etc/sysconfig/<%= EZBake::Config[:real_name] -%>" >&2
+    echo "You seem to be missing some important configuration files; could not find /etc/default/<%= EZBake::Config[:project] -%> or /etc/sysconfig/<%= EZBake::Config[:project] -%>" >&2
     exit 1
 fi
 set +a
