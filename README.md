@@ -191,6 +191,9 @@ itself and would like to test them.
   in the project's version string, otherwise running the 
   `rake pl:jenkins:uber_build` command could possibly overwrite a previously
   released package to a storage server somewhere. 
+  * If you are trying to build a PE package, you will also need to specify the
+    target PE version number in the environment variable PE_VER, like so:
+    `rake pl:jenkins:uber_build PE_VER=3.3`
 * The output of the `rake pl:jenkins:uber_build` command will display a couple
   of URL's near the end of its output. The first one will tell you where to go
   to view the Jenkins job which is building packages for you. The second URL
