@@ -2,7 +2,7 @@
   :description "Release artifacts for pe-puppetserver"
   :pedantic? :abort
   :dependencies [[puppetlabs/pe-puppet-server-extensions "{{{pe-puppet-server-version}}}"]
-                 [puppetlabs/trapperkeeper-webserver-jetty9 "0.7.4"]]
+                 [puppetlabs/trapperkeeper-webserver-jetty9 "0.8.1"]]
 
   :uberjar-name "puppet-server-release.jar"
 
