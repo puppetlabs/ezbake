@@ -19,8 +19,8 @@ lein run build
 ```
 
 If you are attempting to create a development build for local testing, and do
-not intend on actually releasing an artifact, please see [Developing ezbake][]
-before running these commands.
+not intend on actually releasing an artifact, please see [Developing ezbake]
+(#developing-ezbake) before running these commands.
 
 TODO: `stage` command needs to support some CLI args, to allow you to specify
 FOSS vs PE and select which project to build.
