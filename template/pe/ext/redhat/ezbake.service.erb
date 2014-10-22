@@ -6,7 +6,7 @@ After=syslog.target network.target
 Type=simple
 EnvironmentFile=/etc/sysconfig/<%= EZBake::Config[:project] %>
 User=<%= EZBake::Config[:user] %>
-TimeoutStopSec=${SERVICE_STOP_RETRIES}
+TimeoutStopSec=60
 
 ExecStart=/opt/puppet/bin/java $JAVA_ARGS \
           -XX:OnOutOfMemoryError=kill\ -9\ %p \
