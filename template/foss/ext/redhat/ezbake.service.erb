@@ -21,6 +21,7 @@ KillMode=process
 <% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
 ExecStartPost=-<%= action %>
 <% end -%>
+SuccessExitStatus=143
 
 StandardOutput=syslog
 
