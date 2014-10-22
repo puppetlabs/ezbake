@@ -18,7 +18,7 @@ ExecStart=/usr/bin/java $JAVA_ARGS \
 
 KillMode=process
 
-ExecStartPost=/bin/bash /usr/share/puppetserver/ezbake-functions.sh wait_for_app
+ExecStartPost=/bin/bash "${INSTALL_DIR}/ezbake-functions.sh" wait_for_app
 
 <% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
 ExecStartPost=-<%= action %>

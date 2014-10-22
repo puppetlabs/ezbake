@@ -20,7 +20,7 @@ else
   exit 1
 fi
 
-[ -e $INSTALL_DIR/ezbake-functions.sh ] && . $INSTALL_DIR/ezbake-functions.sh
+[ -e "$INSTALL_DIR/ezbake-functions.sh" ] && . "$INSTALL_DIR/ezbake-functions.sh"
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
@@ -29,7 +29,7 @@ DESC="<%= EZBake::Config[:project] %> Puppet Labs version-checking backend"
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
-START_TIMEOUT=${START_TIMEOUT:-30}
+START_TIMEOUT=${START_TIMEOUT:-60}
 
 JAVA_ARGS="${JAVA_ARGS} -jar ${INSTALL_DIR}/${JARFILE} --config ${CONFIG} --bootstrap-config ${BOOTSTRAP_CONFIG}"
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"

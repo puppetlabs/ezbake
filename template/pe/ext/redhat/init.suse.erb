@@ -28,7 +28,7 @@ prog="<%= EZBake::Config[:project] %>"
 ##########################################
 
 [ -e "/etc/sysconfig/${prog}" ] && . "/etc/sysconfig/${prog}"
-[ -e $INSTALL_DIR/ezbake-functions.sh ] && . $INSTALL_DIR/ezbake-functions.sh
+[ -e "$INSTALL_DIR/ezbake-functions.sh" ] && . "$INSTALL_DIR/ezbake-functions.sh"
 
 config=$CONFIG
 
@@ -38,7 +38,7 @@ JAVA_ARGS="${JAVA_ARGS} -jar ${INSTALL_DIR}/${JARFILE} --config ${CONFIG} --boot
 lockfile="/var/lock/subsys/${prog}"
 PIDFILE="/var/run/${prog}/${prog}.pid"
 LOGFILE="/var/log/${prog}/${prog}.log"
-START_TIMEOUT=${START_TIMEOUT:-30}
+START_TIMEOUT=${START_TIMEOUT:-60}
 
 # First reset status of this service
 rc_reset

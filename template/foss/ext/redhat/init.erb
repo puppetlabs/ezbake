@@ -28,7 +28,7 @@ prog="<%= EZBake::Config[:project] %>"
 ##########################################
 
 [ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog
-[ -e $INSTALL_DIR/ezbake-functions.sh ] && . $INSTALL_DIR/ezbake-functions.sh
+[ -e "$INSTALL_DIR/ezbake-functions.sh" ] && . "$INSTALL_DIR/ezbake-functions.sh"
 
 config=$CONFIG
 
@@ -39,7 +39,7 @@ EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile=/var/lock/subsys/$prog
 EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/$prog $JAVA_ARGS"
 PIDFILE="/var/run/$prog/$prog"
-START_TIMEOUT=${START_TIMEOUT:-30}
+START_TIMEOUT=${START_TIMEOUT:-60}
 
 find_my_pid() {
     if [ ! -d  "/var/run/$prog" ] ; then
