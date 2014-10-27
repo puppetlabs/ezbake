@@ -497,7 +497,7 @@ Bundled packages: %s
   (let [downstream-job (get-downstream-job)
         rake-call (if (= build-target "foss")
                     ["rake" "pl:jenkins:uber_build"]
-                    ["rake" "pe:jenkins:uber_build" "PE_VER=3.3"])
+                    ["rake" "pe:jenkins:uber_build" "PE_VER=3.7"])
         full-command (if downstream-job
                        ["env" downstream-job rake-call]
                        rake-call)]
