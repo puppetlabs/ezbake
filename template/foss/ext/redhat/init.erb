@@ -28,6 +28,7 @@ prog="<%= EZBake::Config[:project] %>"
 ##########################################
 
 [ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog
+[ -e "$INSTALL_DIR/ezbake-functions.sh" ] && . "$INSTALL_DIR/ezbake-functions.sh"
 
 config=$CONFIG
 
@@ -38,6 +39,7 @@ EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile=/var/lock/subsys/$prog
 EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/$prog $JAVA_ARGS"
 PIDFILE="/var/run/$prog/$prog"
+START_TIMEOUT=${START_TIMEOUT:-60}
 
 find_my_pid() {
     if [ ! -d  "/var/run/$prog" ] ; then
@@ -57,6 +59,7 @@ start() {
     pushd "${INSTALL_DIR}" &> /dev/null
     daemon --user $USER --pidfile $PIDFILE "$EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1 &"
     retval=$?
+
     sleep 1
     popd &> /dev/null
     find_my_pid
@@ -64,6 +67,10 @@ start() {
     [ -s $PIDFILE ] && success $"$base startup" || failure $"$base startup"
     echo
     [ -s $PIDFILE ] && touch $lockfile
+
+    if [ "$retval" -eq 0 ] && ! wait_for_app $(cat $PIDFILE) $START_TIMEOUT ;then
+        failure $"$base startup"
+    fi
 
     <% if not EZBake::Config[:redhat][:post_start_action].empty? -%>
     if [ "$retval" -eq 0 ]; then
