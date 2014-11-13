@@ -12,6 +12,7 @@
 
   :ezbake { :user "puppet"
             :group "puppet"
+            :start-timeout "120"
             :build-type "foss"
             :java-args "-Xms2g -Xmx2g -XX:MaxPermSize=256m"
             }
