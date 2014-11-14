@@ -406,6 +406,7 @@ Bundled packages: %s
          :redhat-post-start-action  (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :post-start-action))
          :terminus-map              termini
          :replaces-pkgs             (get-local-ezbake-var lein-project :replaces-pkgs [])
+         :start-timeout             (get-local-ezbake-var lein-project :start-timeout "60")
          :java-args                 (get-local-ezbake-var lein-project :java-args
                                                           "-Xmx192m")}))))
 
