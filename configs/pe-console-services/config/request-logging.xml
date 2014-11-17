@@ -1,0 +1,9 @@
+<configuration debug="false">
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <file>/var/log/pe-console-services/console-services-access.log</file>
+    <encoder>
+      <pattern>%h %l %u %user %date "%r" %s %b</pattern>
+    </encoder>
+  </appender>
+  <appender-ref ref="FILE" />
+</configuration>
