@@ -67,7 +67,8 @@ start() {
     echo
     [ -s $PIDFILE ] && touch $lockfile
 
-    if [ "$retval" -eq 0 ] && ! wait_for_app $(cat $PIDFILE) $START_TIMEOUT ;then
+    if [ "$retval" -ne 0 ] \
+        || ! wait_for_app $(cat $PIDFILE) $START_TIMEOUT ;then
         failure $"$base startup"
     fi
 
