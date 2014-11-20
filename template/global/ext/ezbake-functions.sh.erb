@@ -9,8 +9,8 @@
 #
 wait_for_app()
 {
-    local pid=${1}
-    local timeout=${2}
+    local pid=${1:?}
+    local timeout=${2:?}
 
     while : ;do
 
@@ -35,6 +35,30 @@ wait_for_app()
         timeout=$(($timeout-1))
 
     done
+}
+
+
+#
+# Wait `timeout` seconds for `pidfile` to be created, otherwise return failure.
+# Default timeout is 5 seconds.
+#
+wait_for_pidfile()
+{
+    local pidfile=${1:?}
+    local timeout=${2:-5}
+
+    while [ ! -s "$pidfile" ] ;do
+        sleep 1
+
+        # if we reach the timeout, return failure
+        if [ "$timeout" -eq 0 ] ;then
+            return 1
+        fi
+
+        timeout=$(($timeout-1))
+    done
+
+    return 0
 }
 
 if [ "$0" = "$BASH_SOURCE" ] ;then
