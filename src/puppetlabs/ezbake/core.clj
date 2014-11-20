@@ -99,10 +99,11 @@
 
 (defn remove-erb-extension
   [f]
-  {:pre [(or (instance? JarEntry f) (instance? File f))]}
+  {:pre [(or (instance? JarEntry f) (instance? File f) (instance? String f))]}
   (let [filename (condp instance? f
                    JarEntry (.getName f)
-                   File (.getPath f))]
+                   File (.getPath f)
+                   String f)]
     (if (.endsWith filename ".erb")
       (.substring filename 0 (- (.length filename) 4))
       filename)))
@@ -193,11 +194,15 @@ Bundled packages: %s
 (defn cp-shared-cli-app-files
   [dependencies]
   (let [files (for [{:keys [project jar]} dependencies]
-                [project jar (get-cli-app-files-in jar)])]
+                [project jar (get-cli-app-files-in jar)])
+        cli-dir (str template-dir-prefix "/global/ext/cli")]
     (doseq [[project jar cli-app-files] files]
       (deputils/cp-files-from-jar cli-app-files jar staging-dir))
+    (doseq [f (fs/glob (fs/file cli-dir) "*")]
+      (fs/copy+ f (format "%s/%s/%s" staging-dir "ext/cli" (fs/base-name f))))
     ;; Return just a list of the files
-    (mapcat last files)))
+    (concat (mapcat last files)
+            (map #(str "ext/cli/" %) (fs/list-dir cli-dir)))))
 
 (defn get-real-name
   [project-name]

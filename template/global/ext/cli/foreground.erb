@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+if !(echo "${@}" | grep -e "--debug" -q)
+then
+    LOG_APPENDER="-Dlogappender=STDOUT"
+fi
+
+pushd "${INSTALL_DIR}" &> /dev/null
+su ${USER} -s /bin/bash -c "${JAVA_BIN} ${JAVA_ARGS} ${LOG_APPENDER} \
+        -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> \
+        clojure.main -m <%= EZBake::Config[:main_namespace] %> \
+        --config ${CONFIG} --bootstrap-config ${BOOTSTRAP_CONFIG} \
+        ${@}"
+popd &> /dev/null
