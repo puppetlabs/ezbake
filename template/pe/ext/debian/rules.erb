@@ -2,9 +2,11 @@
 # -*- makefile -*-
 include /usr/share/cdbs/1/rules/debhelper.mk
 
+SHELL := /bin/bash
 BUILD_ROOT=$(CURDIR)/debian/$(cdbs_curpkg)
 rubylibdir=$(shell /opt/puppet/bin/ruby -rrbconfig -e "puts RbConfig::CONFIG['sitelibdir']")
-
+DIST := $(shell lsb_release -i | awk '{print tolower($$3)}')
+RELEASE := $(shell lsb_release -r | awk '{print $$2}')
 export DESTDIR=$(BUILD_ROOT)
 export prefix=/opt/puppet
 export bindir=/opt/puppet/bin
@@ -17,6 +19,20 @@ install/<%= EZBake::Config[:project] %>::
 <% EZBake::Config[:debian][:additional_install].each do |install| -%>
 	<%= install %>
 <% end -%>
+	install -d -m 0755 $(DESTDIR)/etc/logrotate.d
+	if [[ ${DIST} == debian ]] ; then \
+		if [[ $$(echo "${RELEASE}>=7" | bc -l) -eq 1 || ${RELEASE} == testing || ${RELEASE} == unstable ]] ; then \
+			cp -p ext/<%= EZBake::Config[:project] -%>.logrotate.conf $(DESTDIR)/etc/logrotate.d/<%= EZBake::Config[:project] %>; \
+		else \
+			cp -p ext/<%= EZBake::Config[:project] -%>.logrotate-legacy.conf $(DESTDIR)/etc/logrotate.d/<%= EZBake::Config[:project] %>; \
+		fi ; \
+	elif [[ ${DIST} == ubuntu ]] ; then \
+		if [[ $$(echo "${RELEASE}>=13.04" | bc -l) -eq 1 ]] ; then \
+			cp -p ext/<%= EZBake::Config[:project] -%>.logrotate.conf $(DESTDIR)/etc/logrotate.d/<%= EZBake::Config[:project] %>; \
+		else \
+			cp -p ext/<%= EZBake::Config[:project] -%>.logrotate-legacy.conf $(DESTDIR)/etc/logrotate.d/<%= EZBake::Config[:project] %>; \
+		fi ; \
+	fi
 
 <% unless EZBake::Config[:terminus_info].empty?  -%>
 install/<%= EZBake::Config[:project] %>-termini::

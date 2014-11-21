@@ -1,0 +1,9 @@
+/var/log/<%= EZBake::Config[:project] -%>/*.log {
+    weekly
+    missingok
+    rotate 12
+    compress
+    copytruncate
+    notifempty
+    create 640 <%= EZBake::Config[:user] -%> <%= EZBake::Config[:group] %>
+}

@@ -99,6 +99,13 @@ install -m 0755 ext/redhat/init %{buildroot}%{_initrddir}/<%= EZBake::Config[:pr
 install -d -m 0755 %{buildroot}%{_sysconfdir}/sysconfig
 install -m 0755 ext/default %{buildroot}%{_sysconfdir}/sysconfig/<%= EZBake::Config[:project] %>
 
+install -d -m 0755 %{buildroot}%{_sysconfdir}/logrotate.d
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7 || 0%{?sles_version} >= 12
+cp -pr ext/<%= EZBake::Config[:project] -%>.logrotate.conf %{buildroot}%{_sysconfdir}/logrotate.d/<%= EZBake::Config[:project] %>
+%else
+cp -pr ext/<%= EZBake::Config[:project] -%>.logrotate-legacy.conf %{buildroot}%{_sysconfdir}/logrotate.d/<%= EZBake::Config[:project] %>
+%endif
+
 <% EZBake::Config[:redhat][:additional_install].each do |install| -%>
 <%= install %>
 <% end -%>
@@ -176,6 +183,7 @@ fi
 %endif
 %config(noreplace) %{_sysconfdir}/%{name}
 %config(noreplace) %{_sysconfdir}/sysconfig/%{name}
+%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 <% if ! EZBake::Config[:cli_app_files].empty? -%>
 %{_bindir}/<%= EZBake::Config[:real_name] %>
 <% end -%>

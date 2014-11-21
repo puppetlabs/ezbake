@@ -24,6 +24,10 @@ templates:
     target: ext/debian/{{{project}}}.default
   - source: ext/debian/ezbake.init.erb
     target: ext/debian/{{{project}}}.init
+  - source: ext/ezbake.logrotate.conf.erb
+    target: ext/{{{project}}}.logrotate.conf
+  - source: ext/ezbake.logrotate-legacy.conf.erb
+    target: ext/{{{project}}}.logrotate-legacy.conf
   - ext/redhat/init.erb
   - ext/redhat/init.suse.erb
   - ext/debian/changelog.erb
