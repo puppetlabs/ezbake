@@ -11,10 +11,17 @@
             [puppetlabs.config.typesafe :as ts]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Constants
+;;; Vars
 
-(def template-dir-prefix "./template")
-(def staging-dir "./target/staging")
+(def ^:dynamic resource-path
+  ;; This is bound dynamically so that the value can be modified appropriately
+  ;; when run in leiningen plugin context. When ezbake is run as an app (ie,
+  ;; from a git repo head) the default given here is sufficient, but when run as
+  ;; a plugin on a project, this is necessary to ensure that files are copied to
+  ;; the project's preferred resources directory.
+  "resources")
+(def resource-prefix "puppetlabs/lein-ezbake/")
+(def staging-dir "target/staging")
 (def shared-bin-prefix "ext/bin/")
 (def shared-config-prefix "ext/config/")
 (def shared-cli-apps-prefix "ext/cli/")
