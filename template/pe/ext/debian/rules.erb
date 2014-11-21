@@ -24,13 +24,13 @@ install/<%= EZBake::Config[:project] %>::
 		if [[ $$(echo "${RELEASE}>=7" | bc -l) -eq 1 || ${RELEASE} == testing || ${RELEASE} == unstable ]] ; then \
 			cp -p ext/<%= EZBake::Config[:project] -%>.logrotate.conf $(DESTDIR)/etc/logrotate.d/<%= EZBake::Config[:project] %>; \
 		else \
-			cp -p ext/<%= EZBake::Config[:project] -%>-legacy.logrotate.conf $(DESTDIR)/etc/logrotate.d/<%= EZBake::Config[:project] %>; \
+			cp -p ext/<%= EZBake::Config[:project] -%>.logrotate-legacy.conf $(DESTDIR)/etc/logrotate.d/<%= EZBake::Config[:project] %>; \
 		fi ; \
 	elif [[ ${DIST} == ubuntu ]] ; then \
 		if [[ $$(echo "${RELEASE}>=13.04" | bc -l) -eq 1 ]] ; then \
 			cp -p ext/<%= EZBake::Config[:project] -%>.logrotate.conf $(DESTDIR)/etc/logrotate.d/<%= EZBake::Config[:project] %>; \
 		else \
-			cp -p ext/<%= EZBake::Config[:project] -%>-legacy.logrotate.conf $(DESTDIR)/etc/logrotate.d/<%= EZBake::Config[:project] %>; \
+			cp -p ext/<%= EZBake::Config[:project] -%>.logrotate-legacy.conf $(DESTDIR)/etc/logrotate.d/<%= EZBake::Config[:project] %>; \
 		fi ; \
 	fi
 
