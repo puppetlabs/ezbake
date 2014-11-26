@@ -1,17 +1,15 @@
-(defproject puppetlabs/ezbake "0.1.0-SNAPSHOT"
+(defproject puppetlabs/lein-ezbake "0.1.0-SNAPSHOT"
   :description "A system for building packages for trapperkeeper-based applications"
-  :dependencies [[org.clojure/clojure "1.6.0"]
-                 [stencil "0.3.3"]
-                 [me.raynes/fs "1.4.5"]
-                 [leiningen-core "2.5.0"]
-                 [com.cemerick/pomegranate "0.3.0"]
+  :dependencies [[me.raynes/fs "1.4.6" :exclusions [org.clojure/clojure]]
+                 [me.raynes/conch "0.8.0"]
                  [clj-time "0.6.0"]
-                 [puppetlabs/typesafe-config "0.1.2"]]
+                 [puppetlabs/typesafe-config "0.1.3" :exclusions [org.clojure/clojure]]]
 
   :repositories [["releases" "http://nexus.delivery.puppetlabs.net/content/repositories/releases/"]
                  ["snapshots" "http://nexus.delivery.puppetlabs.net/content/repositories/snapshots/"]]
 
+  :resource-paths ["resources/"]
+
   :profiles {:dev {:dependencies [[io.aviso/pretty "0.1.10"]]}}
 
-  :main puppetlabs.ezbake.core
-  )
+  :eval-in-leiningen true)

@@ -6,7 +6,7 @@ rundir = /var/run
 bindir = /usr/bin
 
 <%= EZBake::Config[:uberjar_name] %>:
-	lein uberjar
+	lein -U with-profile ezbake uberjar
 	mv target/<%= EZBake::Config[:uberjar_name] %> <%= EZBake::Config[:uberjar_name] %>
 
 install-<%= EZBake::Config[:project] %>: <%= EZBake::Config[:uberjar_name] %>

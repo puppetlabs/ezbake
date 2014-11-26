@@ -13,22 +13,25 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Jar Helpers
 
-(defn- get-jar-file
-  "Return JarFile of the lein-ezbake project."
+(defn- get-jar-file-path
+  "Return path to JarFile of the lein-ezbake project."
   []
   (->> (io/resource project-resource-path)
        .getPath
        (re-find #":(.*)!")
-       second
-       JarFile.))
+       second))
 
 (defn- copy-jar-resources
-  [project]
-  (let [jar-file (get-jar-file)
+  [resource-prefix resource-path]
+  (let [jar-file-path (get-jar-file-path)
+        jar-file (JarFile. jar-file-path)
         jar-entries (deputils/find-files-in-dir-in-jar
                       jar-file
-                      core/resource-prefix)]
-    (deputils/cp-files-from-jar jar-entries jar-file core/resource-path)))
+                      resource-prefix)]
+    (println (format "Copying lein-ezbake resources from %s to %s"
+                     jar-file-path
+                     resource-path))
+    (deputils/cp-files-from-jar jar-entries jar-file resource-path)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Consumable API
@@ -40,4 +43,12 @@
   TODO: Add configuration option to clone a git repository containing ezbake
   resources instead of pulling them from the lein-ezbake jar."
   [project]
-  (copy-jar-resources project))
+  (let [template-type (-> (:lein-ezbake project)
+                          (get :templates)
+                          (get :type))]
+    (case template-type
+      :git-resource (throw (RuntimeException.
+                             (format "Resource type, %s, not implemented."
+                                     (str template-type))))
+      :jar-resource (copy-jar-resources core/resource-prefix core/resource-path)
+      (copy-jar-resources core/resource-prefix core/resource-path))))

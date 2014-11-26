@@ -3,7 +3,8 @@
            (java.io File))
   (:require [cemerick.pomegranate.aether :as aether]
             [me.raynes.fs :as fs]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [leiningen.core.main :as lein-main]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Internal, non-API functions
@@ -73,7 +74,7 @@
          (vector? dep)
          (instance? JarEntry jar-entry)]
    :post [(instance? File %)]}
-  (println "Copying" file-type-desc "file:" (.getName jar-entry))
+  (lein-main/info "Copying" file-type-desc "file:" (.getName jar-entry))
   (let [file-name (.getName (File. (.getName jar-entry)))
         out-dir   (out-dir-fn dep jar-entry)
         out-file  (fs/file out-dir file-name)]
@@ -84,7 +85,7 @@
 
 (defn cp-files-for-dep
   [file-type-desc file-prefix out-dir-fn lein-project dep]
-  (println "Checking for" file-type-desc "files in dependency:" dep)
+  (lein-main/info "Checking for" file-type-desc "files in dependency:" dep)
   (let [jar-file    (find-maven-jar-file dep lein-project)
         jar-entries (find-files-in-dir-in-jar jar-file file-prefix)]
     (mapv (partial cp-file-from-jar file-type-desc jar-file out-dir-fn dep) jar-entries)))

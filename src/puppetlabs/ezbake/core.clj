@@ -2,13 +2,13 @@
   (:import (java.io File InputStreamReader)
            (java.util.jar JarEntry))
   (:require [me.raynes.fs :as fs]
-            [leiningen.core.project :as project]
             [clojure.java.io :as io]
-            [clojure.java.shell :as sh]
             [clojure.string :as str]
             [clj-time.local :as local-time]
             [stencil.core :as stencil]
+            [leiningen.core.main :as lein-main]
             [puppetlabs.ezbake.dependency-utils :as deputils]
+            [puppetlabs.ezbake.exec :as exec]
             [puppetlabs.config.typesafe :as ts]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -46,21 +46,9 @@
   [& args]
   (get-resource-file "staging-templates" args))
 
-(defn exec
-  [& args]
-  (let [result (apply sh/sh args)]
-    (when (not= 0 (:exit result))
-      (throw (RuntimeException. (str
-                                  "Failed to execute shell command:\n\t"
-                                  (str/join " " args)
-                                  "\n\nOutput:"
-                                  (:out result)
-                                  (:err result)))))
-    result))
-
 (defn staging-dir-git-cmd
   [& args]
-  (apply exec "git"
+  (apply exec/exec "git"
          (format "--git-dir=%s" (fs/file staging-dir ".git"))
          (format "--work-tree=%s" staging-dir)
          args))
@@ -95,8 +83,8 @@
   "Get the commit SHA of the current ezbake working copy, plus an asterisk if the
   working tree is dirty."
   []
-  (let [sha     (str/trim (:out (exec "git" "rev-parse" "HEAD")))
-        dirty?  (not= "" (str/trim (:out (exec "git" "diff" "--shortstat"))))]
+  (let [sha     (str/trim (:out (exec/exec "git" "rev-parse" "HEAD")))
+        dirty?  (not= "" (str/trim (:out (exec/exec "git" "diff" "--shortstat"))))]
     (str sha (if dirty? "*" ""))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -104,7 +92,7 @@
 
 (defn clean
   []
-  (println "deleting staging directory:" staging-dir)
+  (lein-main/info "deleting staging directory:" staging-dir)
   (fs/delete-dir staging-dir))
 
 (defn relativize
@@ -136,34 +124,16 @@
 
 (defn cp-template-files
   [template-dir]
-  (println "copying template files from" (.toString template-dir) "to" staging-dir)
+  (lein-main/info "copying template files from" (.toString template-dir) "to" staging-dir)
   (doseq [f (fs/glob (fs/file template-dir) "*")]
     (if (fs/directory? f)
       (fs/copy-dir f staging-dir)
       (fs/copy+ f (format "%s/%s" staging-dir (fs/base-name f))))))
 
 (defn get-project-config-dir
-  [project]
-  (let [configs-by-dir (fs/file "config")
-        configs-by-name (fs/file "configs/" project "config")]
-    (if (.isDirectory configs-by-dir)
-      configs-by-dir
-      configs-by-name)))
-
-(defn get-project-file-path
-  [project]
-  (let [project-file-by-dir (.toString (fs/file project "project.clj"))
-        project-file-by-name (.toString (fs/file "configs/" project
-                                                 (str project ".clj")))]
-    (if (fs/file? project-file-by-dir)
-      project-file-by-dir
-      project-file-by-name)))
-
-(defn cp-project-file
-  [project-file template-vars]
-  (println "copying ezbake lein packaging project file" project-file)
-  (spit (fs/file staging-dir "project.clj")
-        (stencil/render-string (slurp project-file) template-vars)))
+  []
+  {:post [(.isDirectory %)]}
+  (fs/file "config"))
 
 (defn generate-manifest-file
   [lein-project]
@@ -206,7 +176,7 @@ Bundled packages: %s
 
 (defn cp-project-config-files
   [project config-files]
-  (let [project-config-dir    (get-project-config-dir project)
+  (let [project-config-dir    (get-project-config-dir)
         project-config-files  (if (fs/directory? project-config-dir)
                                 (find-files-recursively project-config-dir))
         rel-files             (for [config-file project-config-files]
@@ -288,7 +258,7 @@ Bundled packages: %s
           default))
 
 (defn get-ezbake-vars
-  [lein-project build-target]
+  [lein-project]
   ;; This function should build up a map of variables that are allowed to
   ;; be interpolated into an upstream ezbake config file.  For now, the only one
   ;; we've had a need for is :user.
@@ -346,7 +316,7 @@ Bundled packages: %s
   [dependencies build-target]
   (let [files (generate-terminus-list dependencies build-target)]
     (doseq [[project version terminus-files jar] files]
-      (println (str "Staging terminus files for " project " version " version))
+      (lein-main/info (str "Staging terminus files for " project " version " version))
       (deputils/cp-files-from-jar terminus-files jar staging-dir))
     ;; Remove the jars from the returned data
     (map (partial take 3) files)))
@@ -378,14 +348,14 @@ Bundled packages: %s
 ;; to try to pull this info from git.
 (defn create-git-repo
   [lein-project]
-  (println "Creating temporary git repo")
-  (exec "git" "init" staging-dir)
-  (println "Adding all files to git repo")
+  (lein-main/info "Creating temporary git repo")
+  (exec/exec "git" "init" staging-dir)
+  (lein-main/info "Adding all files to git repo")
   (staging-dir-git-cmd "add" "*")
-  (println "Committing git repo")
+  (lein-main/info "Committing git repo")
   (staging-dir-git-cmd "commit" "-m" "'Temporary git repo to house packaging code'")
   (let [git-tag (generate-git-tag-from-version (:version lein-project))]
-    (println "Tagging git repo at" git-tag)
+    (lein-main/info "Tagging git repo at" git-tag)
     (staging-dir-git-cmd "tag" "-a" git-tag "-m" "Tag for packaging code")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -403,13 +373,18 @@ Bundled packages: %s
 ;; ways.
 (defn generate-ezbake-config-file
   [lein-project build-target config-files cli-app-files bin-files terminus-files]
-  (println "generating ezbake config file")
-  (let [upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)
-        ezbake-vars             (get-ezbake-vars lein-project build-target)
-        termini (for [[name version files] terminus-files]
+  (lein-main/info "generating ezbake config file")
+  (let [termini (for [[name version files] terminus-files]
                   {:name name
                    :version version
-                   :files (quoted-list files)})]
+                   :files (quoted-list files)})
+        get-quoted-ezbake-values (fn [platform variable]
+                                   (quoted-list
+                                     (get-ezbake-value (get-ezbake-vars lein-project)
+                                                       (get-upstream-ezbake-configs lein-project)
+                                                       build-target
+                                                       platform
+                                                       variable)))]
     (spit
       (fs/file staging-dir "ezbake.rb")
       (stencil/render-string
@@ -424,17 +399,19 @@ Bundled packages: %s
          :config-files              (quoted-list (map remove-erb-extension config-files))
          :cli-app-files             (quoted-list (map remove-erb-extension cli-app-files))
          :bin-files                 (quoted-list bin-files)
-         :create-varlib             (str (boolean (get-local-ezbake-var lein-project :create-varlib false)))
-         :debian-deps               (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :dependencies))
-         :debian-preinst            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :preinst))
-         :debian-postinst           (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :postinst))
-         :debian-install            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :install))
-         :debian-post-start-action  (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :debian :post-start-action))
-         :redhat-deps               (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :dependencies))
-         :redhat-preinst            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :preinst))
-         :redhat-postinst           (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :postinst))
-         :redhat-install            (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :install))
-         :redhat-post-start-action  (quoted-list (get-ezbake-value ezbake-vars upstream-ezbake-configs build-target :redhat :post-start-action))
+         :create-varlib             (str (boolean (get-local-ezbake-var lein-project
+                                                                        :create-varlib
+                                                                        false)))
+         :debian-deps               (get-quoted-ezbake-values :debian :dependencies)
+         :debian-preinst            (get-quoted-ezbake-values :debian :preinst)
+         :debian-postinst           (get-quoted-ezbake-values :debian :postinst)
+         :debian-install            (get-quoted-ezbake-values :debian :install)
+         :debian-post-start-action  (get-quoted-ezbake-values :debian :post-start-action)
+         :redhat-deps               (get-quoted-ezbake-values :redhat :dependencies)
+         :redhat-preinst            (get-quoted-ezbake-values :redhat :preinst)
+         :redhat-postinst           (get-quoted-ezbake-values :redhat :postinst)
+         :redhat-install            (get-quoted-ezbake-values :redhat :install)
+         :redhat-post-start-action  (get-quoted-ezbake-values :redhat :post-start-action)
          :terminus-map              termini
          :replaces-pkgs             (get-local-ezbake-var lein-project :replaces-pkgs [])
          :start-timeout             (get-local-ezbake-var lein-project :start-timeout "60")
@@ -446,7 +423,7 @@ Bundled packages: %s
 
 (defn generate-project-data-yaml
   [lein-project build-target]
-  (println "generating project_data.yaml file")
+  (lein-main/info "generating project_data.yaml file")
   (spit
     (fs/file staging-dir "ext" "project_data.yaml")
     (stencil/render-string
@@ -458,33 +435,6 @@ Bundled packages: %s
                               (deputils/generate-manifest-string lein-project))
        :uberjar-name  (:uberjar-name lein-project)
        :is-pe-build   (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))})))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Downstream Job Handling
-
-(defn get-package-build-version
-  "Grabs the ephemeral repo version from packaging."
-  []
-  (let [raw-version-string (exec "rake" "pl:print_build_param[ref]" :dir staging-dir)]
-    (second (re-matches #".*\n(.*)\n" (:out raw-version-string)))))
-
-(defn get-downstream-job
-  "Creates a DOWNSTREAM_JOB string for passing to pl:jenkins:uber_build rake
-  task. Requires DOWNSTREAM_JOB_URL environment variable to be defined otherwise
-  returns nil."
-  []
-  (let [base-url (System/getenv "DOWNSTREAM_JOB_URL")
-        build-parameters {:PACKAGE_BUILD_VERSION (get-package-build-version)
-                          :token (System/getenv "TOKEN_NAME")}]
-    (if base-url
-      (if-not (:token build-parameters)
-        (throw (RuntimeException. (str "Environment variable $TOKEN_NAME "
-                                       "required to trigger $DOWNSTREAM_JOB "
-                                       "remotely.")))
-        (str "DOWNSTREAM_JOB=" base-url "/buildWithParameters?"
-             (str/join "&" (map #(str (name %1) "=" %2)
-                                (keys build-parameters)
-                                (vals build-parameters))))))))
 
 (defn usage
   []
@@ -498,19 +448,15 @@ Bundled packages: %s
                       "  build <project-name>      Build native packages from staged artifacts"
                       ""]))
 
-(defn exit
-  [status msg]
-  (println msg)
-  (System/exit status))
-
 (defmulti ezbake-action
   (fn [action & params] action))
 
 (defmethod ezbake-action "stage"
-  [_ project project-file lein-project build-target template-dir]
+  [_ lein-project build-target template-dir]
   (cp-template-files template-dir)
   (cp-template-files (get-template-file "global"))
-  (let [dependencies (deputils/get-dependencies-with-jars lein-project)
+  (let [project "./"
+        dependencies (deputils/get-dependencies-with-jars lein-project)
         config-files (cp-shared-config-files dependencies)
         config-files (cp-project-config-files project config-files)
         cli-app-files (cp-shared-cli-app-files dependencies)
@@ -526,64 +472,28 @@ Bundled packages: %s
 
 ; TODO: make PE_VER either command line or config file driven
 (defmethod ezbake-action "build"
-  [_ project project-file lein-project build-target template-dir]
-  (ezbake-action "stage" project project-file lein-project build-target template-dir)
-  (exec "rake" "package:bootstrap" :dir staging-dir)
-  (let [downstream-job (get-downstream-job)
+  [_ lein-project build-target template-dir]
+  (ezbake-action "stage" lein-project build-target template-dir)
+  (exec/exec "rake" "package:bootstrap" :dir staging-dir)
+  (let [downstream-job nil
         rake-call (if (= build-target "foss")
-                    ["rake" "pl:jenkins:uber_build"]
-                    ["rake" "pe:jenkins:uber_build" "PE_VER=3.7"])
-        full-command (if downstream-job
-                       ["env" downstream-job rake-call]
-                       rake-call)]
-    (if downstream-job
-      (println "Using" downstream-job))
-    (println (:out (apply exec (flatten [full-command :dir staging-dir]))))))
+                    ["rake" "pl:jenkins:uber_build[5]"]
+                    ["rake" "pe:jenkins:uber_build[5]" "PE_VER=3.7"])]
+    (exec/lazy-sh rake-call {:dir staging-dir})))
 
 (defmethod ezbake-action :default
   [action & params]
-  (exit 1 (str/join \newline ["Unrecognized option:" action "" (usage)])))
-
-(defn ezbake-project
-  [ezbake-project-name]
-  (let [lein-project (-> (fs/file staging-dir "project.clj")
-                         .toString
-                         project/read)
-        ezbake-dependencies (-> (:lein-ezbake lein-project)
-                                (get :dependencies))]
-    (if ezbake-dependencies
-      (merge lein-project {:dependencies ezbake-dependencies})
-      lein-project)))
+  (lein-main/abort (str/join \newline ["Unrecognized option:" action "" (usage)])))
 
 (defn ezbake-init
-  [action project template-vars]
+  [project action]
   (clean)
   (fs/mkdirs staging-dir)
-  (let [project-file (get-project-file-path project)
-        template-vars (->> template-vars
-                        (map #(str/split % #"="))
-                        (into {}))]
-    (cp-project-file project-file template-vars)
-    (let [lein-project (ezbake-project project)
-          build-target (get-local-ezbake-var lein-project :build-type "foss")
-          template-dir (get-template-file build-target)
-          project-name (:name lein-project)]
-      (ezbake-action action project-name project-file lein-project build-target template-dir))))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Main
-
-(defn -main
-  [& args]
-  (if (>= (count args) 2)
-    (let [[action project & template-vars] args]
-      (if-not (every? (partial re-find #"=") template-vars)
-        (exit 1 "Arguments after the project name are expected to be variable bindings of the form <variable>=<value>")
-        (try
-          (ezbake-init action project template-vars)
-          (finally
-            ;; this is required in order to make the threads started by sh/sh terminate,
-            ;; and thus allow the jvm to exit
-            (shutdown-agents)))))
-    (println "Incorrect # of arguments. Expected 2, received:" (count args) "\n\n" (usage))))
+  (fs/copy+ "./project.clj"
+            (format "%s/%s" staging-dir "project.clj"))
+  (let [build-target (get-local-ezbake-var project :build-type "foss")
+        template-dir (get-template-file build-target)]
+    (ezbake-action action
+                   project
+                   build-target
+                   template-dir)))
