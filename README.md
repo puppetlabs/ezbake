@@ -76,6 +76,9 @@ can be configured here include the following:
   started
 * `:replaces-pkgs`: A list of maps of packages and versions that this ezbake
   package will replace
+* `:main-namespace`: The namespace where clojure will execute the -main
+  function to begin the application.
+* `:create-varlib`: Create a suitable `/var/lib/[project]` directory.
 
 Here is an example ezbake section:
 

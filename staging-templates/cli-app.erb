@@ -3,8 +3,14 @@
 set -a
 if [ -r "/etc/default/<%= EZBake::Config[:project] -%>" ] ; then
     . /etc/default/<%= EZBake::Config[:project] %>
-elif [ -r  "/etc/sysconfig/<%= EZBake::Config[:project] -%>" ] ; then
+elif [ -r "/etc/sysconfig/<%= EZBake::Config[:project] -%>" ] ; then
     . /etc/sysconfig/<%= EZBake::Config[:project] %>
+elif [ `uname` == "OpenBSD" ] ; then
+    JAVA_BIN=$(javaPathHelper -c <%= EZBake::Config[:project] %>)
+    JAVA_ARGS="<%= EZBake::Config[:java_args] %>"
+    USER="_<%= EZBake::Config[:user] %>"
+    INSTALL_DIR="/usr/local/share/<%= EZBake::Config[:project] %>"
+    CONFIG="/etc/<%= EZBake::Config[:project] %>/conf.d"
 else
     echo "You seem to be missing some important configuration files; could not find /etc/default/<%= EZBake::Config[:project] -%> or /etc/sysconfig/<%= EZBake::Config[:project] -%>" >&2
     exit 1
@@ -28,7 +34,7 @@ function usage {
     fi
 
     cat <<EOD
-usage: $(basename $0) [--help] <command> [<args>]
+usage: $(basename $0) ([--help] | [--version]) <command> [<args>]
 
 The most commonly used <%= EZBake::Config[:real_name] %> commands are:
 EOD
@@ -41,6 +47,13 @@ EOD
     cat << EOD
 
 See '$(basename $0) <command> -h' for more information on a specific command.
+EOD
+    exit 0
+}
+
+function show_version {
+    cat <<EOD
+<%= EZBake::Config[:real_name] %> version: <%= Pkg::Config.version %>
 EOD
     exit 0
 }
@@ -72,6 +85,9 @@ function execsubcommand {
 
 if [ -z $1 ] || [ $1 = "--help" ] || [ $1 = "-h" ]; then
     usage
+fi
+if [ $1 = "--version" ] || [ $1 = "-v" ]; then
+    show_version
 fi
 
 execsubcommand "$@"

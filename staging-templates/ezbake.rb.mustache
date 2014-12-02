@@ -9,6 +9,7 @@ module EZBake
       :config_files   => [{{{config-files}}}],
       :cli_app_files  => [{{{cli-app-files}}}],
       :bin_files      => [{{{bin-files}}}],
+      :create_varlib  => {{create-varlib}},
       :terminus_info  => {
                           {{#terminus-map}}
                             "{{{name}}}" => {
@@ -20,15 +21,18 @@ module EZBake
       :debian         => {
                           :additional_dependencies => [{{{debian-deps}}}],
                           :additional_preinst => [{{{debian-preinst}}}],
+                          :additional_postinst => [{{{debian-postinst}}}],
                           :additional_install => [{{{debian-install}}}],
                           :post_start_action => [{{{debian-post-start-action}}}],
                           },
       :redhat         => {
                           :additional_dependencies => [{{{redhat-deps}}}],
                           :additional_preinst => [{{{redhat-preinst}}}],
+                          :additional_postinst => [{{{redhat-postinst}}}],
                           :additional_install => [{{{redhat-install}}}],
                           :post_start_action => [{{{redhat-post-start-action}}}],
                           },
+      :main_namespace => '{{{main-namespace}}}',
       :java_args      => '{{{java-args}}}',
       :replaces_pkgs  => {
                           {{#replaces-pkgs}}
