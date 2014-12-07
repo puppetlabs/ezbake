@@ -15,6 +15,7 @@ files:
   - Rakefile
   - Makefile.erb
   - puppet
+  - install.sh.erb
 templates:
   - source: ext/redhat/ezbake.spec.erb
     target: ext/redhat/{{{project}}}.spec
@@ -45,6 +46,7 @@ templates:
   - ext/default.erb
   - ext/ezbake-functions.sh.erb
   - Makefile.erb
+  - install.sh.erb
 tar_excludes:
   - .gitignore
 build_pe: {{{is-pe-build}}}
