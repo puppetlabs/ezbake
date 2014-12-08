@@ -17,6 +17,7 @@
 
     <root level="info">
         <!--<appender-ref ref="STDOUT"/>-->
+        <appender-ref ref="${logappender:-DUMMY}" />
         <appender-ref ref="F1"/>
     </root>
 </configuration>
