@@ -175,7 +175,7 @@ Bundled packages: %s
     (relativize staging-dir out-file)))
 
 (defn cp-project-config-files
-  [project config-files]
+  [config-files]
   (let [project-config-dir    (get-project-config-dir)
         project-config-files  (if (fs/directory? project-config-dir)
                                 (find-files-recursively project-config-dir))
@@ -205,9 +205,9 @@ Bundled packages: %s
   (str/replace-first project-name #"^pe-" ""))
 
 (defn cp-cli-wrapper-scripts
-  [project]
+  [project-name]
   (fs/copy+ (get-staging-template-file "cli-app.erb")
-            (fs/file staging-dir "ext" "bin" (str (get-real-name project) ".erb"))))
+            (fs/file staging-dir "ext" "bin" (str (get-real-name project-name) ".erb"))))
 
 (defn get-out-dir-for-doc-file
   [dep jar-entry]
@@ -253,8 +253,9 @@ Bundled packages: %s
 (defn get-local-ezbake-var
   "Get the value of a variable from the local ezbake config (inside of the
   ezbake lein project file."
-  [lein-project key default]
-  (get-in lein-project [:ezbake key]
+  [lein-project k default]
+  (get-in lein-project
+          [:lein-ezbake :vars k]
           default))
 
 (defn get-ezbake-vars
@@ -299,24 +300,24 @@ Bundled packages: %s
   (deputils/find-files-in-dir-in-jar jar terminus-prefix))
 
 (defn- prefix-project-name
-  [project build-target]
+  [project-name build-target]
     (if (= build-target "pe")
-      (str "pe-" (name project))
-      (name project)))
+      (str "pe-" (name project-name))
+      (name project-name)))
 
 (defn generate-terminus-list
   [dependencies build-target]
-  (for [{:keys [project version jar]} dependencies
+  (for [{:keys [project-name version jar]} dependencies
         :let [terminus-files (get-terminus-files-in jar)]
         :when (not (empty? terminus-files))]
-    [(prefix-project-name project build-target) version terminus-files jar]))
+    [(prefix-project-name project-name build-target) version terminus-files jar]))
 
 (defn cp-terminus-files "Stage all terminus files. Returns a sequence zipping project names and
   their terminus files."
   [dependencies build-target]
   (let [files (generate-terminus-list dependencies build-target)]
-    (doseq [[project version terminus-files jar] files]
-      (lein-main/info (str "Staging terminus files for " project " version " version))
+    (doseq [[project-name version terminus-files jar] files]
+      (lein-main/info (str "Staging terminus files for " project-name " version " version))
       (deputils/cp-files-from-jar terminus-files jar staging-dir))
     ;; Remove the jars from the returned data
     (map (partial take 3) files)))
@@ -455,15 +456,14 @@ Bundled packages: %s
   [_ lein-project build-target template-dir]
   (cp-template-files template-dir)
   (cp-template-files (get-template-file "global"))
-  (let [project "./"
-        dependencies (deputils/get-dependencies-with-jars lein-project)
+  (let [dependencies (deputils/get-dependencies-with-jars lein-project)
         config-files (cp-shared-config-files dependencies)
-        config-files (cp-project-config-files project config-files)
+        config-files (cp-project-config-files config-files)
         cli-app-files (cp-shared-cli-app-files dependencies)
         bin-files (cp-shared-bin-files dependencies)
         terminus-files (cp-terminus-files dependencies build-target)]
     (if cli-app-files
-      (cp-cli-wrapper-scripts project))
+      (cp-cli-wrapper-scripts (:name lein-project)))
     (cp-doc-files lein-project)
     (generate-ezbake-config-file lein-project build-target config-files cli-app-files bin-files terminus-files)
     (generate-project-data-yaml lein-project build-target)
