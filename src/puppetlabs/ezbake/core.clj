@@ -437,7 +437,10 @@ Bundled packages: %s
   (let [dependencies    (deputils/get-dependencies-with-jars lein-project)
         config-files    (cp-shared-files dependencies get-config-files-in)
         config-files    (cp-project-config-files config-files)
-        cli-app-files   (cp-shared-files dependencies get-cli-app-files-in)
+        _               (cp-shared-files dependencies get-cli-app-files-in)
+        cli-app-files   (->> (str/join "/" [staging-dir "ext" "cli"])
+                             fs/list-dir
+                             (map #(relativize staging-dir %)))
         bin-files       (cp-shared-files dependencies get-bin-files-in)
         terminus-files  (cp-terminus-files dependencies build-target)]
     (if cli-app-files
