@@ -152,16 +152,28 @@ Bundled packages: %s
             (:version lein-project)
             (deputils/generate-manifest-string lein-project))))
 
+(defn- get-cli-app-files-in
+  [jar]
+  (deputils/find-files-in-dir-in-jar jar shared-cli-apps-prefix))
+
+(defn- get-terminus-files-in
+  [jar]
+  (deputils/find-files-in-dir-in-jar jar terminus-prefix))
+
+(defn- get-bin-files-in
+  [jar]
+  (deputils/find-files-in-dir-in-jar jar shared-bin-prefix))
+
 (defn- get-config-files-in
   [jar]
   (deputils/find-files-in-dir-in-jar jar shared-config-prefix))
 
-(defn cp-shared-config-files
-  [dependencies]
+(defn cp-shared-files
+  [dependencies files-fn]
   (let [files (for [{:keys [project jar]} dependencies]
-                [project jar (get-config-files-in jar)])]
-    (doseq [[project jar config-files] files]
-      (deputils/cp-files-from-jar config-files jar staging-dir))
+                [project jar (files-fn jar)])]
+    (doseq [[project jar shared-files] files]
+      (deputils/cp-files-from-jar shared-files jar staging-dir))
     ;; Return just a list of the files
     (mapcat last files)))
 
@@ -182,23 +194,6 @@ Bundled packages: %s
         rel-files             (for [config-file project-config-files]
                                 (cp-project-config-file project-config-dir config-file))]
     (concat config-files rel-files)))
-
-(defn- get-cli-app-files-in
-  [jar]
-  (deputils/find-files-in-dir-in-jar jar shared-cli-apps-prefix))
-
-(defn cp-shared-cli-app-files
-  [dependencies]
-  (let [files (for [{:keys [project jar]} dependencies]
-                [project jar (get-cli-app-files-in jar)])
-        cli-dir (str template-dir-prefix "/global/ext/cli")]
-    (doseq [[project jar cli-app-files] files]
-      (deputils/cp-files-from-jar cli-app-files jar staging-dir))
-    (doseq [f (fs/glob (fs/file cli-dir) "*")]
-      (fs/copy+ f (format "%s/%s/%s" staging-dir "ext/cli" (fs/base-name f))))
-    ;; Return just a list of the files
-    (concat (mapcat last files)
-            (map #(str "ext/cli/" %) (fs/list-dir cli-dir)))))
 
 (defn get-real-name
   [project-name]
@@ -233,19 +228,6 @@ Bundled packages: %s
   (mapv (partial relativize staging-dir)
         (deputils/cp-files-of-type lein-project "doc"
                                    docs-prefix get-out-dir-for-doc-file)))
-
-(defn- get-bin-files-in
-  [jar]
-  (deputils/find-files-in-dir-in-jar jar shared-bin-prefix))
-
-(defn cp-shared-bin-files
-  [dependencies]
-  (let [files (for [{:keys [project jar]} dependencies]
-                [project jar (get-bin-files-in jar)])]
-    (doseq [[project jar bin-files] files]
-      (deputils/cp-files-from-jar bin-files jar staging-dir))
-    ;; Return just a list of the files
-    (mapcat last files)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Upstream EZBake config handling
@@ -294,10 +276,6 @@ Bundled packages: %s
   [lein-project]
   (let [upstream-config-streams (deputils/file-file-in-jars lein-project "ext/ezbake.conf")]
     (reduce add-ezbake-config-to-map {} upstream-config-streams)))
-
-(defn- get-terminus-files-in
-  [jar]
-  (deputils/find-files-in-dir-in-jar jar terminus-prefix))
 
 (defn- prefix-project-name
   [project-name build-target]
@@ -456,12 +434,12 @@ Bundled packages: %s
   [_ lein-project build-target template-dir]
   (cp-template-files template-dir)
   (cp-template-files (get-template-file "global"))
-  (let [dependencies (deputils/get-dependencies-with-jars lein-project)
-        config-files (cp-shared-config-files dependencies)
-        config-files (cp-project-config-files config-files)
-        cli-app-files (cp-shared-cli-app-files dependencies)
-        bin-files (cp-shared-bin-files dependencies)
-        terminus-files (cp-terminus-files dependencies build-target)]
+  (let [dependencies    (deputils/get-dependencies-with-jars lein-project)
+        config-files    (cp-shared-files dependencies get-config-files-in)
+        config-files    (cp-project-config-files config-files)
+        cli-app-files   (cp-shared-files dependencies get-cli-app-files-in)
+        bin-files       (cp-shared-files dependencies get-bin-files-in)
+        terminus-files  (cp-terminus-files dependencies build-target)]
     (if cli-app-files
       (cp-cli-wrapper-scripts (:name lein-project)))
     (cp-doc-files lein-project)
