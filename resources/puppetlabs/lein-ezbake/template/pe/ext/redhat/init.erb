@@ -38,10 +38,9 @@ config=$CONFIG
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
-JAVA_ARGS="${JAVA_ARGS} -cp '${INSTALL_DIR}/${JARFILE}' clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b '${BOOTSTRAP_CONFIG}'"
+JAVA_ARGS="${JAVA_ARGS} -cp '${INSTALL_DIR}/${JARFILE}' clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b '${BOOTSTRAP_CONFIG}' -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog} -Djava.security.egd=/dev/urandom"
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile="/var/lock/subsys/${prog}"
-EXEC="${JAVA_BIN} -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog} -Djava.security.egd=/dev/urandom ${JAVA_ARGS}"
 PIDFILE="/var/run/${prog}/${prog}.pid"
 LOGFILE="/var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log"
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
