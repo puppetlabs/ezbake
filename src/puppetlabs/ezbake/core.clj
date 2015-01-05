@@ -415,25 +415,14 @@ Bundled packages: %s
        :uberjar-name  (:uberjar-name lein-project)
        :is-pe-build   (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))})))
 
-(defn usage
-  []
-  (str/join \newline ["EZBake can be used to generate native packages suitable for"
-                      "consumption or an artifact ready for packaging"
-                      ""
-                      "Usage: lein run action"
-                      ""
-                      "Actions:"
-                      "  stage <project-name>      Generate and stage ezbake artifacts"
-                      "  build <project-name>      Build native packages from staged artifacts"
-                      ""]))
-
-(defmulti ezbake-action
+(defmulti action
   (fn [action & params] action))
 
-(defmethod ezbake-action "stage"
-  [_ lein-project build-target template-dir]
-  (cp-template-files template-dir)
-  (cp-template-files (get-template-file "global"))
+(defmethod action "stage"
+  [_ lein-project build-target _]
+  (let [template-dir (get-template-file build-target)]
+    (cp-template-files template-dir)
+    (cp-template-files (get-template-file "global")))
   (let [dependencies    (deputils/get-dependencies-with-jars lein-project)
         config-files    (cp-shared-files dependencies get-config-files-in)
         config-files    (cp-project-config-files config-files)
@@ -452,9 +441,9 @@ Bundled packages: %s
     (create-git-repo lein-project)))
 
 ; TODO: make PE_VER either command line or config file driven
-(defmethod ezbake-action "build"
-  [_ lein-project build-target template-dir]
-  (ezbake-action "stage" lein-project build-target template-dir)
+(defmethod action "build"
+  [_ lein-project build-target params]
+  (action "stage" lein-project build-target params)
   (exec/exec "rake" "package:bootstrap" :dir staging-dir)
   (let [downstream-job nil
         rake-call (if (= build-target "foss")
@@ -462,19 +451,13 @@ Bundled packages: %s
                     ["rake" "pe:jenkins:uber_build[5]" "PE_VER=3.7"])]
     (exec/lazy-sh rake-call {:dir staging-dir})))
 
-(defmethod ezbake-action :default
+(defmethod action :default
   [action & params]
-  (lein-main/abort (str/join \newline ["Unrecognized option:" action "" (usage)])))
+  (lein-main/abort (str/join \newline ["Unrecognized option:" action])))
 
-(defn ezbake-init
-  [project action]
+(defn init!
+  []
   (clean)
   (fs/mkdirs staging-dir)
   (fs/copy+ "./project.clj"
-            (format "%s/%s" staging-dir "project.clj"))
-  (let [build-target (get-local-ezbake-var project :build-type "foss")
-        template-dir (get-template-file build-target)]
-    (ezbake-action action
-                   project
-                   build-target
-                   template-dir)))
+            (format "%s/%s" staging-dir "project.clj")))
