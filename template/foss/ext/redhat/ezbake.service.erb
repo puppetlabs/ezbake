@@ -6,6 +6,7 @@ After=syslog.target network.target
 Type=simple
 EnvironmentFile=/etc/sysconfig/<%= EZBake::Config[:project] %>
 User=<%= EZBake::Config[:user] %>
+TimeoutStartSec=120
 TimeoutStopSec=60
 
 ExecStart=/usr/bin/java $JAVA_ARGS \
