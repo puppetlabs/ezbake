@@ -131,9 +131,9 @@
       (fs/copy+ f (format "%s/%s" staging-dir (fs/base-name f))))))
 
 (defn get-project-config-dir
-  []
-  {:post [(.isDirectory %)]}
-  (fs/file "config"))
+  [lein-project]
+  (let [config-dir (get-in lein-project [:lein-ezbake :config-dir] "config")]
+    (fs/file config-dir)))
 
 (defn generate-manifest-file
   [lein-project]
@@ -187,13 +187,12 @@ Bundled packages: %s
     (relativize staging-dir out-file)))
 
 (defn cp-project-config-files
-  [config-files]
-  (let [project-config-dir    (get-project-config-dir)
+  [lein-project]
+  (let [project-config-dir    (get-project-config-dir lein-project)
         project-config-files  (if (fs/directory? project-config-dir)
-                                (find-files-recursively project-config-dir))
-        rel-files             (for [config-file project-config-files]
-                                (cp-project-config-file project-config-dir config-file))]
-    (concat config-files rel-files)))
+                                (find-files-recursively project-config-dir))]
+    (for [config-file project-config-files]
+      (cp-project-config-file project-config-dir config-file))))
 
 (defn get-real-name
   [project-name]
@@ -285,10 +284,10 @@ Bundled packages: %s
 
 (defn generate-terminus-list
   [dependencies build-target]
-  (for [{:keys [project-name version jar]} dependencies
+  (for [{:keys [project version jar]} dependencies
         :let [terminus-files (get-terminus-files-in jar)]
         :when (not (empty? terminus-files))]
-    [(prefix-project-name project-name build-target) version terminus-files jar]))
+    [(prefix-project-name project build-target) version terminus-files jar]))
 
 (defn cp-terminus-files "Stage all terminus files. Returns a sequence zipping project names and
   their terminus files."
@@ -425,7 +424,7 @@ Bundled packages: %s
     (cp-template-files (get-template-file "global")))
   (let [dependencies    (deputils/get-dependencies-with-jars lein-project)
         config-files    (cp-shared-files dependencies get-config-files-in)
-        config-files    (cp-project-config-files config-files)
+        config-files    (concat config-files  (cp-project-config-files lein-project))
         _               (cp-shared-files dependencies get-cli-app-files-in)
         cli-app-files   (->> (str/join "/" [staging-dir "ext" "cli"])
                              fs/list-dir
