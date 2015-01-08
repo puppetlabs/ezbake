@@ -10,7 +10,8 @@
   :uberjar-name "puppetdb-release.jar"
 
   :repositories [["releases" "http://nexus.delivery.puppetlabs.net/content/repositories/releases/"]
-                 ["snapshots" "http://nexus.delivery.puppetlabs.net/content/repositories/snapshots/"]]
+                 ["snapshots" {:url "http://nexus.delivery.puppetlabs.net/content/repositories/snapshots/"
+                               :update :always}]]
 
   :ezbake {:user "puppetdb"
            :group "puppetdb"
