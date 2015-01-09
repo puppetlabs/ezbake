@@ -16,9 +16,8 @@ Actions:
   ([project action]
    (ezbake project action ""))
   ([project action & params]
-   (let [ezbake-map (:lein-ezbake project)
-          resource-path (:resource-path ezbake-map)
-          build-target (ezbake-core/get-local-ezbake-var
+   (let [resource-path (get-in project [:lein-ezbake :resource-dir])
+         build-target  (ezbake-core/get-local-ezbake-var
                          project :build-type "foss")]
       ;; Rebind ezbake-core/resource-path using one of the given project's resource
       ;; paths. The first in the list is typically "dev-resources". This value can
@@ -26,7 +25,7 @@ Actions:
       (binding [ezbake-core/resource-path
                 (if resource-path
                   resource-path
-                  (first (:resource-paths project)))]
+                  ezbake-core/resource-path)]
         (lein-ezbake-core/prepare-resource-dir project)
         (try
           (ezbake-core/init!)

@@ -20,7 +20,7 @@
   ;; from a git repo head) the default given here is sufficient, but when run as
   ;; a plugin on a project, this is necessary to ensure that files are copied to
   ;; the project's preferred resources directory.
-  "resources")
+  "tmp/resources")
 (def resource-prefix "puppetlabs/lein-ezbake/")
 (def staging-dir "target/staging")
 (def shared-bin-prefix "ext/bin/")
