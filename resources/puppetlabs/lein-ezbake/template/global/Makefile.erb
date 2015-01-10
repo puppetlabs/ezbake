@@ -5,11 +5,7 @@ rubylibdir = $(shell ruby -rrbconfig -e "puts RbConfig::CONFIG['sitelibdir']")
 rundir = /var/run
 bindir = /usr/bin
 
-<%= EZBake::Config[:uberjar_name] %>:
-	lein -U with-profile ezbake uberjar
-	mv target/<%= EZBake::Config[:uberjar_name] %> <%= EZBake::Config[:uberjar_name] %>
-
-install-<%= EZBake::Config[:project] %>: <%= EZBake::Config[:uberjar_name] %>
+install-<%= EZBake::Config[:project] %>:
 	install -d -m 0755 "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>"
 	install -m 0644 <%= EZBake::Config[:uberjar_name] %> "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>"
 	install -m 0774 ext/ezbake-functions.sh "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>"

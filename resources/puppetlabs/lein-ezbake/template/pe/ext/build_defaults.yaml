@@ -17,4 +17,3 @@ build_ips: FALSE
 apt_host: 'apt.puppetlabs.com'
 apt_repo_url: 'http://apt.puppetlabs.com'
 apt_repo_path: '/opt/repository/incoming'
-pre_tar_task: 'uberjar'

@@ -7,6 +7,7 @@
             [clj-time.local :as local-time]
             [stencil.core :as stencil]
             [leiningen.core.main :as lein-main]
+            [leiningen.uberjar :as uberjar]
             [puppetlabs.ezbake.dependency-utils :as deputils]
             [puppetlabs.ezbake.exec :as exec]
             [puppetlabs.config.typesafe :as ts]))
@@ -419,7 +420,11 @@ Bundled packages: %s
 
 (defmethod action "stage"
   [_ lein-project build-target _]
-  (let [template-dir (get-template-file build-target)]
+  (let [template-dir (get-template-file build-target)
+        uberjar-name (:uberjar-name lein-project)]
+    (uberjar/uberjar lein-project)
+    (fs/copy+ (format "%s/%s" "target" uberjar-name)
+              (format "%s/%s" staging-dir uberjar-name))
     (cp-template-files template-dir)
     (cp-template-files (get-template-file "global")))
   (let [dependencies    (deputils/get-dependencies-with-jars lein-project)
