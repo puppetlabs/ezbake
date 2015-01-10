@@ -1,6 +1,7 @@
 (ns leiningen.ezbake-core
   (:import (java.util.jar JarEntry JarFile))
   (:require [clojure.java.io :as io]
+            [leiningen.core.main :as lein-main]
             [puppetlabs.ezbake.core :as core]
             [puppetlabs.ezbake.dependency-utils :as deputils]))
 
@@ -28,9 +29,8 @@
         jar-entries (deputils/find-files-in-dir-in-jar
                       jar-file
                       resource-prefix)]
-    (println (format "Copying lein-ezbake resources from %s to %s"
-                     jar-file-path
-                     resource-path))
+    (lein-main/info (format "Copying lein-ezbake resources from %s to %s"
+                            jar-file-path resource-path))
     (deputils/cp-files-from-jar jar-entries jar-file resource-path)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
