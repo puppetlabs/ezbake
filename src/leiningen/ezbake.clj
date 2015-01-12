@@ -14,8 +14,6 @@ Actions:
   build      Build native packages from staged artifacts.
   "
   ([project action]
-   (ezbake project action ""))
-  ([project action & params]
    (let [resource-path (get-in project [:lein-ezbake :resource-dir])
          build-target  (ezbake-core/get-local-ezbake-var
                          project :build-type "foss")]
@@ -29,7 +27,7 @@ Actions:
         (lein-ezbake-core/prepare-resource-dir project)
         (try
           (ezbake-core/init!)
-          (ezbake-core/action action project build-target params)
+          (ezbake-core/action action project build-target)
           (finally
              ;; this is required in order to make the threads started by sh/sh terminate,
              ;; and thus allow the jvm to exit

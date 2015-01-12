@@ -416,10 +416,10 @@ Bundled packages: %s
        :is-pe-build   (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))})))
 
 (defmulti action
-  (fn [action & params] action))
+  (fn [action & args] action))
 
 (defmethod action "stage"
-  [_ lein-project build-target _]
+  [_ lein-project build-target]
   (let [template-dir (get-template-file build-target)
         uberjar-name (:uberjar-name lein-project)]
     (uberjar/uberjar lein-project)
@@ -446,8 +446,8 @@ Bundled packages: %s
 
 ; TODO: make PE_VER either command line or config file driven
 (defmethod action "build"
-  [_ lein-project build-target params]
-  (action "stage" lein-project build-target params)
+  [_ lein-project build-target]
+  (action "stage" lein-project build-target)
   (exec/exec "rake" "package:bootstrap" :dir staging-dir)
   (let [downstream-job nil
         rake-call (if (= build-target "foss")
@@ -456,7 +456,7 @@ Bundled packages: %s
     (exec/lazy-sh rake-call {:dir staging-dir})))
 
 (defmethod action :default
-  [action & params]
+  [action & args]
   (lein-main/abort (str/join \newline ["Unrecognized option:" action])))
 
 (defn init!
