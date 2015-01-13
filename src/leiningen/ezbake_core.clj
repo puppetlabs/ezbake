@@ -44,11 +44,11 @@
   resources instead of pulling them from the lein-ezbake jar."
   [project]
   (let [template-type (get-in project [:lein-project
-                                       :templates
+                                       :resources
                                        :type]
-                              :jar-resource)]
+                              :jar)]
     (case template-type
-      :git-resource (throw (RuntimeException.
+      :git (throw (RuntimeException.
                              (format "Resource type, %s, not implemented."
                                      (str template-type))))
-      :jar-resource (copy-jar-resources core/resource-prefix core/resource-path))))
+      :jar (copy-jar-resources core/resource-prefix core/resource-path))))
