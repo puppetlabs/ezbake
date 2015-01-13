@@ -39,7 +39,7 @@ EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile=/var/lock/subsys/$prog
 EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/$prog -Djava.security.egd=/dev/urandom $JAVA_ARGS"
 PIDFILE="/var/run/$prog/$prog"
-START_TIMEOUT=${START_TIMEOUT:-60}
+START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 find_my_pid() {
     if [ ! -d  "/var/run/$prog" ] ; then
