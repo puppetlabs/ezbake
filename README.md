@@ -21,6 +21,25 @@ configuration necessary.
 
 ```clojure
 {:lein-ezbake {
+  ; Configures how lein-ezbake manages resources. "Resources" primarily refers
+  ; to the templates ezbake uses to build packages.
+  :resources {
+    ; The resources type indicates where lein-ezbake gets resources from.
+    ; Currently only resources stored in the lein-ezbake jar can be used. Future
+    ; versions of lein-ezbake may support pulling these resources instead from a
+    ; specific version of some git repository.
+    :type :jar
+
+    ; This directory refers to the location in the current project where
+    ; resources will be dumped.
+    :dir "tmp/config"}
+
+  ; This is the directory where lein-ezbake will look for additional
+  ; configuration files to copy into the staging directory.
+  :config-dir "config"
+
+  ; These variables are available to either modify the behavior of lein-ezbake
+  ; in various ways or to populate values in template files.
   :vars {
     :user "puppet"
     :group "puppet"
@@ -124,6 +143,18 @@ lein with-profile ezbake ezbake build
 This will do everything the `stage` action does and then call the external
 builder defined for this project. Currently, the only builder supported is
 [Puppetlabs' Packaging tool](https://github.com/puppetlabs/packaging).
+
+#### `build` with a different profile
+
+```shell
+lein with-profile ezbake,pe ezbake build
+```
+
+This is an example of how a project might differentiate between "foss" and "pe"
+packages. The "pe" profile may define different values for `:lein-ezbake` or for
+anything that might be found in the `:ezbake` profile. This is primarily useful
+for projects that need to build their PE and FOSS packages from the same
+repository.
 
 ### Testing
 
