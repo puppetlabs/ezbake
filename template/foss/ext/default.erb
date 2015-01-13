@@ -14,4 +14,8 @@ INSTALL_DIR="/usr/share/<%= EZBake::Config[:project] %>"
 CONFIG="/etc/<%= EZBake::Config[:project] %>/conf.d"
 BOOTSTRAP_CONFIG="/etc/<%= EZBake::Config[:project] %>/bootstrap.cfg"
 SERVICE_STOP_RETRIES=60
-START_TIMEOUT="<%= EZBake::Config[:start_timeout] %>"
+
+# START_TIMEOUT can be set here to alter the default startup timeout in
+# seconds.  This is used in System-V style init scripts only, and will have no
+# effect in systemd.
+# START_TIMEOUT=<%= EZBake::Config[:start_timeout] %>

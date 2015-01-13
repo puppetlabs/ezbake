@@ -14,4 +14,8 @@ INSTALL_DIR="/opt/puppet/share/<%= EZBake::Config[:real_name] %>"
 CONFIG="/etc/puppetlabs/<%= EZBake::Config[:real_name] %>/conf.d"
 BOOTSTRAP_CONFIG="/etc/puppetlabs/<%= EZBake::Config[:real_name] %>/bootstrap.cfg"
 SERVICE_STOP_RETRIES=60
-START_TIMEOUT="<%= EZBake::Config[:start_timeout] %>"
+
+# START_TIMEOUT can be set here to alter the default startup timeout in
+# seconds.  This is used in System-V style init scripts only, and will have no
+# effect in systemd.
+# START_TIMEOUT=<%= EZBake::Config[:start_timeout] %>
