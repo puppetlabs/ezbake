@@ -1,210 +1,165 @@
-ezbake
+lein-ezbake
 ======
 
-A packaging system for trapperkeeper applications.
+EZBake is a leiningen plugin that integrates multiple Trapperkeeper services
+and their config files into a single uberjar and stages them in preparation for
+packaging.
 
-TODO: best practices and other docs.
+## Using
 
-## How to Run
+To get started using EZBake, please add it to the `:plugins` key in your
+`project.clj`:
 
-```
-lein run stage [ project-name ] [ param1=value1... ]
-cd target/staging
-rake package:bootstrap
-rake pl:jenkins:uber_build
-```
-or the equivalent
-```
-lein run build
+```clojure
+{:plugins [[puppetlabs/lein-ezbake "0.1.0"]]}
 ```
 
-If you are attempting to create a development build for local testing, and do
-not intend on actually releasing an artifact, please see [Developing ezbake]
-(#developing-ezbake) before running these commands.
+Before you can get started using it, however, there is some additional
+configuration necessary.
 
-TODO: `stage` command needs to support some CLI args, to allow you to specify
-FOSS vs PE and select which project to build.
+### Configuring
 
-## EZBake Project Directory Structure
+```clojure
+{:lein-ezbake {
+  ; Configures how lein-ezbake manages resources. "Resources" primarily refers
+  ; to the templates ezbake uses to build packages.
+  :resources {
+    ; The resources type indicates where lein-ezbake gets resources from.
+    ; Currently only resources stored in the lein-ezbake jar can be used. Future
+    ; versions of lein-ezbake may support pulling these resources instead from a
+    ; specific version of some git repository.
+    :type :jar
 
-In the root of the `ezbake` repo, there is a directory called `configs`.  Each
-directory inside of that directory represents a configuration for building packages
-for a single `ezbake` project.  Inside that directory, you must have an ezbake
-project config file, and you may also optionally include some other files that
-you'd like to include in the packages.  Here are some details:
+    ; This directory refers to the location in the current project where
+    ; resources will be dumped.
+    :dir "tmp/config"}
 
-### EZBake Project Config File
+  ; This is the directory where lein-ezbake will look for additional
+  ; configuration files to copy into the staging directory.
+  :config-dir "config"
 
-This file must be named `<project-name>.clj`, where `<project-name>` is the
-same string that you used for the name of the directory inside of `configs`.
-
-This file is actually a regular leiningen project file.  It must define:
-
-* The groupId/artifactId for the project.  This will usually be something like
-  `puppetlabs.packages/<project-name>`.  (It appears just after the `defproject`
-  token.)  This will be used to uniquely identify a particular package that
-  includes a particular bundle of TK services.
-* The version for the project.  This is just a string literal, the same way
-  you'd version any leiningen project file.  This is the version number that
-  will be used for the RPM/DEB/other packages that are built.
-* `:dependencies`: here you just use the normal leiningen dependencies syntax
-  to list out all of the TK projects that you'd like to bundle.  You will specify
-  a specific version number for each; this does imply that you will need to have
-  done a normal leiningen/maven deploy for the project w/the specified version
-  number.
-* `:uberjar-name`: Whatever you'd like for the name of the final jar file to be.
-* `:repositories`: this is not strictly necessary if you are doing an entirely
-  OSS release, and all of the dependencies are available on clojars.  If if any
-  of the dependencies are internal/closed-source, you'll probably need to add
-  our Nexus release/snapshot repos here.
-* `:main`: the name of the main namespace, for use when running `java -jar`.  This
-  will almost always be `puppetlabs.trapperkeeper.main` (NOTE: this may go away
-  at some point if we decide to get rid of the tiny bit of aot that we are still
-  doing.)
-
-Additional ezbake configuration options can be specified in the project file.
-These configurations must be specified in the :ezbake section. Some tweaks that
-can be configured here include the following:
-
-* `:user`: The user that the package will create on install and that the
-  service will run as (defaults to project name)
-* `:group`: The group that the package will create on install and that the
-  service will run as (defaults to project name)
-* `:build-type`: Defines the packaging templates that will be used when
-  creating the package (current options are 'foss' and 'pe')
-* `:java-args`: Sets options that will be passed to the jvm when the service is
-  started
-* `:replaces-pkgs`: A list of maps of packages and versions that this ezbake
-  package will replace
-* `:main-namespace`: The namespace where clojure will execute the -main
-  function to begin the application.
-* `:create-varlib`: Create a suitable `/var/lib/[project]` directory.
-
-Here is an example ezbake section:
+  ; These variables are available to either modify the behavior of lein-ezbake
+  ; in various ways or to populate values in template files.
+  :vars {
+    :user "puppet"
+    :group "puppet"
+    :start-timeout "120"
+    :build-type "foss"
+    :java-args "-Xms2g -Xmx2g -XX:MaxPermSize=256m"}}}
 
 ```
-  :ezbake { :user "foo"
-            :group "bar"
-            :build-type "pe"
-            :java-args "-Ddontcrashonmejava"
-            :replaces-pkgs [{:package "puppet", :version "3.6.2"}]
-  }
+
+In addition to this standard configuration, there are two primary use cases for
+`lein-ezbake` which lead to different configuration parameters. The differences
+are considered in further depth under [Standalone Projects](#standalone-projects)
+and [Composite Projects](#composite-projects); what follows here are brief
+explanations of how to configure each type of project.
+
+#### Standalone vs Composite EZBake Projects
+
+EZBake projects generally fall under two categories based on the situations in
+which they are used: standalone and composite.
+
+A Standalone ezbake project is one in which the code for one of the
+trapperkeeper services packaged by `lein-ezbake` is included in the same project
+repository that is used to define the ezbake configuration values. The
+prototypical example of this type of project is [Puppet
+Server](https://github.com/puppetlabs/puppet-server).
+
+A Composite ezbake project is one in which the primary purpose of the repository
+where the ezbake configuration values are defined is to compose multiple
+trapperkeeper services into a single package using ezbake. The prototypical
+example of this type of project is
+[pe-console-services](https://github.com/puppetlabs/pe-console-services).
+
+#### Standalone
+
+Since a standalone ezbake project (defines its own trapperkeeper service which
+is included in the ezbake package) is often defined in the same repository as
+one of the TK services it is intended to package and therefore shares a
+`project.clj`, it may be necessary to overwrite some values used by ezbake when
+creating the staging directory.
+
+Specifically, the `:name` and `:dependencies` keys may need to be replaced as in
+the [Puppet Server](https://github.com/puppetlabs/puppet-server) example below.
+The `:name` replacement is necessary to avoid name collision when an ezbake
+project also consists of clojure code that defines its own TK services and the
+resulting package name is does not match the Maven artifact name.
+
+```clojure
+{:profiles {
+  :ezbake {
+    :dependencies ^:replace
+      [[puppetlabs/puppet-server "0.4.2-SNAPSHOT"]
+       [puppetlabs/trapperkeeper-webserver-jetty9 "0.9.0"]
+       [org.clojure/tools.nrepl "0.2.3"]]
+    :name "puppetserver"}}}
 ```
 
-### Additional Config Files
+Note that it is necessary here to use the `^:replace` metadata on the
+`:dependencies` list since Leiningen's default behavior is to append
+dependencies defined in a lein profile.
 
-Inside of your project dir (e.g., `/configs/puppetserver`) you may optionally
-create a directory called `config`.  Any files/directories therein will be assumed
-to be config files that you'd like to include in the packaging.  They'll be deployed
-to the confdir that is used by the relevant packaging system; e.g., `/etc/puppetserver`.
+Also note that the symbol `:ezbake` is strictly necessary here because
+the rake taskes provided by `lein-ezbake` for [Puppetlabs' Packaging
+tool](https://github.com/puppetlabs/packaging) use `with-profile ezbake` when
+building an uberjar.
 
-It is likely that you'll want to put at least two files here:
+#### Composite
 
-#### bootstrap.cfg
+Composite ezbake projects (multiple maven artifacts/dependencies, no
+trapperkeeper services defined) usually do not define their own services
+but rather provide a list of dependencies which themselves define TK services.
+Because of this it is
+not strictly necessary to define an `:ezbake` profile on composite projects;
+although it is conceivable that such a composite project may define its own
+services, it is unlikely and ill-advised because no one likes blurred lines in
+architectural diagrams. Just look at the Leaning Tower of Piza.
 
-The upstream TK projects won't have any knowledge about the fact that they may
-be bundled with other ezbake projects, so there's no way they could provide
-an appropriate `bootstrap.cfg` file.  You'll probably want to drop one here
-and define what services you would like to see enabled by default when the
-package is installed.  (An installer / puppet module could always be used after
-deploying the package to turn some services on/off.)
+### Running
 
-#### conf.d/webserver.conf
+Running ezbake works much like any other Leiningen plugin or built-in task.
+However, if you are working on a standalone project it will be necessary to use
+the `ezbake` profile as shown in the configuration above.
 
-Any files that you put in `conf.d` will be available to the trapperkeeper config
-service on startup.  In the most common case, we'll probably be pulling some of
-these files from the upstream TK projects, but there are some config files that
-are likely to be duplicated, so we'll need an authoritative copy in ezbake.  The
-most likely culprit is `webserver.conf`; probably almost every TK project will
-have some web interface, and thus will need to configure a web server (interface,
-port, SSL config, etc.).  In ezbake we'll probably usually want to control this
-centrally for a given project/bundle, rather than trying to merge webserver config
-provided by multiple upstream TK projects.
+#### `stage`
 
-## Upstream TK Project Directory Structure
+The stage action is useful for when you'd like to install an ezbake uberjar from
+source or inspect its contents without waiting for the build step to complete.
 
-EZBake will look inside of the JAR files for all of the upstream TK projects that
-it is bundling to see if they have extra files that should be included in the
-packaging.  The easiest way to get your extra files into your jar is to simply
-define them in the `resources` directory of your upstream TK project, but you
-can use any other means you prefer to get them into your jar.  Here are the
-conventions for what files ezbake will look for:
-
-### Shared Config Files
-
-Any files found in your jar under the path `ext/config/conf.d` will be treated
-as config files that need to ship in the ezbake packages.  These files will be
-dropped into the package inside of the `conf.d` directory.  (e.g: `classifier.conf`,
-`rbac.conf`, etc.)
-
-### Doc Files
-
-Any files found in the jar under the path `ext/docs` will be treated as user
-documentation that should be included in the package.  The directory structure
-will be respected; in the package, these files will end up getting deployed to,
-e.g., `/usr/share/doc/jvm-puppet-bundle/jvm-puppet/<orig-directory-structure>/README.md`
-
-### EZBake config file
-
-You may include a file called `ezbake.conf` (HOCON/typesafe config format) in the
-`ext` directory in your jar.  This file is used to specify things like names of
-other packages that your project has a dependency on.  e.g.:
-
-```
-ezbake {
-   pe {}
-   foss {
-      redhat-dependencies: [telnet, screen],
-      debian-dependencies: [telnet, screen, cowsay],
-   }
-}
+```shell
+lein with-profile ezbake ezbake stage
 ```
 
-## SNAPSHOTS
+This will create an ephemeral git repository at `./target/staging` with staged
+templates ready for consumption by the build step.
 
-If your ezbake leiningen project file specifies a version number that ends with
-"-SNAPSHOT", the build will be treated as ephemeral by the Puppet Labs packaging
-system.  Otherwise it will be treated as a final release, and you will not be
-able to do more than one release with the same groupId/artifactId/version number.
-(This follows the typical maven conventions.)
+#### `build`
 
-## Manifest Data
+```shell
+lein with-profile ezbake ezbake build
+```
 
-When ezbake builds packages, it will include a bit of manifest data to indicate
-what versions of all of the upstream TK projects were included in the bundle.  This
-manifest data will show up in three places:
+This will do everything the `stage` action does and then call the external
+builder defined for this project. Currently, the only builder supported is
+[Puppetlabs' Packaging tool](https://github.com/puppetlabs/packaging).
 
-* In the `description` field of the rpm metadata
-* In the `description` field of the deb metadata
-* In a file called `ezbake.manifest` that is included in the package (deployed to
-  the same directory that the jar file is deployed to.)
+#### `build` with a different profile
 
-## Developing ezbake
+```shell
+lein with-profile ezbake,pe ezbake build
+```
 
-Here's a few quick notes if you are making changes to a configuration or ezbake 
-itself and would like to test them.
+This is an example of how a project might differentiate between "foss" and "pe"
+packages. The "pe" profile may define different values for `:lein-ezbake` or for
+anything that might be found in the `:ezbake` profile. This is primarily useful
+for projects that need to build their PE and FOSS packages from the same
+repository.
 
-* The variables that need to be passed into `lein run stage` are located in the
-  config's _project_.clj file and are book-ended by `{{{ }}}` characters. 
-  So if you look at `configs/puppetserver/puppetserver.clj` you will see the
-  variable `puppet-server-version` defined in a couple places where the
-  project's version number is needed. At this time, all ezbake projects have
-  some equivalent of this variable but some projects have more.
-* If you want to test changes to work in-progress, specify a snapshot version
-  in the project's version string, otherwise running the 
-  `rake pl:jenkins:uber_build` command could possibly overwrite a previously
-  released package to a storage server somewhere. 
-  * If you are trying to build a PE package, you will also need to specify the
-    target PE version number in the environment variable PE_VER, like so:
-    `rake pl:jenkins:uber_build PE_VER=3.3`
-* The output of the `rake pl:jenkins:uber_build` command will display a couple
-  of URL's near the end of its output. The first one will tell you where to go
-  to view the Jenkins job which is building packages for you. The second URL
-  will tell you where to go to retrieve your packages when they are built.
-* If you don't want to manually browse to the newly built packages, you can 
-  retrieve them with the rake command `rake pl:jenkins:retrieve`
- 
+### Testing
 
-  
-
+After building packages it is often necessary to install those packages in live
+environments on the OSes supported by the ezbake templates. For this purpose
+[Puppetlabs' Beaker](https://github.com/puppetlabs/beaker) is the, uh, choice
+tool of discerning developers.
 
