@@ -14,16 +14,18 @@ To get started using EZBake, please add it to the `:plugins` key in your
 {:plugins [[puppetlabs/lein-ezbake "0.1.0"]]}
 ```
 
-Before you can get started using it, however, there is some additional
+Before you can get started using it, however, there may be some additional
 configuration necessary.
 
 ### Configuring
 
 ```clojure
 {:lein-ezbake {
+
   ; Configures how lein-ezbake manages resources. "Resources" primarily refers
   ; to the templates ezbake uses to build packages.
   :resources {
+
     ; The resources type indicates where lein-ezbake gets resources from.
     ; Currently only resources stored in the lein-ezbake jar can be used. Future
     ; versions of lein-ezbake may support pulling these resources instead from a
@@ -52,8 +54,7 @@ configuration necessary.
 In addition to this standard configuration, there are two primary use cases for
 `lein-ezbake` which lead to different configuration parameters. The differences
 are considered in further depth under [Standalone Projects](#standalone-projects)
-and [Composite Projects](#composite-projects); what follows here are brief
-explanations of how to configure each type of project.
+and [Composite Projects](#composite-projects).
 
 #### Standalone vs Composite EZBake Projects
 
@@ -74,9 +75,8 @@ example of this type of project is
 
 #### Standalone
 
-Since a standalone ezbake project (defines its own trapperkeeper service which
-is included in the ezbake package) is often defined in the same repository as
-one of the TK services it is intended to package and therefore shares a
+Since a standalone ezbake project is often defined in the same repository as one
+of the TK services it is intended to package and therefore shares a
 `project.clj`, it may be necessary to overwrite some values used by ezbake when
 creating the staging directory.
 
@@ -84,7 +84,7 @@ Specifically, the `:name` and `:dependencies` keys may need to be replaced as in
 the [Puppet Server](https://github.com/puppetlabs/puppet-server) example below.
 The `:name` replacement is necessary to avoid name collision when an ezbake
 project also consists of clojure code that defines its own TK services and the
-resulting package name is does not match the Maven artifact name.
+Maven artifact name does not match the desired package name.
 
 ```clojure
 {:profiles {
@@ -100,27 +100,22 @@ Note that it is necessary here to use the `^:replace` metadata on the
 `:dependencies` list since Leiningen's default behavior is to append
 dependencies defined in a lein profile.
 
-Also note that the symbol `:ezbake` is strictly necessary here because
-the rake taskes provided by `lein-ezbake` for [Puppetlabs' Packaging
-tool](https://github.com/puppetlabs/packaging) use `with-profile ezbake` when
-building an uberjar.
+Note that the symble `:ezbake` is not strictly necessary here.
 
 #### Composite
 
-Composite ezbake projects (multiple maven artifacts/dependencies, no
-trapperkeeper services defined) usually do not define their own services
-but rather provide a list of dependencies which themselves define TK services.
-Because of this it is
-not strictly necessary to define an `:ezbake` profile on composite projects;
-although it is conceivable that such a composite project may define its own
-services, it is unlikely and ill-advised because no one likes blurred lines in
-architectural diagrams. Just look at the Leaning Tower of Piza.
+Composite ezbake projects usually do not define their own services but rather
+provide a list of dependencies which themselves define TK services.  Because of
+this it is not strictly necessary to define a profile such as `:ezbake` shown
+above; although it is conceivable that such a composite project may define its
+own services, it is unlikely and ill-advised because no one likes blurred lines
+in architectural diagrams. Just look at the Leaning Tower of Pisa.
 
 ### Running
 
 Running ezbake works much like any other Leiningen plugin or built-in task.
 However, if you are working on a standalone project it will be necessary to use
-the `ezbake` profile as shown in the configuration above.
+a profile such as the `:ezbake` profile as shown in the configuration above.
 
 #### `stage`
 
@@ -151,7 +146,7 @@ lein with-profile ezbake,pe ezbake build
 ```
 
 This is an example of how a project might differentiate between "foss" and "pe"
-packages. The "pe" profile may define different values for `:lein-ezbake` or for
+packages. The `:pe` profile may define different values for `:lein-ezbake` or for
 anything that might be found in the `:ezbake` profile. This is primarily useful
 for projects that need to build their PE and FOSS packages from the same
 repository.
