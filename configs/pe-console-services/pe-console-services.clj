@@ -7,7 +7,7 @@
                  [puppetlabs/rbac-ui "{{{pe-rbac-ui-version}}}"]
                  [puppetlabs/pe-activity-service "{{{pe-activity-service-version}}}"]
                  [puppetlabs/pe-trapperkeeper-proxy "{{{pe-trapperkeeper-proxy-version}}}"]
-                 [puppetlabs/trapperkeeper-webserver-jetty9 "1.0.1"]
+                 [puppetlabs/trapperkeeper-webserver-jetty9 "1.1.0"]
                  ;; There is a bug in leiningen that forces us to
                  ;; explicitly reference nrepl if we want it to be
                  ;; included in the uberjar.
