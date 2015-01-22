@@ -16,24 +16,23 @@ wait_for_app()
 
         # verify the process is still running; if not, return failure
         ps -p $pid 2>&1 > /dev/null
-        if [ ! "$?" -eq 0 ] ;then
+        if [ "$?" != 0 ] ;then
             return 1
         fi
 
         # if there are any TCP ports associated with the process, return success
-        netstat -tulpn 2>/dev/null | grep $pid 2>&1 >/dev/null
-        if [ "$?" -eq 0 ] ;then
+        netstat -tulpn 2>/dev/null | grep "$pid" 2>&1 >/dev/null
+        if [ "$?" = 0 ] ;then
             return 0
         fi
 
         # if we reach the timeout, return failure
-        if [ "$timeout" -eq 0 ] ;then
+        if [ "$timeout" = 0 ] ;then
             return 1
         fi
 
         sleep 1
         timeout=$(($timeout-1))
-
     done
 }
 
