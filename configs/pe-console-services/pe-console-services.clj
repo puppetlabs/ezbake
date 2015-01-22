@@ -24,4 +24,5 @@
   :ezbake {:user "pe-console-services"
            :group "pe-console-services"
            :build-type "pe"
+           :start-after ["pe-postgresql" "pe-puppetserver"]
            :replaces-pkgs [{:package "pe-rubycas-server", :version "1.1.18"}]})

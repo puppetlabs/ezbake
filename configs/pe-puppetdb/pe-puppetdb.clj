@@ -16,4 +16,5 @@
            :group "pe-puppetdb"
            :build-type "pe"
            :main-namespace "puppetlabs.puppetdb.main"
+           :start-after ["pe-postgresql"]
            :create-varlib true})

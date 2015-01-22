@@ -18,4 +18,5 @@
 
   :ezbake {:user "pe-classifier"
            :group "pe-classifier"
+           :start-after ["pe-postgresql"]
            :build-type "pe"})
