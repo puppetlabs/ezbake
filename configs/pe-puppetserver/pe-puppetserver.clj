@@ -2,7 +2,7 @@
   :description "Release artifacts for pe-puppetserver"
   :pedantic? :abort
   :dependencies [[puppetlabs/pe-puppet-server-extensions "{{{pe-puppet-server-version}}}"]
-                 [puppetlabs/trapperkeeper-webserver-jetty9 "0.9.0"]
+                 [puppetlabs/trapperkeeper-webserver-jetty9 "1.1.0"]
                  ;; There is a bug in leiningen that forces us to
                  ;; explicitly reference nrepl if we want it to be
                  ;; included in the uberjar.
