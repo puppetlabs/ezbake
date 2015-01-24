@@ -5,8 +5,8 @@
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Should-Start:      pe-postgresql
-# Should-Stop:       pe-postgresql
+# Should-Start:      <%= EZBake::Config[:start_after].map {|dep| "#{dep}" }.join(" ") %>
+# Should-Stop:       <%= EZBake::Config[:start_after].map {|dep| "#{dep}" }.join(" ") %>
 # Short-Description: <%= EZBake::Config[:project] %>
 # Description:       Start <%= EZBake::Config[:project] %> daemon placed in /etc/init.d.
 ### END INIT INFO

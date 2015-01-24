@@ -39,62 +39,95 @@ EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile="/var/lock/subsys/${prog}"
 PIDFILE="/var/run/${prog}/${prog}.pid"
 LOGFILE="/var/log/${prog}/${prog}.log"
-START_TIMEOUT=${START_TIMEOUT:-60}
+START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 # First reset status of this service
 rc_reset
 
-find_my_pid() {
+print_service_pid() {
+    local pid
     if [ ! -d  "/var/run/${prog}" ] ; then
         install --owner "${USER}" --group "${USER}" --directory "/var/run/${prog}"
     fi
     pid="$(pgrep -f "${JAVA_BIN}.*${JARFILE}")"
+    echo -n "${pid}"
 }
 
 start() {
+    local service_pid
     [ -x "${JAVA_BIN}" ] || exit 5
     [ -e "${config}" ] || exit 6
     echo -n $"Starting ${prog}: "
     export HOME="$(getent passwd ${USER} | cut -d':' -f6)"
-    pushd ${INSTALL_DIR} &> /dev/null
-    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog} -Djava.security.egd=/dev/urandom" ${JAVA_ARGS}
+    # startproc will change users, so make sure that user has permission
+    # to access the present working directory.
+    cd "${INSTALL_DIR}"
+    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog}" -Djava.security.egd=/dev/urandom ${JAVA_ARGS}
     rc_status -v
+    retval=$?
+
+    # NOTE: retval holds the return value of `startproc`, not the process
+    # started by `startproc`.
+
+    # If rc_status didn't succeed, bail out early without bothering to poll
+    # waiting for the application or doing work that assumes a launching state
+    if [ "$retval" != 0 ]; then
+        log_failure_msg $"${prog} startup"
+        echo
+        return $retval
+    fi
+
+    service_pid="$(print_service_pid)"
+    echo -n "${service_pid}" > "${PIDFILE}"
 
     <% if not EZBake::Config[:redhat][:post_start_action].empty? -%>
-    if [ "$?" -eq 0 ]; then
-    <% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
+    if [ "$retval" = 0 ]; then
+        <% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
         <%= action %>
-    <% end -%>
+        <% end -%>
     fi
     <% end -%>
 
-    sleep 1
-    popd &> /dev/null
-    find_my_pid
-    echo "${pid}" > "${PIDFILE}"
-    [ -s "${PIDFILE}" ] && log_success_msg $"${prog} startup" || log_failure_msg $"${prog} startup"
-    echo
-    [ -s "${PIDFILE}" ] && touch "${lockfile}"
+    # Wait for the application to become available
+    if ! wait_for_app "${service_pid}" "$START_TIMEOUT"; then
+        log_failure_msg $"${prog} startup"
+        echo
+        return 1
+    fi
 
-    if [ "$retval" -eq 0 ] && ! wait_for_app $(cat $PIDFILE) $START_TIMEOUT ;then
-        log_failure_msg $"$base startup"
+    # if the pid file exists, with the PID in it (non-zero size)
+    if [ -s "${PIDFILE}" ]; then
+        log_success_msg $"${prog} startup"
+        echo
+        touch "${lockfile}"
+        return 0
+    else
+        log_failure_msg $"${prog} startup"
+        echo
+        return 1
     fi
 }
 
 stop() {
     echo -n $"Stopping ${prog}: "
-    find_my_pid
-
     if [ ! -s "${PIDFILE}" ] ; then
-        echo "${pid}" > "${PIDFILE}"
+        print_service_pid > "${PIDFILE}"
     fi
 
     killproc -p "${PIDFILE}" -t"${SERVICE_STOP_RETRIES}"s -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog}" "${JAVA_ARGS}"
     rc_status -v
     retval=$?
-    [ $retval -eq 0 ] && log_success_msg $"${prog} stopped" || log_failure_msg $"${prog} stopped"
-    echo
-    [ $retval -eq 0 ] && rm -f "${lockfile}" "${PIDFILE}"
+
+    if [ "$retval" = 0 ]; then
+        rm -f "${lockfile}" "${PIDFILE}"
+        log_success_msg $"${prog} stopped"
+        echo
+        return 0
+    else
+        log_failure_msg $"${prog} could not be stopped, check ${LOGFILE}"
+        echo
+        return 1
+    fi
 }
 
 restart() {
@@ -115,14 +148,14 @@ sl_status() {
 case "$1" in
     start)
         sl_status_q && exit 0
-        $1
+        start
         ;;
     stop)
         sl_status_q || exit 0
-        $1
+        stop
         ;;
     restart)
-        $1
+        restart
         ;;
     condrestart|try-restart)
         sl_status_q || exit 0
