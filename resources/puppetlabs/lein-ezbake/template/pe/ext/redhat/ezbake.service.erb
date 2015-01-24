@@ -1,6 +1,6 @@
 [Unit]
 Description=<%= EZBake::Config[:project] %> Service
-After=syslog.target network.target pe-postgresql.service
+After=syslog.target network.target <%= EZBake::Config[:start_after].map {|dep| "#{dep}.service" }.join(" ") %>
 
 [Service]
 Type=simple
