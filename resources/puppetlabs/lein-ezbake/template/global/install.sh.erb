@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
+set -x
 
 # Warning: This variable API is experimental so these variables may be subject
 # to change in the future.
@@ -15,6 +16,21 @@ projconfdir=${projconfdir:=${confdir}/${real_name}}
 rundir=${rundir:=/var/run}
 bindir=${bindir:=/usr/bin}
 localstatedir=${localstatedir:=/var}
+
+##################
+# EZBake Vars    #
+##################
+
+set +x
+echo "#-------------------------------------------------#"
+echo "The following variables are set: "
+echo
+env | sort
+
+echo
+echo "End of variable print."
+echo "#-------------------------------------------------#"
+set -x
 
 ##################
 # Task functions #
