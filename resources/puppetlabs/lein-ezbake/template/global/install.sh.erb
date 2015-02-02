@@ -68,7 +68,6 @@ function task_service {
 # Source based install for Redhat based + sysv setups
 function task_install_source_rpm_sysv {
     task preinst_redhat
-    task install
     task install_redhat
     task sysv_init_redhat
     task logrotate_legacy
@@ -79,7 +78,6 @@ function task_install_source_rpm_sysv {
 # Source based install for Redhat based + systemd setups
 function task_install_source_rpm_systemd {
     task preinst_redhat
-    task install
     task install_redhat
     task systemd_redhat
     task logrotate
@@ -90,8 +88,7 @@ function task_install_source_rpm_systemd {
 # Source based install for Debian based setups
 function task_install_source_deb {
     task preinst_deb
-    task install
-    task install_debian
+    task install_deb
     task sysv_init_deb
     task logrotate
     task postinst_deb
@@ -130,14 +127,14 @@ function task_install {
 }
 
 function task_install_redhat {
-    : # Null command in case additional_install is empty
+    task install
 <% EZBake::Config[:redhat][:additional_install].each do |install| -%>
     <%= install %>
 <% end -%>
 }
 
-function task_install_debian {
-    : # Null command in case additional_install is empty
+function task_install_deb {
+    task install
 <% EZBake::Config[:debian][:additional_install].each do |install| -%>
     <%= install %>
 <% end -%>
@@ -296,8 +293,9 @@ function osdetection {
 #   $1 = task to run
 function task {
     local task=$1
+    shift
     echo "Running task ${task} ..."
-    eval task_$task
+    eval task_$task $@
 }
 
 # List available tasks
@@ -313,6 +311,7 @@ function available_tasks {
 #   $1 = task to dispatch
 function dispatch {
     local task=$1
+    shift
     if [ -z "$task" ]; then
         echo "Starting full installation ..."
         echo
@@ -327,11 +326,11 @@ function dispatch {
         echo "Warning: this task system is still experimental and may be subject to change without notice"
         return 1
     else
-        task $task
+        task $task $@
     fi
 }
 
 ########
 # Main #
 ########
-dispatch $1
+dispatch $@

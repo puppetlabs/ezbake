@@ -138,7 +138,6 @@ Contains terminus for:
 
 rm -rf $RPM_BUILD_ROOT
 
-env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> localstatedir=%{_localstatedir} bash install.sh install
 env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> localstatedir=%{_localstatedir} bash install.sh install_redhat
 %if %{_with_systemd}
 env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> defaultsdir=%{_sysconfdir}/sysconfig unitdir=%{_unitdir} bash install.sh systemd_redhat
