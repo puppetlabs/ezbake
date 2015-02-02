@@ -2,11 +2,16 @@
 
 set -e
 
+# Warning: This variable API is experimental so these variables may be subject
+# to change in the future.
 prefix=${prefix:=/usr}
 initdir=${initdir:=/etc/init.d}
 unitdir=${unitdir:=/usr/lib/systemd/system}
 datadir=${datadir:=${prefix}/share}
+real_name=${real_name:=<%= EZBake::Config[:real_name] -%>}
+projdatadir=${projdatadir:=${datadir}/${real_name}}
 confdir=${confdir:=/etc}
+projconfdir=${projconfdir:=${confdir}/${real_name}}
 rundir=${rundir:=/var/run}
 bindir=${bindir:=/usr/bin}
 localstatedir=${localstatedir:=/var}
@@ -48,6 +53,7 @@ function task_service {
 function task_install_source_rpm_sysv {
     task preinst_redhat
     task install
+    task install_redhat
     task sysv_init_redhat
     task logrotate_legacy
     task postinst_redhat
@@ -58,6 +64,7 @@ function task_install_source_rpm_sysv {
 function task_install_source_rpm_systemd {
     task preinst_redhat
     task install
+    task install_redhat
     task systemd_redhat
     task logrotate
     task postinst_redhat
@@ -68,6 +75,7 @@ function task_install_source_rpm_systemd {
 function task_install_source_deb {
     task preinst_deb
     task install
+    task install_debian
     task sysv_init_deb
     task logrotate
     task postinst_deb
@@ -76,24 +84,24 @@ function task_install_source_deb {
 # Install the ezbake package software. This step is used during RPM &
 # Debian packaging during the 'install' phases.
 function task_install {
-    install -d -m 0755 "${DESTDIR}${datadir}/<%= EZBake::Config[:real_name] %>"
-    install -m 0644 <%= EZBake::Config[:uberjar_name] %> "${DESTDIR}${datadir}/<%= EZBake::Config[:real_name] %>"
-    install -m 0774 ext/ezbake-functions.sh "${DESTDIR}${datadir}/<%= EZBake::Config[:real_name] %>"
-    install -m 0644 ext/ezbake.manifest "${DESTDIR}${datadir}/<%= EZBake::Config[:real_name] %>"
-    install -d -m 0755 "${DESTDIR}${confdir}/<%= EZBake::Config[:real_name] %>/conf.d"
+    install -d -m 0755 "${DESTDIR}${projdatadir}"
+    install -m 0644 <%= EZBake::Config[:uberjar_name] %> "${DESTDIR}${projdatadir}"
+    install -m 0774 ext/ezbake-functions.sh "${DESTDIR}${projdatadir}"
+    install -m 0644 ext/ezbake.manifest "${DESTDIR}${projdatadir}"
+    install -d -m 0755 "${DESTDIR}${projconfdir}/conf.d"
 <% EZBake::Config[:config_files].each do |config_file| -%>
-    install -m 0644 <%= config_file %> "${DESTDIR}${confdir}/<%= EZBake::Config[:real_name] %>/<%= config_file.sub(/^ext\/config\//, "") %>"
+    install -m 0644 <%= config_file %> "${DESTDIR}${projconfdir}/<%= config_file.sub(/^ext\/config\//, "") %>"
 <% end -%>
-    install -d -m 0755 "${DESTDIR}${datadir}/<%= EZBake::Config[:real_name] %>/scripts"
-    install -m 0755 install.sh "${DESTDIR}${datadir}/<%= EZBake::Config[:real_name] %>/scripts"
+    install -d -m 0755 "${DESTDIR}${projdatadir}/scripts"
+    install -m 0755 install.sh "${DESTDIR}${projdatadir}/scripts"
 <% if ! EZBake::Config[:cli_app_files].empty? -%>
-    install -d -m 0755 "${DESTDIR}${datadir}/<%= EZBake::Config[:real_name] %>/cli"
-    install -d -m 0755 "${DESTDIR}${datadir}/<%= EZBake::Config[:real_name] %>/cli/apps"
+    install -d -m 0755 "${DESTDIR}${projdatadir}/cli"
+    install -d -m 0755 "${DESTDIR}${projdatadir}/cli/apps"
     install -d -m 0755 "${DESTDIR}${bindir}"
-    install -m 0755 "ext/bin/<%= EZBake::Config[:real_name] %>" "${DESTDIR}${bindir}/<%= EZBake::Config[:real_name] %>"
+    install -m 0755 "ext/bin/${real_name}" "${DESTDIR}${bindir}/${real_name}"
 <% end -%>
 <% EZBake::Config[:cli_app_files].each do |cli_app_file| -%>
-    install -m 0755 <%= cli_app_file %> "${DESTDIR}${datadir}/<%= EZBake::Config[:real_name] %>/cli/apps/<%= cli_app_file.sub(/^ext\/cli\//, "") %>"
+    install -m 0755 <%= cli_app_file %> "${DESTDIR}${projdatadir}/cli/apps/<%= cli_app_file.sub(/^ext\/cli\//, "") %>"
 <% end -%>
 <% EZBake::Config[:bin_files].each do |bin_file| -%>
     install -m 0755 <%= bin_file %> "${DESTDIR}${bindir}"
@@ -103,7 +111,18 @@ function task_install {
 <% if EZBake::Config[:create_varlib] -%>
     install -d -m 700 "${DESTDIR}${localstatedir}/lib/<%= EZBake::Config[:project] %>"
 <% end -%>
+}
+
+functon task_install_redhat {
+    : # Null command in case additional_install is empty
 <% EZBake::Config[:redhat][:additional_install].each do |install| -%>
+    <%= install %>
+<% end -%>
+}
+
+functon task_install_debian {
+    : # Null command in case additional_install is empty
+<% EZBake::Config[:debian][:additional_install].each do |install| -%>
     <%= install %>
 <% end -%>
 }
@@ -155,7 +174,7 @@ function task_systemd_redhat {
 function task_sysv_init_deb {
     task defaults
     install -d -m 0755 "${DESTDIR}${initdir}"
-    install -m 0755 ext/debian/<%= EZBake::Config[:real_name] %>.init "${DESTDIR}${initdir}/<%= EZBake::Config[:real_name] %>"
+    install -m 0755 ext/debian/${real_name}.init "${DESTDIR}${initdir}/${real_name}"
     install -d -m 0755 "${DESTDIR}${rundir}"
 }
 
@@ -288,6 +307,8 @@ function dispatch {
         echo "Choose from one of the following tasks:"
         echo
         echo "$(available_tasks)"
+        echo
+        echo "Warning: this task system is still experimental and may be subject to change without notice"
         return 1
     else
         task $task

@@ -18,6 +18,7 @@ export realname=<%= EZBake::Config[:real_name] %>
 
 install/<%= EZBake::Config[:project] %>::
 	bash install.sh install
+	bash install.sh install_debian
 	if [[ ${DIST} == debian ]] ; then \
 		if [[ $$(echo "${RELEASE}>=7" | bc -l) -eq 1 || ${RELEASE} == testing || ${RELEASE} == unstable ]] ; then \
 			bash install.sh logrotate ; \
