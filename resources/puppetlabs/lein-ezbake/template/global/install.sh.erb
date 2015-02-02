@@ -113,14 +113,14 @@ function task_install {
 <% end -%>
 }
 
-functon task_install_redhat {
+function task_install_redhat {
     : # Null command in case additional_install is empty
 <% EZBake::Config[:redhat][:additional_install].each do |install| -%>
     <%= install %>
 <% end -%>
 }
 
-functon task_install_debian {
+function task_install_debian {
     : # Null command in case additional_install is empty
 <% EZBake::Config[:debian][:additional_install].each do |install| -%>
     <%= install %>
