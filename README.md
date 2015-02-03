@@ -11,7 +11,7 @@ To get started using EZBake, please add it to the `:plugins` key in your
 `project.clj`:
 
 ```clojure
-{:plugins [[puppetlabs/lein-ezbake "0.1.0"]]}
+{:plugins [[puppetlabs/lein-ezbake "0.2.0"]]}
 ```
 
 Before you can get started using it, however, there may be some additional
