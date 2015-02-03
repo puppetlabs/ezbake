@@ -1,7 +1,10 @@
 #!/bin/sh
 
+# Note: Changes to this section may require synchronisation with the install.sh
+# source based installation method.
+
 if [ "$1" = install ] || [ "$1" = upgrade ]; then
- # Create the "<%= EZBake::Config[:user] %>" user
+    # Create the "<%= EZBake::Config[:user] %>" user
     if ! getent passwd <%= EZBake::Config[:user] %>  > /dev/null; then
         adduser --quiet --system --group --home /usr/share/<%= EZBake::Config[:project] %>  \
             --no-create-home                                 \

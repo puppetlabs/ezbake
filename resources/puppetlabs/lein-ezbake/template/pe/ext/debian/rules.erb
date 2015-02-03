@@ -17,26 +17,22 @@ export sharedstatedir=/var/lib
 export realname=<%= EZBake::Config[:real_name] %>
 
 install/<%= EZBake::Config[:project] %>::
-	make -e install-<%= EZBake::Config[:project] %>
-<% EZBake::Config[:debian][:additional_install].each do |install| -%>
-	<%= install %>
-<% end -%>
-	install -d -m 0755 $(DESTDIR)/etc/logrotate.d
+	bash install.sh install_deb
 	if [[ ${DIST} == debian ]] ; then \
 		if [[ $$(echo "${RELEASE}>=7" | bc -l) -eq 1 || ${RELEASE} == testing || ${RELEASE} == unstable ]] ; then \
-			cp -p ext/<%= EZBake::Config[:project] -%>.logrotate.conf $(DESTDIR)/etc/logrotate.d/<%= EZBake::Config[:project] %>; \
+			bash install.sh logrotate ; \
 		else \
-			cp -p ext/<%= EZBake::Config[:project] -%>.logrotate-legacy.conf $(DESTDIR)/etc/logrotate.d/<%= EZBake::Config[:project] %>; \
+			bash install.sh logrotate_legacy ; \
 		fi ; \
 	elif [[ ${DIST} == ubuntu ]] ; then \
 		if [[ $$(echo "${RELEASE}>=13.04" | bc -l) -eq 1 ]] ; then \
-			cp -p ext/<%= EZBake::Config[:project] -%>.logrotate.conf $(DESTDIR)/etc/logrotate.d/<%= EZBake::Config[:project] %>; \
+			bash install.sh logrotate ; \
 		else \
-			cp -p ext/<%= EZBake::Config[:project] -%>.logrotate-legacy.conf $(DESTDIR)/etc/logrotate.d/<%= EZBake::Config[:project] %>; \
+			bash install.sh logrotate_legacy ; \
 		fi ; \
 	fi
 
 <% unless EZBake::Config[:terminus_info].empty?  -%>
 install/<%= EZBake::Config[:project] %>-termini::
-	make -e install-<%= EZBake::Config[:project] %>-termini
+	bash install.sh termini
 <% end -%>

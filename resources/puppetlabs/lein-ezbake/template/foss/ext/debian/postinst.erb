@@ -1,12 +1,3 @@
 #!/bin/sh
 
-chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> /var/log/<%= EZBake::Config[:project] %>
-chmod 700 /var/log/<%= EZBake::Config[:project] %>
-<% if EZBake::Config[:create_varlib] -%>
-chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> /var/lib/<%= EZBake::Config[:project] %>
-chmod 700 /var/lib/<%= EZBake::Config[:project] %>
-<% end -%>
-
-<% EZBake::Config[:debian][:additional_postinst].each do |cmd| -%>
-<%= cmd %>
-<% end -%>
+/usr/share/puppetdb/scripts/install.sh postinst_deb

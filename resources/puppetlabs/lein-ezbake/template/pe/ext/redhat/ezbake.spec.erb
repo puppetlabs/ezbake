@@ -138,46 +138,34 @@ Contains terminus for:
 
 rm -rf $RPM_BUILD_ROOT
 
-env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> make -e install-<%= EZBake::Config[:project] %>
+env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> localstatedir=%{_localstatedir} bash install.sh install_redhat
 %if %{_with_systemd}
-install -d -m0755 %{buildroot}%{_unitdir}
-install -m 0644 ext/redhat/<%= EZBake::Config[:project] %>.service %{buildroot}%{_unitdir}/<%= EZBake::Config[:project] %>.service
+env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> defaultsdir=%{_sysconfdir}/sysconfig unitdir=%{_unitdir} bash install.sh systemd_redhat
 %else
-install -d -m 0755 %{buildroot}%{_initrddir}
-%endif
 %if %{_old_el}
-install -m 0755 ext/redhat/init %{buildroot}%{_initrddir}/<%= EZBake::Config[:project] %>
+env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> defaultsdir=%{_sysconfdir}/sysconfig initdir=%{_initrddir} bash install.sh sysv_init_redhat
+%elseif %{_old_sles}
+env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> defaultsdir=%{_sysconfdir}/sysconfig initdir=%{_initrddir} bash install.sh sysv_init_suse
 %endif
-%if %{_old_sles}
-install -m 0755 ext/redhat/init.suse %{buildroot}%{_initrddir}/<%= EZBake::Config[:project] %>
 %endif
-install -d -m 0755 %{buildroot}%{_real_sysconfdir}/sysconfig
-install -m 0755 ext/default %{buildroot}%{_real_sysconfdir}/sysconfig/<%= EZBake::Config[:project] %>
 
-install -d -m 0755 %{buildroot}%{_real_sysconfdir}/logrotate.d
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7 || 0%{?sles_version} >= 12
-cp -p ext/<%= EZBake::Config[:project] -%>.logrotate.conf %{buildroot}%{_real_sysconfdir}/logrotate.d/<%= EZBake::Config[:project] %>
+env DESTDIR=%{buildroot} confdir=%{_sysconfdir} bash install.sh logrotate
 %else
-cp -p ext/<%= EZBake::Config[:project] -%>.logrotate-legacy.conf %{buildroot}%{_real_sysconfdir}/logrotate.d/<%= EZBake::Config[:project] %>
+env DESTDIR=%{buildroot} confdir=%{_sysconfdir} bash install.sh logrotate_legacy
 %endif
-
-install -d -m 700 %{buildroot}%{_localstatedir}/log/<%= EZBake::Config[:project] %>
-<% if EZBake::Config[:create_varlib] -%>
-install -d -m 700 %{buildroot}%{_localstatedir}/lib/<%= EZBake::Config[:project] %>
-<% end -%>
-
-<% EZBake::Config[:redhat][:additional_install].each do |install| -%>
-<%= install %>
-<% end -%>
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
-env DESTDIR=%{buildroot} rubylibdir=%{puppet_libdir} prefix=%{_prefix} make -e install-<%= EZBake::Config[:project] %>-termini
+env DESTDIR=%{buildroot} rubylibdir=%{puppet_libdir} prefix=%{_prefix} bash install.sh termini
 <% end -%>
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %pre
+# Note: changes to this section of the spec may require synchronisation with the
+# install.sh source based installation methodology.
+#
 # Add <%= EZBake::Config[:group] %> group
 getent group <%= EZBake::Config[:group] %> > /dev/null || \
   groupadd -r <%= EZBake::Config[:group] %> || :
@@ -215,9 +203,7 @@ elif [ "$1" = "2" ]; then
     fi
 fi
 %endif
-<% EZBake::Config[:redhat][:additional_postinst].each do |cmd| -%>
-<%= cmd %>
-<% end -%>
+%{_datadir}/%{realname}/scripts/install.sh postinst_redhat
 
 %preun
 %if %{_systemd_el}

@@ -1,0 +1,336 @@
+#!/usr/bin/env bash
+
+set -e
+set -x
+
+# Warning: This variable API is experimental so these variables may be subject
+# to change in the future.
+prefix=${prefix:=/usr}
+initdir=${initdir:=/etc/init.d}
+unitdir=${unitdir:=/usr/lib/systemd/system}
+datadir=${datadir:=${prefix}/share}
+real_name=${real_name:=<%= EZBake::Config[:real_name] -%>}
+projdatadir=${projdatadir:=${datadir}/${real_name}}
+confdir=${confdir:=/etc}
+projconfdir=${projconfdir:=${confdir}/${real_name}}
+rundir=${rundir:=/var/run}
+bindir=${bindir:=/usr/bin}
+localstatedir=${localstatedir:=/var}
+
+##################
+# EZBake Vars    #
+##################
+
+set +x
+echo "#-------------------------------------------------#"
+echo "The following variables are set: "
+echo
+env | sort
+
+echo
+echo "End of variable print."
+echo "#-------------------------------------------------#"
+set -x
+
+##################
+# Task functions #
+##################
+
+# The below functions are exposed to the user to be able to be called from
+# the command line directly.
+
+# Catch all, to install the lot, with osdetection included etc.
+function task_all {
+    task service
+    task termini
+}
+
+# Run installer, and automatically choose correct tasks using os detection.
+function task_service {
+    osdetection
+
+    if [ "$OSFAMILY" = "RedHat" ]; then
+        defaultsdir="/etc/sysconfig"
+        if [ $MAJREV -lt 7 ]; then
+            task install_source_rpm_sysv
+        else
+            task install_source_rpm_systemd
+        fi
+    elif [ "$OSFAMILY" = "Debian" ]; then
+        defaultsdir="/etc/default"
+        task install_source_deb
+    else
+        echo "Unsupported platform, exiting ..."
+        exit 1
+    fi
+}
+
+# Source based install for Redhat based + sysv setups
+function task_install_source_rpm_sysv {
+    task preinst_redhat
+    task install_redhat
+    task sysv_init_redhat
+    task logrotate_legacy
+    task postinst_redhat
+    task postinst_permissions
+}
+
+# Source based install for Redhat based + systemd setups
+function task_install_source_rpm_systemd {
+    task preinst_redhat
+    task install_redhat
+    task systemd_redhat
+    task logrotate
+    task postinst_redhat
+    task postinst_permissions
+}
+
+# Source based install for Debian based setups
+function task_install_source_deb {
+    task preinst_deb
+    task install_deb
+    task sysv_init_deb
+    task logrotate
+    task postinst_deb
+}
+
+# Install the ezbake package software. This step is used during RPM &
+# Debian packaging during the 'install' phases.
+function task_install {
+    install -d -m 0755 "${DESTDIR}${projdatadir}"
+    install -m 0644 <%= EZBake::Config[:uberjar_name] %> "${DESTDIR}${projdatadir}"
+    install -m 0774 ext/ezbake-functions.sh "${DESTDIR}${projdatadir}"
+    install -m 0644 ext/ezbake.manifest "${DESTDIR}${projdatadir}"
+    install -d -m 0755 "${DESTDIR}${projconfdir}/conf.d"
+<% EZBake::Config[:config_files].each do |config_file| -%>
+    install -m 0644 <%= config_file %> "${DESTDIR}${projconfdir}/<%= config_file.sub(/^ext\/config\//, "") %>"
+<% end -%>
+    install -d -m 0755 "${DESTDIR}${projdatadir}/scripts"
+    install -m 0755 install.sh "${DESTDIR}${projdatadir}/scripts"
+<% if ! EZBake::Config[:cli_app_files].empty? -%>
+    install -d -m 0755 "${DESTDIR}${projdatadir}/cli"
+    install -d -m 0755 "${DESTDIR}${projdatadir}/cli/apps"
+    install -d -m 0755 "${DESTDIR}${bindir}"
+    install -m 0755 "ext/bin/${real_name}" "${DESTDIR}${bindir}/${real_name}"
+<% end -%>
+<% EZBake::Config[:cli_app_files].each do |cli_app_file| -%>
+    install -m 0755 <%= cli_app_file %> "${DESTDIR}${projdatadir}/cli/apps/<%= cli_app_file.sub(/^ext\/cli\//, "") %>"
+<% end -%>
+<% EZBake::Config[:bin_files].each do |bin_file| -%>
+    install -m 0755 <%= bin_file %> "${DESTDIR}${bindir}"
+<% end -%>
+    install -d -m 0755 "${DESTDIR}${rundir}"
+    install -d -m 700 "${DESTDIR}${localstatedir}/log/<%= EZBake::Config[:project] %>"
+<% if EZBake::Config[:create_varlib] -%>
+    install -d -m 700 "${DESTDIR}${localstatedir}/lib/<%= EZBake::Config[:project] %>"
+<% end -%>
+}
+
+function task_install_redhat {
+    task install
+<% EZBake::Config[:redhat][:additional_install].each do |install| -%>
+    <%= install %>
+<% end -%>
+}
+
+function task_install_deb {
+    task install
+<% EZBake::Config[:debian][:additional_install].each do |install| -%>
+    <%= install %>
+<% end -%>
+}
+
+<% unless EZBake::Config[:terminus_info].empty? %>
+# Install the termini packaged with the ezbake software
+function task_termini {
+    # We do this here, instead of at the top of the file, to avoid the need
+    # for ruby unless completely necessary.
+    #
+    # This also allows us to prefer PE ruby over system ruby, so this will work
+    # with PE as well
+    local rubylibdir=${rubylibdir:=$(/opt/puppet/bin/ruby -rrbconfig -e "puts RbConfig::CONFIG['sitelibdir']" 2>/dev/null || ruby -rrbconfig -e "puts RbConfig::CONFIG['sitelibdir']")}
+<% EZBake::Config[:terminus_info].each do |proj_name, info| -%>
+<% info[:files].each do |file| -%>
+    install -Dm 0644 <%= file -%> "${DESTDIR}${rubylibdir}/<%= file -%>"
+<% end -%>
+<% end -%>
+}
+<% end -%>
+
+function task_defaults {
+    install -d -m 0755 "${DESTDIR}${defaultsdir}"
+    install -m 0644 ext/default "${DESTDIR}${defaultsdir}/<%= EZBake::Config[:project] %>"
+}
+
+# Install the sysv and defaults configuration for Redhat.
+function task_sysv_init_redhat {
+    task defaults
+    install -d -m 0755 "${DESTDIR}${initdir}"
+    install -m 0755 ext/redhat/init "${DESTDIR}${initdir}/<%= EZBake::Config[:project] %>"
+}
+
+# Install the sysv and defaults configuration for SuSE.
+function task_sysv_init_suse {
+    task defaults
+    install -d -m 0755 "${DESTDIR}${initdir}"
+    install -m 0755 ext/redhat/init.suse "${DESTDIR}${initdir}/<%= EZBake::Config[:project] %>"
+}
+
+# Install the systemd and defaults configuration for Redhat.
+function task_systemd_redhat {
+    task defaults
+    install -d -m 0755 "${DESTDIR}${unitdir}"
+    install -m 0755 ext/redhat/<%= EZBake::Config[:project] %>.service "${DESTDIR}${unitdir}/<%= EZBake::Config[:project] %>.service"
+}
+
+# Install the sysv and defaults configuration for Debian.
+function task_sysv_init_deb {
+    task defaults
+    install -d -m 0755 "${DESTDIR}${initdir}"
+    install -m 0755 ext/debian/${real_name}.init "${DESTDIR}${initdir}/${real_name}"
+    install -d -m 0755 "${DESTDIR}${rundir}"
+}
+
+# RPM based pre-installation tasks.
+# Note: Any changes to this section may require synchronisation with the
+# packaging, due to the fact that we can't access this script from the pre
+# section of an rpm/deb.
+function task_preinst_redhat {
+    # Add <%= EZBake::Config[:group] %> group
+    getent group <%= EZBake::Config[:group] %> > /dev/null || \
+           groupadd -r <%= EZBake::Config[:group] %> || :
+    # Add <%= EZBake::Config[:user] %> user
+    getent passwd <%= EZBake::Config[:user] %> > /dev/null || \
+           useradd -r -g <%= EZBake::Config[:group] %> -d ${datadir}/<%= EZBake::Config[:project] %> -s /sbin/nologin \
+           -c "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
+<% EZBake::Config[:redhat][:additional_preinst].each do |preinst| -%>
+   <%= preinst %>
+<% end -%>
+}
+
+# Debian based pre-installation tasks.
+# Note: Any changes to this section may require synchronisation with the
+# packaging, due to the fact that we can't access this script from the pre
+# section of an rpm/deb.
+function task_preinst_deb {
+    # Create the "<%= EZBake::Config[:user] %>" user
+    if ! getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
+        adduser --quiet --system --group --home ${datadir}/<%= EZBake::Config[:project] %>  \
+        --no-create-home                                 \
+        --gecos "<%= EZBake::Config[:project] %> daemon" \
+        <%= EZBake::Config[:user] %> ; \
+    fi
+
+    # Create the "<%= EZBake::Config[:group] %>" group, if it is missing, and set the
+    # primary group of the "<%= EZBake::Config[:user] %>" user to this group.
+    if ! getent group <%= EZBake::Config[:group] %> > /dev/null; then
+        addgroup --quiet --system <%= EZBake::Config[:group] %>; \
+        usermod -g <%= EZBake::Config[:group] %> <%= EZBake::Config[:user] %>; \
+    fi
+<% EZBake::Config[:debian][:additional_preinst].each do |preinst| -%>
+    <%= preinst %>
+<% end -%>
+}
+
+# Debian based post-installation tasks.
+function task_postinst_deb {
+    task postinst_permissions
+<% EZBake::Config[:debian][:additional_postinst].each do |cmd| -%>
+    <%= cmd %>
+<% end -%>
+}
+
+# RPM based post-installation tasks.
+function task_postinst_redhat {
+    : # Null command in case additional_postinst is empty
+<% EZBake::Config[:redhat][:additional_postinst].each do |cmd| -%>
+    <%= cmd %>
+<% end -%>
+}
+
+# Global post installation permissions setup. Not to be used by Redhat
+# during package based installation, as this is done by the RPM itself
+# by the %files definitions
+function task_postinst_permissions {
+    chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> /var/log/<%= EZBake::Config[:project] %>
+    chmod 700 /var/log/<%= EZBake::Config[:project] %>
+<% if EZBake::Config[:create_varlib] -%>
+    chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> /var/lib/<%= EZBake::Config[:project] %>
+    chmod 700 /var/lib/<%= EZBake::Config[:project] %>
+<% end -%>
+}
+
+# Install logrotate (usually el7, fedora 16 and above)
+function task_logrotate {
+    install -d -m 0755 "${DESTDIR}${confdir}/logrotate.d"
+    cp -pr ext/<%= EZBake::Config[:project] -%>.logrotate.conf "${DESTDIR}${confdir}/logrotate.d/<%= EZBake::Config[:project] %>"
+}
+
+# Install legacy logrotate
+function task_logrotate_legacy {
+    install -d -m 0755 "${DESTDIR}${confdir}/logrotate.d"
+    cp -pr ext/<%= EZBake::Config[:project] -%>.logrotate-legacy.conf "${DESTDIR}${confdir}/logrotate.d/<%= EZBake::Config[:project] %>"
+}
+
+##################
+# Misc functions #
+##################
+
+# Do basic OS detection using facter.
+function osdetection {
+    OSFAMILY=`facter osfamily`
+    MAJREV=`facter operatingsystemmajrelease`
+
+    echo "OS Detection results"
+    echo
+    echo "OSFAMILY: ${OSFAMILY}"
+    echo "MAJREV: ${MAJREV}"
+    echo
+}
+
+# Run a task
+# Accepts:
+#   $1 = task to run
+function task {
+    local task=$1
+    shift
+    echo "Running task ${task} ..."
+    eval task_$task $@
+}
+
+# List available tasks
+#
+# Gathers a list of all functions starting with task_ so it can be displayed
+# or used by other functions.
+function available_tasks {
+    declare -F | awk '{ print $3 }' | grep '^task_*' | cut -c 6-
+}
+
+# Dispatch a task from the CLI
+# Accepts:
+#   $1 = task to dispatch
+function dispatch {
+    local task=$1
+    shift
+    if [ -z "$task" ]; then
+        echo "Starting full installation ..."
+        echo
+        task all
+    elif [ "$1" = "-h" ]; then
+        echo "Usage: $0 <task>"
+        echo
+        echo "Choose from one of the following tasks:"
+        echo
+        echo "$(available_tasks)"
+        echo
+        echo "Warning: this task system is still experimental and may be subject to change without notice"
+        return 1
+    else
+        task $task $@
+    fi
+}
+
+########
+# Main #
+########
+dispatch $@
