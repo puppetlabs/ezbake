@@ -54,6 +54,9 @@ Requires:         chkconfig
 %endif
 
 Requires:         %{open_jdk}
+# net-tools is required for netstat usage in service unit file
+# See: https://tickets.puppetlabs.com/browse/SERVER-338
+Requires:         net-tools
 <% EZBake::Config[:redhat][:additional_dependencies].each do |dep| %>
 Requires:         <%= dep %>
 <% end %>
