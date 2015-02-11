@@ -381,6 +381,8 @@ Bundled packages: %s
          :create-varlib             (str (boolean (get-local-ezbake-var lein-project
                                                                         :create-varlib
                                                                         false)))
+         :create-dirs               (quoted-list (get-local-ezbake-var lein-project
+                                                                       :create-dirs []))
          :debian-deps               (get-quoted-ezbake-values :debian :dependencies)
          :debian-preinst            (get-quoted-ezbake-values :debian :preinst)
          :debian-postinst           (get-quoted-ezbake-values :debian :postinst)
