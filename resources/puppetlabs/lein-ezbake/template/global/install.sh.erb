@@ -124,6 +124,9 @@ function task_install {
 <% if EZBake::Config[:create_varlib] -%>
     install -d -m 700 "${DESTDIR}${localstatedir}/lib/<%= EZBake::Config[:project] %>"
 <% end -%>
+<% EZBake::Config[:create_dirs].each do |dir| -%>
+    install -d -m 700 "${DESTDIR}<%= dir %>"
+<% end -%>
 }
 
 function task_install_redhat {
@@ -257,6 +260,10 @@ function task_postinst_permissions {
 <% if EZBake::Config[:create_varlib] -%>
     chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> /var/lib/<%= EZBake::Config[:project] %>
     chmod 700 /var/lib/<%= EZBake::Config[:project] %>
+<% end -%>
+<% EZBake::Config[:create_dirs].each do |dir| -%>
+    chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> <%= dir %>
+    chmod 700 <%= dir %> %>
 <% end -%>
 }
 

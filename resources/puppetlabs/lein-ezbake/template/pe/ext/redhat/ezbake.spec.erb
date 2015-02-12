@@ -246,6 +246,9 @@ fi
 <% if EZBake::Config[:create_varlib] -%>
 %dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_localstatedir}/lib/%{name}
 <% end -%>
+<% EZBake::Config[:create_dirs].each do |dir| -%>
+%dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) <%= dir %>
+<% end -%>
 <% if File.exists?("ext/docs") %>
 %doc ext/docs
 <% end %>
@@ -279,4 +282,3 @@ fi
 %changelog
 * <%= Time.now.strftime("%a %b %d %Y") %> Puppet Labs Release <info@puppetlabs.com> -  <%= @rpmversion %>-<%= @rpmrelease %>
 - Build for <%= @version %>
-
