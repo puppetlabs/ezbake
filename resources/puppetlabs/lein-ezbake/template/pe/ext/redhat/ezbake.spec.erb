@@ -2,7 +2,7 @@
 %global realversion <%= @version %>
 %global rpmversion <%= @rpmversion %>
 
-%global puppet_libdir     %(/opt/puppet/bin/ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
+%global rubylibdir        %(/opt/puppet/bin/ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
 %global p_vendor          pe
 
 %global _with_systemd  0
@@ -159,7 +159,7 @@ env DESTDIR=%{buildroot} confdir=%{_real_sysconfdir} bash install.sh logrotate_l
 %endif
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
-env DESTDIR=%{buildroot} rubylibdir=%{puppet_libdir} prefix=%{_prefix} bash install.sh termini
+env DESTDIR=%{buildroot} rubylibdir=%{rubylibdir} prefix=%{_prefix} bash install.sh termini
 <% end -%>
 
 %clean
@@ -277,7 +277,7 @@ fi
 <% EZBake::Config[:terminus_info].each do |proj_name, info| -%>
 %defattr(-, root, root)
 <% info[:files].each do |file| -%>
-%{puppet_libdir}/<%= file %>
+%{rubylibdir}/<%= file %>
 <% end -%>
 <% end -%>
 <% end %>

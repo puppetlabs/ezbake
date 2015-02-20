@@ -5,9 +5,9 @@
 %global open_jdk          java-1.7.0-openjdk
 
 %if 0%{?fedora} >= 17 || 0%{?rhel} >= 7
-%global puppet_libdir     %(ruby -rrbconfig -e "puts Config::CONFIG['vendorlibdir']")
+%global rubylibdir        %(ruby -rrbconfig -e "puts Config::CONFIG['vendorlibdir']")
 %else
-%global puppet_libdir     %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
+%global rubylibdir        %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
 %endif
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
@@ -91,7 +91,7 @@ Contains terminus for:
 
 rm -rf $RPM_BUILD_ROOT
 
-env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> localstatedir=%{_localstatedir} bash install.sh install_redhat
+env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> localstatedir=%{_localstatedir} rubylibdir=%{rubylibdir} bash install.sh install_redhat
 %if %{_with_systemd}
 env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> defaultsdir=%{_sysconfdir}/sysconfig unitdir=%{_unitdir} bash install.sh systemd_redhat
 %else
@@ -105,7 +105,7 @@ env DESTDIR=%{buildroot} confdir=%{_sysconfdir} bash install.sh logrotate_legacy
 %endif
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
-env DESTDIR=%{buildroot} rubylibdir=%{puppet_libdir} prefix=%{_prefix} bash install.sh termini
+env DESTDIR=%{buildroot} rubylibdir=%{rubylibdir} prefix=%{_prefix} bash install.sh termini
 <% end -%>
 
 %clean
@@ -207,7 +207,7 @@ fi
 <% EZBake::Config[:terminus_info].each do |proj_name, info| -%>
 %defattr(-, root, root)
 <% info[:files].each do |file| -%>
-%{puppet_libdir}/<%= file %>
+%{rubylibdir}/<%= file %>
 <% end -%>
 <% end -%>
 <% end %>
@@ -215,4 +215,3 @@ fi
 %changelog
 * <%= Time.now.strftime("%a %b %d %Y") %> Puppet Labs Release <info@puppetlabs.com> -  <%= @rpmversion %>-<%= @rpmrelease %>
 - Build for <%= @version %>
-
