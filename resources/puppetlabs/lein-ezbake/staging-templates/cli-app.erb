@@ -10,7 +10,7 @@ elif [ `uname` == "OpenBSD" ] ; then
     JAVA_ARGS="<%= EZBake::Config[:java_args] %>"
     USER="_<%= EZBake::Config[:user] %>"
     INSTALL_DIR="/usr/local/share/<%= EZBake::Config[:project] %>"
-    CONFIG="/etc/<%= EZBake::Config[:project] %>/conf.d"
+    CONFIG="/etc/puppetlabs/<%= EZBake::Config[:project] %>/conf.d"
 else
     echo "You seem to be missing some important configuration files; could not find /etc/default/<%= EZBake::Config[:project] -%> or /etc/sysconfig/<%= EZBake::Config[:project] -%>" >&2
     exit 1
