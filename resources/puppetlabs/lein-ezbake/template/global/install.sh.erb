@@ -12,7 +12,7 @@ datadir=${datadir:=${prefix}/share}
 real_name=${real_name:=<%= EZBake::Config[:real_name] -%>}
 projdatadir=${projdatadir:=${datadir}/${real_name}}
 confdir=${confdir:=/etc}
-projconfdir=${projconfdir:=${confdir}/${real_name}}
+projconfdir=${projconfdir:=${confdir}/puppetlabs/${real_name}}
 rundir=${rundir:=/var/run}
 bindir=${bindir:=/usr/bin}
 localstatedir=${localstatedir:=/var}

@@ -190,7 +190,7 @@ fi
 %else
 %{_initrddir}/%{name}
 %endif
-%config(noreplace) %{_sysconfdir}/%{name}
+%config(noreplace) %{_sysconfdir}/puppetlabs/%{name}
 %config(noreplace) %{_sysconfdir}/sysconfig/%{name}
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 <% if ! EZBake::Config[:cli_app_files].empty? -%>
