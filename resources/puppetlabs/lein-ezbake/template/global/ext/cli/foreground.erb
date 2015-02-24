@@ -12,9 +12,9 @@ COMMAND="${JAVA_BIN} ${JAVA_ARGS} ${LOG_APPENDER} \
          ${@}"
 
 pushd "${INSTALL_DIR}" &> /dev/null
-if [ "$EUID" = "0" ] && command -v runuser >/dev/null 2>&1; then
+if [ "$EUID" = "0" ] && command -v runuser &> /dev/null; then
   runuser "${USER}" -s /bin/bash -c "$COMMAND"
-elif command -v sudo >/dev/null 2>&1; then
+elif command -v sudo &> /dev/null; then
   sudo -u puppet "$COMMAND"
 else
   su "${USER}" -s /bin/bash -c "$COMMAND" 
