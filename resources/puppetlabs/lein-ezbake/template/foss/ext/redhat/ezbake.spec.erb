@@ -1,6 +1,12 @@
 %global realname <%= EZBake::Config[:project] %>
 %global realversion <%= @version %>
 %global rpmversion <%= @rpmversion %>
+# Application bin dir.
+%global _app_bindir /opt/puppetlabs/server/apps/<%= EZBake::Config[:project] %>/bin
+# Bin dir where convenience symlinks go.
+%global _sym_bindir /opt/puppetlabs/server/bin
+# Bin dir the end user adds to their PATH
+%global _ux_bindir /opt/puppetlabs/bin
 
 %global open_jdk          java-1.7.0-openjdk
 
@@ -91,11 +97,11 @@ Contains terminus for:
 
 rm -rf $RPM_BUILD_ROOT
 
-env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> localstatedir=%{_localstatedir} rubylibdir=%{rubylibdir} bash install.sh install_redhat
+env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> localstatedir=%{_localstatedir} rubylibdir=%{rubylibdir} bash install.sh install_redhat
 %if %{_with_systemd}
-env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> defaultsdir=%{_sysconfdir}/sysconfig unitdir=%{_unitdir} bash install.sh systemd_redhat
+env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> defaultsdir=%{_sysconfdir}/sysconfig unitdir=%{_unitdir} bash install.sh systemd_redhat
 %else
-env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> defaultsdir=%{_sysconfdir}/sysconfig initdir=%{_initrddir} bash install.sh sysv_init_redhat
+env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> defaultsdir=%{_sysconfdir}/sysconfig initdir=%{_initrddir} bash install.sh sysv_init_redhat
 %endif
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7 || 0%{?sles_version} >= 12
@@ -194,10 +200,12 @@ fi
 %config(noreplace) %{_sysconfdir}/sysconfig/%{name}
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 <% if ! EZBake::Config[:cli_app_files].empty? -%>
-%{_bindir}/<%= EZBake::Config[:real_name] %>
+%{_app_bindir}/<%= EZBake::Config[:real_name] %>
+%{_sym_bindir}/<%= EZBake::Config[:real_name] %>
+%{_ux_bindir}/<%= EZBake::Config[:real_name] %>
 <% end -%>
 <% EZBake::Config[:bin_files].each do |bin_file| -%>
-%{_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
+%{_app_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
 <% end -%>
 %ghost %attr(0755, root, root) %{_rundir}/%{name}
 

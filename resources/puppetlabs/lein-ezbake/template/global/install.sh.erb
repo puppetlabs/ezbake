@@ -14,7 +14,12 @@ projdatadir=${projdatadir:=${datadir}/${real_name}}
 confdir=${confdir:=/etc}
 projconfdir=${projconfdir:=${confdir}/puppetlabs/${real_name}}
 rundir=${rundir:=/var/run}
-bindir=${bindir:=/usr/bin}
+# Application specific bin directory
+bindir=${bindir:=/opt/puppetlabs/server/apps/${real_name}/bin}
+# User facing bin directory, expected to be added to interactive shell PATH
+uxbindir=${uxbindir:=/opt/puppetlabs/bin}
+# symlinks of server binaries
+symbindir=${symbindir:=/opt/puppetlabs/server/bin}
 localstatedir=${localstatedir:=/var}
 
 ##################
@@ -112,12 +117,19 @@ function task_install {
     install -d -m 0755 "${DESTDIR}${projdatadir}/cli/apps"
     install -d -m 0755 "${DESTDIR}${bindir}"
     install -m 0755 "ext/bin/${real_name}" "${DESTDIR}${bindir}/${real_name}"
+    install -d -m 0755 "${DESTDIR}${symbindir}"
+    ln -s "../apps/${real_name}/bin/${real_name}" "${DESTDIR}${symbindir}/${real_name}"
+    install -d -m 0755 "${DESTDIR}${uxbindir}"
+    ln -s "../server/apps/${real_name}/bin/${real_name}" "${DESTDIR}${uxbindir}/${real_name}"
 <% end -%>
 <% EZBake::Config[:cli_app_files].each do |cli_app_file| -%>
     install -m 0755 <%= cli_app_file %> "${DESTDIR}${projdatadir}/cli/apps/<%= cli_app_file.sub(/^ext\/cli\//, "") %>"
 <% end -%>
 <% EZBake::Config[:bin_files].each do |bin_file| -%>
     install -m 0755 <%= bin_file %> "${DESTDIR}${bindir}"
+    <% basename = File.basename(bin_file) -%>
+    ln -s "../apps/${real_name}/bin/<%= basename %>" "${DESTDIR}${symbindir}/<%= basename %>"
+    ln -s "../server/apps/${real_name}/bin/<%= basename %>" "${DESTDIR}${uxbindir}/<%= basename %>"
 <% end -%>
     install -d -m 0755 "${DESTDIR}${rundir}"
     install -d -m 700 "${DESTDIR}${localstatedir}/log/<%= EZBake::Config[:project] %>"
