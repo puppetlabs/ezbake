@@ -38,13 +38,13 @@ JAVA_ARGS="${JAVA_ARGS} -cp '${INSTALL_DIR}/${JARFILE}' clojure.main -m <%= EZBa
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile=/var/lock/subsys/$prog
 EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/puppetlabs/$prog -Djava.security.egd=/dev/urandom $JAVA_ARGS"
-PIDFILE="/var/run/$prog/$prog"
+PIDFILE="/var/run/puppetlabs/$prog/$prog"
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 find_my_pid() {
-    if [ ! -d  "/var/run/$prog" ] ; then
-      mkdir -p /var/run/$prog
-      chown -R $USER:$USER /var/run/$prog
+    if [ ! -d  "/var/run/puppetlabs/$prog" ] ; then
+      mkdir -p /var/run/puppetlabs/$prog
+      chown -R $USER:$USER /var/run/puppetlabs/$prog
     fi
     pid=`ps -ef | grep $JAVA_BIN | grep $JARFILE | awk '{print $2}'`
 }

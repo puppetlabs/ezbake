@@ -13,7 +13,7 @@ real_name=${real_name:=<%= EZBake::Config[:real_name] -%>}
 projdatadir=${projdatadir:=${datadir}/${real_name}}
 confdir=${confdir:=/etc}
 projconfdir=${projconfdir:=${confdir}/puppetlabs/${real_name}}
-rundir=${rundir:=/var/run}
+rundir=${rundir:=/var/run/puppetlabs/${real_name}}
 # Application specific bin directory
 bindir=${bindir:=/opt/puppetlabs/server/apps/${real_name}/bin}
 # User facing bin directory, expected to be added to interactive shell PATH

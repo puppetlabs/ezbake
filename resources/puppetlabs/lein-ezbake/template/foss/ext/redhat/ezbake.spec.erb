@@ -9,6 +9,8 @@
 %global _ux_bindir /opt/puppetlabs/bin
 # Log directory
 %global _app_logdir /var/log/puppetlabs/<%= EZBake::Config[:project] %>
+# Run directory, PID files go here
+%global _app_rundir /var/run/puppetlabs/<%= EZBake::Config[:project] %>
 
 # Puppet Installation Layout
 # https://github.com/puppetlabs/puppet-specifications/blob/af82509/file_paths.md
@@ -104,11 +106,11 @@ Contains terminus for:
 
 rm -rf $RPM_BUILD_ROOT
 
-env DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> localstatedir=%{_localstatedir} rubylibdir=%{rubylibdir} bash install.sh install_redhat
+env DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} localstatedir=%{_localstatedir} rubylibdir=%{rubylibdir} bash install.sh install_redhat
 %if %{_with_systemd}
-env DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> defaultsdir=%{_sysconfdir}/sysconfig unitdir=%{_unitdir} bash install.sh systemd_redhat
+env DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} defaultsdir=%{_sysconfdir}/sysconfig unitdir=%{_unitdir} bash install.sh systemd_redhat
 %else
-env DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> defaultsdir=%{_sysconfdir}/sysconfig initdir=%{_initrddir} bash install.sh sysv_init_redhat
+env DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} defaultsdir=%{_sysconfdir}/sysconfig initdir=%{_initrddir} bash install.sh sysv_init_redhat
 %endif
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7 || 0%{?sles_version} >= 12
@@ -179,7 +181,7 @@ fi
 %else
 # Remove the rundir if this is an uninstall (as opposed to an upgrade)...
 if [ "$1" = "0" ]; then
-    rm -rf %{_rundir}/%{name} || :
+    rm -rf %{_app_rundir} || :
 fi
 
 # Only restart it if it is running
@@ -214,7 +216,7 @@ fi
 <% EZBake::Config[:bin_files].each do |bin_file| -%>
 %{_app_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
 <% end -%>
-%ghost %attr(0755, root, root) %{_rundir}/%{name}
+%ghost %attr(0755, root, root) %{_app_rundir}
 
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
