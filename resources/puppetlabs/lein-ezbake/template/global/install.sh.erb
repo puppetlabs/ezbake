@@ -23,6 +23,7 @@ symbindir=${symbindir:=/opt/puppetlabs/server/bin}
 localstatedir=${localstatedir:=/var}
 app_prefix=${app_prefix:=/opt/puppetlabs/server/apps/${real_name}}
 app_data=${app_data:=/opt/puppetlabs/server/data/${real_name}}
+app_logdir=${app_logdir:=/var/log/puppetlabs/${real_name}}
 
 ##################
 # EZBake Vars    #
@@ -134,7 +135,7 @@ function task_install {
     ln -s "../server/apps/${real_name}/bin/<%= basename %>" "${DESTDIR}${uxbindir}/<%= basename %>"
 <% end -%>
     install -d -m 0755 "${DESTDIR}${rundir}"
-    install -d -m 700 "${DESTDIR}${localstatedir}/log/<%= EZBake::Config[:project] %>"
+    install -d -m 700 "${DESTDIR}${app_logdir}"
 <% if EZBake::Config[:create_varlib] -%>
     install -d -m 700 "${DESTDIR}${localstatedir}/lib/<%= EZBake::Config[:project] %>"
 <% end -%>

@@ -7,6 +7,8 @@
 %global _sym_bindir /opt/puppetlabs/server/bin
 # Bin dir the end user adds to their PATH
 %global _ux_bindir /opt/puppetlabs/bin
+# Log directory
+%global _app_logdir /var/log/puppetlabs/<%= EZBake::Config[:project] %>
 
 # Puppet Installation Layout
 # https://github.com/puppetlabs/puppet-specifications/blob/af82509/file_paths.md
@@ -188,7 +190,7 @@ fi
 
 %files
 %defattr(-, root, root)
-%dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_localstatedir}/log/%{name}
+%dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_logdir}
 <% if EZBake::Config[:create_varlib] -%>
 %dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_localstatedir}/lib/%{name}
 <% end -%>
