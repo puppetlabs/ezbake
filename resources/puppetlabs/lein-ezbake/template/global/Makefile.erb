@@ -10,9 +10,9 @@ install-<%= EZBake::Config[:project] %>:
 	install -m 0644 <%= EZBake::Config[:uberjar_name] %> "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>"
 	install -m 0774 ext/ezbake-functions.sh "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>"
 	install -m 0644 ext/ezbake.manifest "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>"
-	install -d -m 0755 "$(DESTDIR)$(confdir)/<%= EZBake::Config[:real_name] %>/conf.d"
+	install -d -m 0755 "$(DESTDIR)$(confdir)/puppetlabs/<%= EZBake::Config[:real_name] %>/conf.d"
 <% EZBake::Config[:config_files].each do |config_file| -%>
-	install -m 0644 <%= config_file %> "$(DESTDIR)$(confdir)/<%= EZBake::Config[:real_name] %>/<%= config_file.sub(/^ext\/config\//, "") %>"
+	install -m 0644 <%= config_file %> "$(DESTDIR)$(confdir)/puppetlabs/<%= EZBake::Config[:real_name] %>/<%= config_file.sub(/^ext\/config\//, "") %>"
 <% end -%>
 <% if ! EZBake::Config[:cli_app_files].empty? -%>
 	install -d -m 0755 "$(DESTDIR)$(datadir)/<%= EZBake::Config[:real_name] %>/cli"

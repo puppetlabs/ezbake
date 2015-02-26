@@ -1,6 +1,21 @@
 %global realname <%= EZBake::Config[:project] %>
 %global realversion <%= @version %>
 %global rpmversion <%= @rpmversion %>
+# Application bin dir.
+%global _app_bindir /opt/puppetlabs/server/apps/<%= EZBake::Config[:project] %>/bin
+# Bin dir where convenience symlinks go.
+%global _sym_bindir /opt/puppetlabs/server/bin
+# Bin dir the end user adds to their PATH
+%global _ux_bindir /opt/puppetlabs/bin
+# Log directory
+%global _app_logdir /var/log/puppetlabs/<%= EZBake::Config[:project] %>
+# Run directory, PID files go here
+%global _app_rundir /var/run/puppetlabs/<%= EZBake::Config[:project] %>
+
+# Puppet Installation Layout
+# https://github.com/puppetlabs/puppet-specifications/blob/af82509/file_paths.md
+%global _app_prefix /opt/puppetlabs/server/apps/<%= EZBake::Config[:project] %>
+%global _app_data /opt/puppetlabs/server/data/<%= EZBake::Config[:project] %>
 
 %global open_jdk          java-1.7.0-openjdk
 
@@ -91,11 +106,11 @@ Contains terminus for:
 
 rm -rf $RPM_BUILD_ROOT
 
-env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> localstatedir=%{_localstatedir} rubylibdir=%{rubylibdir} bash install.sh install_redhat
+env DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} localstatedir=%{_localstatedir} rubylibdir=%{rubylibdir} bash install.sh install_redhat
 %if %{_with_systemd}
-env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> defaultsdir=%{_sysconfdir}/sysconfig unitdir=%{_unitdir} bash install.sh systemd_redhat
+env DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} defaultsdir=%{_sysconfdir}/sysconfig unitdir=%{_unitdir} bash install.sh systemd_redhat
 %else
-env DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> defaultsdir=%{_sysconfdir}/sysconfig initdir=%{_initrddir} bash install.sh sysv_init_redhat
+env DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} defaultsdir=%{_sysconfdir}/sysconfig initdir=%{_initrddir} bash install.sh sysv_init_redhat
 %endif
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7 || 0%{?sles_version} >= 12
@@ -120,7 +135,7 @@ getent group <%= EZBake::Config[:group] %> > /dev/null || \
   groupadd -r <%= EZBake::Config[:group] %> || :
 # Add <%= EZBake::Config[:user] %> user
 getent passwd <%= EZBake::Config[:user] %> > /dev/null || \
-  useradd -r -g <%= EZBake::Config[:group] %> -d %{_datadir}/%{realname} -s /sbin/nologin \
+  useradd -r -g <%= EZBake::Config[:group] %> -d %{_app_data} -s /sbin/nologin \
      -c "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
 <% EZBake::Config[:redhat][:additional_preinst].each do |cmd| -%>
 <%= cmd %>
@@ -146,7 +161,7 @@ elif [ "$1" = "2" ]; then
     fi
 fi
 %endif
-%{_datadir}/%{realname}/scripts/install.sh postinst_redhat
+%{_app_prefix}/scripts/install.sh postinst_redhat
 
 %preun
 %if %{_with_systemd}
@@ -166,7 +181,7 @@ fi
 %else
 # Remove the rundir if this is an uninstall (as opposed to an upgrade)...
 if [ "$1" = "0" ]; then
-    rm -rf %{_rundir}/%{name} || :
+    rm -rf %{_app_rundir} || :
 fi
 
 # Only restart it if it is running
@@ -177,29 +192,31 @@ fi
 
 %files
 %defattr(-, root, root)
-%dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_localstatedir}/log/%{name}
+%dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_logdir}
 <% if EZBake::Config[:create_varlib] -%>
 %dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_localstatedir}/lib/%{name}
 <% end -%>
 <% if File.exists?("ext/docs") -%>
 %doc ext/docs
 <% end -%>
-%{_datadir}/%{realname}
+%{_app_prefix}
 %if %{_with_systemd}
 %{_unitdir}/%{name}.service
 %else
 %{_initrddir}/%{name}
 %endif
-%config(noreplace) %{_sysconfdir}/%{name}
+%config(noreplace) %{_sysconfdir}/puppetlabs/%{name}
 %config(noreplace) %{_sysconfdir}/sysconfig/%{name}
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 <% if ! EZBake::Config[:cli_app_files].empty? -%>
-%{_bindir}/<%= EZBake::Config[:real_name] %>
+%{_app_bindir}/<%= EZBake::Config[:real_name] %>
+%{_sym_bindir}/<%= EZBake::Config[:real_name] %>
+%{_ux_bindir}/<%= EZBake::Config[:real_name] %>
 <% end -%>
 <% EZBake::Config[:bin_files].each do |bin_file| -%>
-%{_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
+%{_app_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
 <% end -%>
-%ghost %attr(0755, root, root) %{_rundir}/%{name}
+%ghost %attr(0755, root, root) %{_app_rundir}
 
 
 <% unless EZBake::Config[:terminus_info].empty? -%>

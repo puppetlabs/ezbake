@@ -48,7 +48,7 @@
      # Use the alternate locations for things.
      %global _initrddir       %{_real_initrddir}
      %define _lib             lib
-     %global _sysconfdir      %{_real_sysconfdir}/puppetlabs
+     %global _sysconfdir      %{_real_sysconfdir}
      %global _prefix          /opt/puppet
      %global _datadir         %{_prefix}/share
      %global _mandir          %{_datadir}/man
@@ -261,7 +261,7 @@ fi
 %else
 %{_initrddir}/%{name}
 %endif
-%config(noreplace) %{_sysconfdir}/%{realname}
+%config(noreplace) %{_sysconfdir}/puppetlabs/%{realname}
 %config(noreplace) %{_real_sysconfdir}/sysconfig/%{name}
 %config(noreplace) %{_real_sysconfdir}/logrotate.d/%{name}
 <% if ! EZBake::Config[:cli_app_files].empty? -%>
