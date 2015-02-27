@@ -10,7 +10,7 @@ TimeoutStartSec=<%= EZBake::Config[:start_timeout] %>
 TimeoutStopSec=60
 
 ExecStart=/usr/bin/java $JAVA_ARGS \
-          -XX:OnOutOfMemoryError=kill\ -9\ %p \
+          '-XX:OnOutOfMemoryError=kill -9 %%p' \
           -XX:+HeapDumpOnOutOfMemoryError \
           -XX:HeapDumpPath=/var/log/puppetlabs/<%= EZBake::Config[:project] %> \
           -Djava.security.egd=/dev/urandom \
