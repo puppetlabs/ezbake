@@ -5,10 +5,18 @@ then
     LOG_APPENDER="-Dlogappender=STDOUT"
 fi
 
+COMMAND="${JAVA_BIN} ${JAVA_ARGS} ${LOG_APPENDER} \
+         -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> \
+         clojure.main -m <%= EZBake::Config[:main_namespace] %> \
+         --config ${CONFIG} --bootstrap-config ${BOOTSTRAP_CONFIG} \
+         ${@}"
+
 pushd "${INSTALL_DIR}" &> /dev/null
-su "${USER}" -s /bin/bash -c "${JAVA_BIN} ${JAVA_ARGS} ${LOG_APPENDER} \
-        -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> \
-        clojure.main -m <%= EZBake::Config[:main_namespace] %> \
-        --config ${CONFIG} --bootstrap-config ${BOOTSTRAP_CONFIG} \
-        ${@}"
+if [ "$EUID" = "0" ] && command -v runuser &> /dev/null; then
+  runuser "${USER}" -s /bin/bash -c "$COMMAND"
+elif command -v sudo &> /dev/null; then
+  sudo -u "${USER}" "$COMMAND"
+else
+  su "${USER}" -s /bin/bash -c $COMMAND
+fi
 popd &> /dev/null
