@@ -387,11 +387,13 @@ Bundled packages: %s
          :debian-preinst            (get-quoted-ezbake-values :debian :preinst)
          :debian-postinst           (get-quoted-ezbake-values :debian :postinst)
          :debian-install            (get-quoted-ezbake-values :debian :install)
+         :debian-pre-start-action   (get-quoted-ezbake-values :debian :pre-start-action)
          :debian-post-start-action  (get-quoted-ezbake-values :debian :post-start-action)
          :redhat-deps               (get-quoted-ezbake-values :redhat :dependencies)
          :redhat-preinst            (get-quoted-ezbake-values :redhat :preinst)
          :redhat-postinst           (get-quoted-ezbake-values :redhat :postinst)
          :redhat-install            (get-quoted-ezbake-values :redhat :install)
+         :redhat-pre-start-action   (get-quoted-ezbake-values :redhat :pre-start-action)
          :redhat-post-start-action  (get-quoted-ezbake-values :redhat :post-start-action)
          :terminus-map              termini
          :replaces-pkgs             (get-local-ezbake-var lein-project :replaces-pkgs [])

@@ -24,6 +24,7 @@ module EZBake
                           :additional_preinst => [{{{debian-preinst}}}],
                           :additional_postinst => [{{{debian-postinst}}}],
                           :additional_install => [{{{debian-install}}}],
+                          :pre_start_action => [{{{debian-pre-start-action}}}],
                           :post_start_action => [{{{debian-post-start-action}}}],
                           },
       :redhat         => {
@@ -31,6 +32,7 @@ module EZBake
                           :additional_preinst => [{{{redhat-preinst}}}],
                           :additional_postinst => [{{{redhat-postinst}}}],
                           :additional_install => [{{{redhat-install}}}],
+                          :pre_start_action => [{{{redhat-pre-start-action}}}],
                           :post_start_action => [{{{redhat-post-start-action}}}],
                           },
       :main_namespace => '{{{main-namespace}}}',
