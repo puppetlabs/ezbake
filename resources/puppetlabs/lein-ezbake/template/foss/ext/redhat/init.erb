@@ -56,6 +56,11 @@ start() {
     [ -e $config ] || exit 6
     # Move any heap dumps aside
     echo -n $"Starting $prog: "
+
+    <% EZBake::Config[:redhat][:pre_start_action].each do |action| -%>
+        <%= action %>
+    <% end -%>
+
     pushd "${INSTALL_DIR}" &> /dev/null
     daemon --user $USER --pidfile $PIDFILE "$EXEC >> /var/log/puppetlabs/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1 &"
     retval=$?

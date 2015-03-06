@@ -53,6 +53,10 @@ EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemory
 #
 do_start()
 {
+    <% EZBake::Config[:debian][:pre_start_action].each do |action| -%>
+        <%= action %>
+    <% end -%>
+
     start-stop-daemon --start $EXTRA_ARGS --quiet --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
         --startas /bin/bash -- -c "exec $EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1"
     retval=$?
