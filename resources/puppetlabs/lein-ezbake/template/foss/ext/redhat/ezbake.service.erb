@@ -9,6 +9,13 @@ User=<%= EZBake::Config[:user] %>
 TimeoutStartSec=<%= EZBake::Config[:start_timeout] %>
 TimeoutStopSec=60
 
+<% unless EZBake::Config[:redhat][:pre_start_action].empty? -%>
+PermissionsStartOnly=true
+<% EZBake::Config[:redhat][:pre_start_action].each do |action| -%>
+ExecStartPre=<%= action %>
+<% end -%>
+<% end -%>
+
 ExecStart=/usr/bin/java $JAVA_ARGS \
           -XX:OnOutOfMemoryError=kill\ -9\ %p \
           -XX:+HeapDumpOnOutOfMemoryError \

@@ -58,6 +58,11 @@ start() {
     [ -x "${JAVA_BIN}" ] || exit 5
     [ -e "${config}" ] || exit 6
     echo -n $"Starting ${prog}: "
+
+    <% EZBake::Config[:redhat][:pre_start_action].each do |action| -%>
+    <%= action %>
+    <% end -%>
+
     export HOME="$(getent passwd ${USER} | cut -d':' -f6)"
     # startproc will change users, so make sure that user has permission
     # to access the present working directory.
