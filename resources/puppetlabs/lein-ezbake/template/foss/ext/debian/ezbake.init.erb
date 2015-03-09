@@ -27,7 +27,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 NAME=<%= EZBake::Config[:project] %>
 DESC="<%= EZBake::Config[:project] %> Puppet Labs version-checking backend"
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
-PIDFILE=/var/run/$NAME.pid
+PIDFILE=/var/run/puppetlabs/$NAME/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 START_TIMEOUT=${START_TIMEOUT:-60}
 
@@ -54,6 +54,11 @@ do_start()
     <% EZBake::Config[:debian][:pre_start_action].each do |action| -%>
         <%= action %>
     <% end -%>
+    
+    if [ ! -d  "/var/run/puppetlabs/$NAME" ] ; then
+      mkdir -p /var/run/puppetlabs/$NAME
+      chown -R $USER:$GROUP /var/run/puppetlabs/$NAME
+    fi
 
     start-stop-daemon --start $EXTRA_ARGS --quiet --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
         --startas /bin/bash -- -c "exec $EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1"

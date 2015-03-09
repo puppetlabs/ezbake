@@ -32,7 +32,7 @@
 %endif
 
 # These macros are not always defined on much older rpm-based systems
-%global  _sharedstatedir /var/lib
+%global  _sharedstatedir %{_app_data}
 %global  _realsysconfdir /etc
 %global  _rundir         /var/run
 
@@ -105,7 +105,6 @@ Contains terminus for:
 %install
 
 rm -rf $RPM_BUILD_ROOT
-
 env DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} localstatedir=%{_localstatedir} rubylibdir=%{rubylibdir} bash install.sh install_redhat
 %if %{_with_systemd}
 env DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} defaultsdir=%{_sysconfdir}/sysconfig unitdir=%{_unitdir} bash install.sh systemd_redhat
@@ -216,7 +215,8 @@ fi
 <% EZBake::Config[:bin_files].each do |bin_file| -%>
 %{_app_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
 <% end -%>
-%ghost %attr(0755, root, root) %{_app_rundir}
+%dir %attr(0775, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_data}
+%ghost %attr(0755, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_rundir}
 
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
