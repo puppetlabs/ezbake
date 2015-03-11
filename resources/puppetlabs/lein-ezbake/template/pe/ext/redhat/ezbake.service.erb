@@ -17,7 +17,7 @@ ExecStartPre=<%= action %>
 <% end -%>
 
 ExecStart=/opt/puppet/bin/java $JAVA_ARGS \
-          -XX:OnOutOfMemoryError=kill\ -9\ %p \
+          '-XX:OnOutOfMemoryError=kill -9 %%p' \
           -XX:+HeapDumpOnOutOfMemoryError \
           -XX:HeapDumpPath=/var/log/<%= EZBake::Config[:project] %> \
           -Djava.security.egd=/dev/urandom \
