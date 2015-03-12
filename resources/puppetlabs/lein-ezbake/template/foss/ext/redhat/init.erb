@@ -37,14 +37,14 @@ JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 JAVA_ARGS="${JAVA_ARGS} -cp '${INSTALL_DIR}/${JARFILE}' clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b '${BOOTSTRAP_CONFIG}'"
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile=/var/lock/subsys/$prog
-EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/$prog -Djava.security.egd=/dev/urandom $JAVA_ARGS"
-PIDFILE="/var/run/$prog/$prog"
+EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/puppetlabs/$prog -Djava.security.egd=/dev/urandom $JAVA_ARGS"
+PIDFILE="/var/run/puppetlabs/$prog/$prog"
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 find_my_pid() {
-    if [ ! -d  "/var/run/$prog" ] ; then
-      mkdir -p /var/run/$prog
-      chown -R $USER:$USER /var/run/$prog
+    if [ ! -d  "/var/run/puppetlabs/$prog" ] ; then
+      mkdir -p /var/run/puppetlabs/$prog
+      chown -R $USER:$GROUP /var/run/puppetlabs/$prog
     fi
     pid=`ps -ef | grep $JAVA_BIN | grep $JARFILE | awk '{print $2}'`
 }
@@ -58,11 +58,11 @@ start() {
     echo -n $"Starting $prog: "
 
     <% EZBake::Config[:redhat][:pre_start_action].each do |action| -%>
-    <%= action %>
+        <%= action %>
     <% end -%>
 
     pushd "${INSTALL_DIR}" &> /dev/null
-    daemon --user $USER --pidfile $PIDFILE "$EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1 &"
+    daemon --user $USER --pidfile $PIDFILE "$EXEC >> /var/log/puppetlabs/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1 &"
     retval=$?
 
     sleep 1

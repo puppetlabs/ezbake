@@ -106,6 +106,7 @@ function task_install_source_deb {
 # Debian packaging during the 'install' phases.
 function task_install {
     install -d -m 0755 "${DESTDIR}${app_prefix}"
+    install -d -m 0755 "${DESTDIR}${app_data}"
     install -m 0644 <%= EZBake::Config[:uberjar_name] %> "${DESTDIR}${app_prefix}"
     install -m 0774 ext/ezbake-functions.sh "${DESTDIR}${app_prefix}"
     install -m 0644 ext/ezbake.manifest "${DESTDIR}${app_prefix}"
@@ -270,8 +271,10 @@ function task_postinst_redhat {
 # during package based installation, as this is done by the RPM itself
 # by the %files definitions
 function task_postinst_permissions {
-    chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> /var/log/<%= EZBake::Config[:project] %>
-    chmod 700 /var/log/<%= EZBake::Config[:project] %>
+    chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> /var/log/puppetlabs/<%= EZBake::Config[:project] %>
+    chmod 700 /var/log/puppetlabs/<%= EZBake::Config[:project] %>
+    chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> $app_data
+    chmod 775 $app_data
 <% if EZBake::Config[:create_varlib] -%>
     chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> /var/lib/<%= EZBake::Config[:project] %>
     chmod 700 /var/lib/<%= EZBake::Config[:project] %>
