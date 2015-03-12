@@ -54,6 +54,11 @@ do_start()
     <% EZBake::Config[:debian][:pre_start_action].each do |action| -%>
     <%= action %>
     <% end -%>
+    
+    if [ ! -d  "/var/run/puppetlabs/$NAME" ] ; then
+      mkdir -p /var/run/puppetlabs/$NAME
+      chown -R $USER:$GROUP /var/run/puppetlabs/$NAME
+    fi
 
     if [ ! -d  "/var/run/puppetlabs/$NAME" ] ; then
       mkdir -p /var/run/puppetlabs/$NAME
