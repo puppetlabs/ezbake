@@ -1,3 +1,11 @@
+## 0.2.5
+ * Bugfix: Foreground script now attempts to use the runuser command to switch
+   to the service user if it's available. Otherwise su or sudo are used.
+
+## 0.2.4
+ * Feature: Ability to specify actions run as root before
+   starting up a service.
+
 ## 0.2.3
  * Bugfix: Plumb $rubylibdir into redhat install step.
    * Standardize on "$rubylibdir" variable name in spec files.

@@ -1,3 +1,6 @@
+(def lein-ezbake-stable-branch-version "0.2.5-SNAPSHOT")
+(def lein-ezbake-master-branch-version "0.3.0-SNAPSHOT")
+
 (defn deploy-info
   [url]
   { :url url
@@ -5,7 +8,7 @@
     :password :env/nexus_jenkins_password
     :sign-releases false })
 
-(defproject puppetlabs/lein-ezbake "0.3.0-SNAPSHOT"
+(defproject puppetlabs/lein-ezbake lein-ezbake-master-branch-version
   :description "A system for building packages for trapperkeeper-based applications"
   :dependencies [[me.raynes/fs "1.4.6" :exclusions [org.clojure/clojure]]
                  [me.raynes/conch "0.8.0"]
