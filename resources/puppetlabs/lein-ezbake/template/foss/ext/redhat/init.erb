@@ -58,7 +58,7 @@ start() {
     echo -n $"Starting $prog: "
 
     <% EZBake::Config[:redhat][:pre_start_action].each do |action| -%>
-        <%= action %>
+    <%= action %>
     <% end -%>
 
     pushd "${INSTALL_DIR}" &> /dev/null
