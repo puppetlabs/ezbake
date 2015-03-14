@@ -95,6 +95,19 @@
   [dep]
   (format "%s %s" (name (first dep)) (second dep)))
 
+(defn add-dep-hierarchy-to-string!
+  [deps-map sb depth]
+  (doseq [d (keys deps-map)]
+    (dotimes [_ depth]
+      (.append sb "   "))
+    (.append sb d)
+    (.append sb "\n")
+    (when (deps-map d)
+      (add-dep-hierarchy-to-string!
+        (deps-map d)
+        sb
+        (inc depth)))))
+
 (defn add-stream-from-jar-to-map
   [lein-project file-path acc dep]
   (let [jar-file (find-maven-jar-file dep lein-project)]
@@ -148,6 +161,17 @@
   [lein-project]
   (let [deps (get-relevant-deps lein-project)]
     (str/join "," (map get-manifest-string deps))))
+
+(defn generate-dependency-tree-string
+  [lein-project]
+  (let [sb (StringBuilder.)]
+    (-> (aether/dependency-hierarchy
+          (:dependencies lein-project)
+          (aether/resolve-dependencies
+            :coordinates (:dependencies lein-project)
+            :repositories (:repositories lein-project)))
+        (add-dep-hierarchy-to-string! sb 0))
+    (.toString sb)))
 
 (defn cp-files-of-type
   [lein-project file-type-desc file-prefix out-dir-fn]

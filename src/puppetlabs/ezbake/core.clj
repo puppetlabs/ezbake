@@ -1,5 +1,5 @@
 (ns puppetlabs.ezbake.core
-  (:import (java.io File InputStreamReader)
+  (:import (java.io File)
            (java.util.jar JarEntry))
   (:require [me.raynes.fs :as fs]
             [clojure.java.io :as io]
@@ -146,12 +146,17 @@ This package was built by the Puppet Labs packaging system.
 EZBake version: %s
 Release package: %s/%s (%s)
 Bundled packages: %s
+
+Dependency tree:
+
+%s
 "
             (get-ezbake-sha)
             (:group lein-project)
             (:name lein-project)
             (:version lein-project)
-            (deputils/generate-manifest-string lein-project))))
+            (deputils/generate-manifest-string lein-project)
+            (deputils/generate-dependency-tree-string lein-project))))
 
 (defn- get-cli-app-files-in
   [jar]
