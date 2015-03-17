@@ -169,7 +169,8 @@
           (:dependencies lein-project)
           (aether/resolve-dependencies
             :coordinates (:dependencies lein-project)
-            :repositories (:repositories lein-project)))
+            :repositories (:repositories lein-project)
+            :local-repo (:local-repo lein-project)))
         (add-dep-hierarchy-to-string! sb 0))
     (.toString sb)))
 
