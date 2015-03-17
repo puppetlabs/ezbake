@@ -32,7 +32,8 @@
   {:post [(instance? JarFile %)]}
   (-> (aether/resolve-artifacts
         :coordinates [coords]
-        :repositories (:repositories lein-project))
+        :repositories (:repositories lein-project)
+        :local-repo (:local-repo lein-project))
       first
       meta
       :file
