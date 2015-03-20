@@ -1,3 +1,7 @@
+## 0.2.6
+ * Feature: Add a full lein dependency tree to the ezbake.manifest file that is
+   included in packages. 
+
 ## 0.2.5
  * Bugfix: Foreground script now attempts to use the runuser command to switch
    to the service user if it's available. Otherwise su or sudo are used.
