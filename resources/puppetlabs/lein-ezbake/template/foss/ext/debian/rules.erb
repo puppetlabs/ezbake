@@ -4,7 +4,7 @@ include /usr/share/cdbs/1/rules/debhelper.mk
 
 SHELL := /bin/bash
 BUILD_ROOT=$(CURDIR)/debian/$(cdbs_curpkg)
-rubylibdir=$(shell ruby -rrbconfig -e "puts RbConfig::CONFIG['vendordir']")
+rubylibdir=/opt/puppetlabs/puppet/lib/ruby/vendor_ruby
 DIST := $(shell lsb_release -i | awk '{print tolower($$3)}')
 RELEASE := $(shell lsb_release -r | awk '{print $$2}')
 export DESTDIR=$(BUILD_ROOT)
