@@ -9,10 +9,10 @@ DIST := $(shell lsb_release -i | awk '{print tolower($$3)}')
 RELEASE := $(shell lsb_release -r | awk '{print $$2}')
 export DESTDIR=$(BUILD_ROOT)
 export prefix=/usr
-export bindir=/usr/bin
+export bindir=/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin
 export rubylibdir
 export confdir=/etc
-export datadir=$(prefix)/share
+export datadir=/opt/puppetlabs/server/data/<%= EZBake::Config[:project] %>
 export localstatedir=/var
 export sharedstatedir=/var/lib
 export realname=<%= EZBake::Config[:real_name] %>
