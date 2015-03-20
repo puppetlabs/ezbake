@@ -14,9 +14,9 @@ COMMAND="${JAVA_BIN} ${JAVA_ARGS} ${LOG_APPENDER} \
 pushd "${INSTALL_DIR}" &> /dev/null
 if [ "$EUID" = "0" ] && command -v runuser &> /dev/null; then
   runuser "${USER}" -s /bin/bash -c "$COMMAND"
-elif command -v sudo &> /dev/null; then
-  sudo -u "${USER}" $COMMAND
+elif command -v su &> /dev/null; then
+  su "${USER}" -s /bin/bash -c "exec $COMMAND"
 else
-  su "${USER}" -s /bin/bash -c "$COMMAND"
+  sudo -u "${USER}" $COMMAND
 fi
 popd &> /dev/null
