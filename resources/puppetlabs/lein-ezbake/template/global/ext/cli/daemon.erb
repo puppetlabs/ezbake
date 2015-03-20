@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# This script is intended to provide a convenient way to start the main daemon
+# process for the service.  This is necessary because the command line
+# arguments can get nested so heavily that it becomes difficult  to start the
+# daemon and capture daemon output logging on STDERR and STDOUT.
+#
+# This subcommand is expected to be called by the service management framework.
+# The service framework is expected to handle management of the user.  This
+# subcommand is expected to handle management of the daemon log file and
+# directing output to the daemon log.
+
+set -u
+
+COMMAND="${JAVA_BIN} ${JAVA_ARGS}\
+  -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> \
+  clojure.main -m puppetlabs.trapperkeeper.main \
+  --config ${CONFIG} --bootstrap-config ${BOOTSTRAP_CONFIG}"
+
+cd "${INSTALL_DIR}"
+exec $COMMAND "$@" > /var/log/puppetlabs/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1
