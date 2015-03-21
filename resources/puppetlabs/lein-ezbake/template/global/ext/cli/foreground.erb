@@ -15,7 +15,7 @@ pushd "${INSTALL_DIR}" &> /dev/null
 if [ "$EUID" = "0" ] && command -v runuser &> /dev/null; then
   runuser "${USER}" -s /bin/bash -c "$COMMAND"
 elif command -v su &> /dev/null; then
-  su "${USER}" -s /bin/bash -c "exec $COMMAND"
+  su "${USER}" -s /bin/bash -c "$COMMAND"
 else
   sudo -u "${USER}" $COMMAND
 fi
