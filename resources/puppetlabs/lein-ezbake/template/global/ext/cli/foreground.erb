@@ -26,9 +26,13 @@ elif [ "$EUID" = "0" ]; then
     sudo -u "${USER}" $COMMAND
   fi
 else
-  echo "ERROR: This shell is not running as root or $USER" >&2
-  echo "Cannot switch over to $USER, please start puppetserver foreground" >&2
-  echo "from a root or $USER shell." >&2
+  echo "ERROR: Cannot start puppetserver from this shell, running as $LOGNAME" 1>&2
+  echo "When running as $LOGNAME puppetserver cannot switch users to $USER" 1>&2
+  echo "To proceed please try again from a shell running as root or $USER" 1>&2
+  echo "" 1>&2
+  echo "For example:" 1>&2
+  echo "    sudo -H -u $USER /opt/puppetlabs/bin/puppetserver foreground" 1>&2
+
   exit 1
 fi
 popd &> /dev/null
