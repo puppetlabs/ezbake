@@ -1,5 +1,5 @@
 (ns puppetlabs.ezbake.core
-  (:import (java.io File InputStreamReader)
+  (:import (java.io File)
            (java.util.jar JarEntry))
   (:require [me.raynes.fs :as fs]
             [clojure.java.io :as io]
@@ -80,13 +80,13 @@
   (let [iter (fs/iterate-dir dir)]
     (mapcat files-from-dir-iter iter)))
 
-(defn get-ezbake-sha
-  "Get the commit SHA of the current ezbake working copy, plus an asterisk if the
-  working tree is dirty."
-  []
-  (let [sha     (str/trim (:out (exec/exec "git" "rev-parse" "HEAD")))
-        dirty?  (not= "" (str/trim (:out (exec/exec "git" "diff" "--shortstat"))))]
-    (str sha (if dirty? "*" ""))))
+(defn get-ezbake-version
+  "Get the version number of the ezbake plugin being used for this build."
+  [lein-project]
+  (->> (:plugins lein-project)
+       (filter #(= 'puppetlabs/lein-ezbake (first %)))
+       first
+       second))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; General Staging Helper functions
@@ -146,12 +146,17 @@ This package was built by the Puppet Labs packaging system.
 EZBake version: %s
 Release package: %s/%s (%s)
 Bundled packages: %s
+
+Dependency tree:
+
+%s
 "
-            (get-ezbake-sha)
+            (get-ezbake-version lein-project)
             (:group lein-project)
             (:name lein-project)
             (:version lein-project)
-            (deputils/generate-manifest-string lein-project))))
+            (deputils/generate-manifest-string lein-project)
+            (deputils/generate-dependency-tree-string lein-project))))
 
 (defn- get-cli-app-files-in
   [jar]
