@@ -6,3 +6,4 @@ pom.xml
 .lein-deps-sum
 target
 /template/ext/packaging
+.nrepl-port
