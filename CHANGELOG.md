@@ -10,6 +10,10 @@ This release contains bug fixes and AIO path changes.
  * (SERVER-369) Update ezbake to use new AIO directories (2eb3628)
  * (SERVER-387) Update to AIO server confdir layout (ee0a593)
 
+## 0.2.6
+ * Feature: Add a full lein dependency tree to the ezbake.manifest file that is
+   included in packages.
+
 ## 0.2.5
  * Bugfix: Foreground script now attempts to use the runuser command to switch
    to the service user if it's available. Otherwise su or sudo are used.
