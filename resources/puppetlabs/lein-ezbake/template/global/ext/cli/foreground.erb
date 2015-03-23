@@ -12,11 +12,27 @@ COMMAND="${JAVA_BIN} ${JAVA_ARGS} ${LOG_APPENDER} \
          ${@}"
 
 pushd "${INSTALL_DIR}" &> /dev/null
-if [ "$EUID" = "0" ] && command -v runuser &> /dev/null; then
-  runuser "${USER}" -s /bin/bash -c "$COMMAND"
-elif command -v sudo &> /dev/null; then
-  sudo -u "${USER}" $COMMAND
+
+# USER is bound to the user puppetserver should run as in default or cli-app.
+# USER in this context is not following Unix convention of being set to LOGNAME
+if [ "$LOGNAME" = "$USER" ]; then
+  $COMMAND
+elif [ "$EUID" = "0" ]; then
+  if command -v runuser &> /dev/null; then
+    runuser "${USER}" -s /bin/bash -c "$COMMAND"
+  elif command -v su &> /dev/null; then
+    su "${USER}" -s /bin/bash -c "$COMMAND"
+  else
+    sudo -u "${USER}" $COMMAND
+  fi
 else
-  su "${USER}" -s /bin/bash -c "$COMMAND"
+  echo "ERROR: Cannot start puppetserver from this shell, running as $LOGNAME" 1>&2
+  echo "When running as $LOGNAME puppetserver cannot switch users to $USER" 1>&2
+  echo "To proceed please try again from a shell running as root or $USER" 1>&2
+  echo "" 1>&2
+  echo "For example:" 1>&2
+  echo "    sudo -H -u $USER /opt/puppetlabs/bin/puppetserver foreground" 1>&2
+
+  exit 1
 fi
 popd &> /dev/null
