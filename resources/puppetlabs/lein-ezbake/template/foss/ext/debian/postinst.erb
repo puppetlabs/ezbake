@@ -1,3 +1,3 @@
 #!/bin/sh
 
-/usr/share/<%= EZBake::Config[:real_name] -%>/scripts/install.sh postinst_deb
+exec "/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] -%>/scripts/install.sh" postinst_deb

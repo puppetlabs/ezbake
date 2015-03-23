@@ -31,10 +31,6 @@ PIDFILE=/var/run/puppetlabs/$NAME/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 START_TIMEOUT=${START_TIMEOUT:-60}
 
-JAVA_ARGS="${JAVA_ARGS} -cp '${INSTALL_DIR}/${JARFILE}' clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b '${BOOTSTRAP_CONFIG}'"
-EXTRA_ARGS="--chuid $USER --background --make-pidfile"
-EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/$NAME -Djava.security.egd=/dev/urandom $JAVA_ARGS"
-
 # Exit if the package is not installed
 [ -x "$JAVA_BIN" ] || exit 0
 
@@ -60,8 +56,12 @@ do_start()
       chown -R $USER:$GROUP /var/run/puppetlabs/$NAME
     fi
 
-    start-stop-daemon --start $EXTRA_ARGS --quiet --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
-        --startas /bin/bash -- -c "exec $EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1"
+    start-stop-daemon \
+      --start --chuid $USER:$GROUP \
+      --background --make-pidfile --pidfile "$PIDFILE" \
+      --chdir "$INSTALL_DIR" \
+      --exec "$JAVA_BIN" \
+      --startas "$INSTALL_DIR/bin/$NAME" -- daemon
     retval=$?
 
     if [ "$retval" -ne 0 ] \
