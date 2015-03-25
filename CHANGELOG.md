@@ -1,3 +1,9 @@
+## 0.3.1
+ * Feature: Add a full lein dependency tree to the ezbake.manifest file that is
+   included in packages.
+ * Feature: Support for Fedora 21 as a build target.
+ * Bugfix: Update to AIO layout for debian7, ubuntu1404, ubuntu1204 platforms.
+
 ## 0.3.0
 This release contains bug fixes and AIO path changes.
 
