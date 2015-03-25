@@ -61,7 +61,7 @@ do_start()
     fi
 
     start-stop-daemon --start $EXTRA_ARGS --quiet --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
-        --startas /bin/bash -- -c "exec $EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1"
+      --startas /bin/bash -- -c "exec $EXEC >> /var/log/puppetlabs/${NAME}/${NAME}-daemon.log 2>&1"
     retval=$?
 
     if [ "$retval" -ne 0 ] \
