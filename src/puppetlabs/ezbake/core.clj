@@ -423,7 +423,8 @@ Dependency tree:
                               (:description lein-project)
                               (deputils/generate-manifest-string lein-project))
        :uberjar-name  (:uberjar-name lein-project)
-       :is-pe-build   (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))})))
+       :is-pe-build   (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))
+       :repo-name     (format "%s" (get-local-ezbake-var lein-project :repo-target ""))})))
 
 (defmulti action
   (fn [action & args] action))
