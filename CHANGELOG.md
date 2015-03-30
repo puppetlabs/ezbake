@@ -1,3 +1,6 @@
+## 0.3.2
+ * (EZ-34) Allow ezbake to set apt/yum repo_name to ship to alternate repos
+
 ## 0.3.1
  * Feature: Add a full lein dependency tree to the ezbake.manifest file that is
    included in packages.
