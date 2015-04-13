@@ -1,3 +1,8 @@
+## 0.2.7
+ * Add 'Should-Start' LSB headers to SUSE and EL init script templates
+ * Add Fedora 21 build target
+ * Remove Fedora 19 build target
+
 ## 0.2.6
  * Feature: Add a full lein dependency tree to the ezbake.manifest file that is
    included in packages. 
