@@ -1,3 +1,6 @@
+## 0.3.3
+ * Remove Fedora 19 build target
+
 ## 0.3.2
  * (EZ-34) Allow ezbake to set apt/yum repo_name to ship to alternate repos
 
