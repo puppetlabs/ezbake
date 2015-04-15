@@ -17,7 +17,12 @@
 %global _app_prefix /opt/puppetlabs/server/apps/<%= EZBake::Config[:project] %>
 %global _app_data /opt/puppetlabs/server/data/<%= EZBake::Config[:project] %>
 
+# java 1.8.0 is available starting in fedora 20 and el 6
+%if 0%{?fedora} >= 20 || 0%{?rhel} >= 6
+%global open_jdk          java-1.8.0-openjdk-headless
+%else
 %global open_jdk          java-1.7.0-openjdk
+%endif
 
 %if 0%{?fedora} >= 17 || 0%{?rhel} >= 7
 %global rubylibdir        %(ruby -rrbconfig -e "puts Config::CONFIG['vendorlibdir']")
