@@ -1,3 +1,7 @@
+## 0.2.8
+ * Fix copy-paste error in EL init script template
+ * Use templated :start_timeout value in Debian init scripts.
+
 ## 0.2.7
  * Add 'Should-Start' LSB headers to SUSE and EL init script templates
  * Add Fedora 21 build target
