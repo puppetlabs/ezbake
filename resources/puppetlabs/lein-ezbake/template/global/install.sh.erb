@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
 set -e
-set -x
+
+if [ -n "${EZ_VERBOSE}" ]; then
+    set -x
+fi
 
 # Warning: This variable API is experimental so these variables may be subject
 # to change in the future.
@@ -21,16 +24,18 @@ localstatedir=${localstatedir:=/var}
 # EZBake Vars    #
 ##################
 
-set +x
-echo "#-------------------------------------------------#"
-echo "The following variables are set: "
-echo
-env | sort
+if [ -n "${EZ_VERBOSE}" ]; then
+    set +x
+    echo "#-------------------------------------------------#"
+    echo "The following variables are set: "
+    echo
+    env | sort
 
-echo
-echo "End of variable print."
-echo "#-------------------------------------------------#"
-set -x
+    echo
+    echo "End of variable print."
+    echo "#-------------------------------------------------#"
+    set -x
+fi
 
 ##################
 # Task functions #
@@ -283,16 +288,23 @@ function task_logrotate_legacy {
 # Misc functions #
 ##################
 
+# Print output only if EZ_VERBOSE is set
+function debug_echo {
+    if [ -n "${EZ_VERBOSE}" ]; then
+        echo $@
+    fi
+}
+
 # Do basic OS detection using facter.
 function osdetection {
     OSFAMILY=`facter osfamily`
     MAJREV=`facter operatingsystemmajrelease`
 
-    echo "OS Detection results"
-    echo
-    echo "OSFAMILY: ${OSFAMILY}"
-    echo "MAJREV: ${MAJREV}"
-    echo
+    debug_echo "OS Detection results"
+    debug_echo
+    debug_echo "OSFAMILY: ${OSFAMILY}"
+    debug_echo "MAJREV: ${MAJREV}"
+    debug_echo
 }
 
 # Run a task
@@ -301,7 +313,7 @@ function osdetection {
 function task {
     local task=$1
     shift
-    echo "Running task ${task} ..."
+    debug_echo "Running task ${task} ..."
     eval task_$task $@
 }
 
