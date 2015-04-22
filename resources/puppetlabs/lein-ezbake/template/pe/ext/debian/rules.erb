@@ -15,6 +15,7 @@ export confdir=/etc/puppetlabs
 export datadir=$(prefix)/share
 export sharedstatedir=/var/lib
 export realname=<%= EZBake::Config[:real_name] %>
+export EZ_VERBOSE=1
 
 install/<%= EZBake::Config[:project] %>::
 	bash install.sh install_deb
