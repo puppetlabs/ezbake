@@ -22,6 +22,15 @@ This release contains bug fixes and AIO path changes.
  * (SERVER-369) Update ezbake to use new AIO directories (2eb3628)
  * (SERVER-387) Update to AIO server confdir layout (ee0a593)
 
+## 0.2.8
+ * Fix copy-paste error in EL init script template
+ * Use templated :start_timeout value in Debian init scripts.
+
+## 0.2.7
+ * Add 'Should-Start' LSB headers to SUSE and EL init script templates
+ * Add Fedora 21 build target
+ * Remove Fedora 19 build target
+
 ## 0.2.6
  * Feature: Add a full lein dependency tree to the ezbake.manifest file that is
    included in packages.
