@@ -31,7 +31,7 @@ DESC="<%= EZBake::Config[:project] %> Puppet Labs version-checking backend"
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
-START_TIMEOUT=${START_TIMEOUT:-60}
+START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 JAVA_ARGS="${JAVA_ARGS} -cp '${INSTALL_DIR}/${JARFILE}' clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b '${BOOTSTRAP_CONFIG}'"
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"

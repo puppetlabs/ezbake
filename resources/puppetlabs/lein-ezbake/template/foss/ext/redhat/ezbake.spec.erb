@@ -110,21 +110,21 @@ Contains terminus for:
 %install
 
 rm -rf $RPM_BUILD_ROOT
-env DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} localstatedir=%{_localstatedir} rubylibdir=%{rubylibdir} bash install.sh install_redhat
+env EZ_VERBOSE=1 DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} localstatedir=%{_localstatedir} rubylibdir=%{rubylibdir} bash install.sh install_redhat
 %if %{_with_systemd}
-env DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} defaultsdir=%{_sysconfdir}/sysconfig unitdir=%{_unitdir} bash install.sh systemd_redhat
+env EZ_VERBOSE=1 DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} defaultsdir=%{_sysconfdir}/sysconfig unitdir=%{_unitdir} bash install.sh systemd_redhat
 %else
-env DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} defaultsdir=%{_sysconfdir}/sysconfig initdir=%{_initrddir} bash install.sh sysv_init_redhat
+env EZ_VERBOSE=1 DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} defaultsdir=%{_sysconfdir}/sysconfig initdir=%{_initrddir} bash install.sh sysv_init_redhat
 %endif
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7 || 0%{?sles_version} >= 12
-env DESTDIR=%{buildroot} confdir=%{_sysconfdir} bash install.sh logrotate
+env EZ_VERBOSE=1 DESTDIR=%{buildroot} confdir=%{_sysconfdir} bash install.sh logrotate
 %else
-env DESTDIR=%{buildroot} confdir=%{_sysconfdir} bash install.sh logrotate_legacy
+env EZ_VERBOSE=1 DESTDIR=%{buildroot} confdir=%{_sysconfdir} bash install.sh logrotate_legacy
 %endif
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
-env DESTDIR=%{buildroot} rubylibdir=%{rubylibdir} prefix=%{_prefix} bash install.sh termini
+env EZ_VERBOSE=1 DESTDIR=%{buildroot} rubylibdir=%{rubylibdir} prefix=%{_prefix} bash install.sh termini
 <% end -%>
 
 %clean
