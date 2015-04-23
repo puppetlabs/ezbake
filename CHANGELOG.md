@@ -1,3 +1,7 @@
+## 0.2.9
+ * Bugfix: Quiet install.sh debug output by default (can be overridden by
+   setting EZ_VERBOSE). It is still enabled for package builds.
+
 ## 0.2.8
  * Fix copy-paste error in EL init script template
  * Use templated :start_timeout value in Debian init scripts.
@@ -9,7 +13,7 @@
 
 ## 0.2.6
  * Feature: Add a full lein dependency tree to the ezbake.manifest file that is
-   included in packages. 
+   included in packages.
 
 ## 0.2.5
  * Bugfix: Foreground script now attempts to use the runuser command to switch
