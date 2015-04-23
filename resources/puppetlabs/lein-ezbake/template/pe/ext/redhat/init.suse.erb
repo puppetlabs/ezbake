@@ -41,6 +41,7 @@ JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 JAVA_ARGS="${JAVA_ARGS} -cp ${INSTALL_DIR}/${JARFILE} clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b ${BOOTSTRAP_CONFIG}"
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile="/var/lock/subsys/${prog}"
+EXEC="${JAVA_BIN} -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog} -Djava.security.egd=/dev/urandom ${JAVA_ARGS}"
 PIDFILE="/var/run/${prog}/${prog}.pid"
 LOGFILE="/var/log/${prog}/${prog}.log"
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
@@ -68,6 +69,7 @@ start() {
     <% end -%>
 
     export HOME="$(getent passwd ${USER} | cut -d':' -f6)"
+<<<<<<< HEAD:resources/puppetlabs/lein-ezbake/template/pe/ext/redhat/init.suse.erb
     # startproc will change users, so make sure that user has permission
     # to access the present working directory.
     cd "${INSTALL_DIR}"
@@ -115,6 +117,16 @@ start() {
         echo
         return 1
     fi
+
+    <% if not EZBake::Config[:redhat][:post_start_action].empty? -%>
+    if [ "${retval}" -eq 0 ]; then
+    <% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
+        <%= action %>
+    <% end -%>
+    fi
+    <% end -%>
+
+    return $retval
 }
 
 stop() {
@@ -145,14 +157,13 @@ restart() {
 }
 
 sl_status_q() {
-  sl_status > /dev/null 2>&1
+    sl_status > /dev/null 2>&1
 }
 
 sl_status() {
     checkproc -p "${PIDFILE}" -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog}" "${JAVA_ARGS}"
     rc_status -v
 }
-
 
 case "$1" in
     start)
