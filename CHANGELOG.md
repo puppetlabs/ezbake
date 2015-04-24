@@ -1,16 +1,27 @@
-## 0.3.3
+## 0.3.4 - 2015-04-24
+ * Bugfix: Quiet install.sh debug output by default (can be overridden by
+   setting EZ_VERBOSE). It is still enabled for package builds.
+ * Update FOSS debian templates to allow the use java 8 if java 7 is not
+   available
+ * Add Ubuntu Utopic, Debian Jessie as build targets by default
+ * Add 'Should-Start' LSB headers to SUSE and EL init script templates
+ * Add Fedora 21 build target
+ * Fix copy-paste error in EL init script template
+ * Use templated :start_timeout value in Debian init scripts.
+
+## 0.3.3 - 2015-04-15
  * Remove Fedora 19 build target
 
-## 0.3.2
+## 0.3.2 - 2015-03-30
  * (EZ-34) Allow ezbake to set apt/yum repo_name to ship to alternate repos
 
-## 0.3.1
+## 0.3.1 - 2015-03-25
  * Feature: Add a full lein dependency tree to the ezbake.manifest file that is
    included in packages.
  * Feature: Support for Fedora 21 as a build target.
  * Bugfix: Update to AIO layout for debian7, ubuntu1404, ubuntu1204 platforms.
 
-## 0.3.0
+## 0.3.0 - 2015-03-12
 This release contains bug fixes and AIO path changes.
 
  * (SERVER-358) Update owner/group of the pid dir and add data dir (599d733)
