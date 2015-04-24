@@ -1,3 +1,14 @@
+## 0.3.4 - 2015-04-24
+ * Bugfix: Quiet install.sh debug output by default (can be overridden by
+   setting EZ_VERBOSE). It is still enabled for package builds.
+ * Update FOSS debian templates to allow the use java 8 if java 7 is not
+   available
+ * Add Ubuntu Utopic, Debian Jessie as build targets by default
+ * Add 'Should-Start' LSB headers to SUSE and EL init script templates
+ * Add Fedora 21 build target
+ * Fix copy-paste error in EL init script template
+ * Use templated :start_timeout value in Debian init scripts.
+
 ## 0.3.3 - 2015-04-15
  * Remove Fedora 19 build target
 
