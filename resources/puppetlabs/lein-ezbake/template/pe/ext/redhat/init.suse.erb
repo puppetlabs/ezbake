@@ -25,6 +25,7 @@
 [ -e /lib/lsb/init-functions ] && . /lib/lsb/init-functions
 
 prog="<%= EZBake::Config[:project] %>"
+realname="<%= EZBake::Config[:real_name] %>"
 
 ##########################################
 #  You should not have to edit this init script.
@@ -41,8 +42,8 @@ JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 JAVA_ARGS="${JAVA_ARGS} -cp ${INSTALL_DIR}/${JARFILE} clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b ${BOOTSTRAP_CONFIG}"
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile="/var/lock/subsys/${prog}"
-PIDFILE="/var/run/${prog}/${prog}.pid"
-LOGFILE="/var/log/${prog}/${prog}.log"
+PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
+LOGFILE="/var/log/puppetlabs/${realname}/${realname}.log"
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 # First reset status of this service
@@ -50,8 +51,8 @@ rc_reset
 
 print_service_pid() {
     local pid
-    if [ ! -d  "/var/run/${prog}" ] ; then
-        install --owner "${USER}" --group "${USER}" --directory "/var/run/${prog}"
+    if [ ! -d  "/var/run/puppetlabs/${realname}" ] ; then
+        install --owner "${USER}" --group "${USER}" --directory "/var/run/puppetlabs/${realname}"
     fi
     pid="$(pgrep -f "${JAVA_BIN}.*${JARFILE}")"
     echo -n "${pid}"
@@ -71,7 +72,7 @@ start() {
     # startproc will change users, so make sure that user has permission
     # to access the present working directory.
     cd "${INSTALL_DIR}"
-    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog}" -Djava.security.egd=/dev/urandom ${JAVA_ARGS}
+    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/puppetlabs/${realname}" -Djava.security.egd=/dev/urandom ${JAVA_ARGS}
     rc_status -v
     retval=$?
 
@@ -123,7 +124,7 @@ stop() {
         print_service_pid > "${PIDFILE}"
     fi
 
-    killproc -p "${PIDFILE}" -t"${SERVICE_STOP_RETRIES}"s -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog}" "${JAVA_ARGS}"
+    killproc -p "${PIDFILE}" -t"${SERVICE_STOP_RETRIES}"s -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/puppetlabs/${realname}" "${JAVA_ARGS}"
     rc_status -v
     retval=$?
 
@@ -149,7 +150,7 @@ sl_status_q() {
 }
 
 sl_status() {
-    checkproc -p "${PIDFILE}" -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog}" "${JAVA_ARGS}"
+    checkproc -p "${PIDFILE}" -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/puppetlabs/${realname}" "${JAVA_ARGS}"
     rc_status -v
 }
 

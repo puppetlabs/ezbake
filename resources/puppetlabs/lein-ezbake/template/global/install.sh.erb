@@ -239,7 +239,7 @@ function task_preinst_redhat {
 function task_preinst_deb {
     # Create the "<%= EZBake::Config[:user] %>" user
     if ! getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
-        adduser --quiet --system --group --home ${datadir}/<%= EZBake::Config[:project] %>  \
+        adduser --quiet --system --group --home "${app_data}"  \
         --no-create-home                                 \
         --gecos "<%= EZBake::Config[:project] %> daemon" \
         <%= EZBake::Config[:user] %> ; \
@@ -276,8 +276,8 @@ function task_postinst_redhat {
 # during package based installation, as this is done by the RPM itself
 # by the %files definitions
 function task_postinst_permissions {
-    chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> /var/log/puppetlabs/<%= EZBake::Config[:project] %>
-    chmod 700 /var/log/puppetlabs/<%= EZBake::Config[:project] %>
+    chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> /var/log/puppetlabs/<%= EZBake::Config[:real_name] %>
+    chmod 700 /var/log/puppetlabs/<%= EZBake::Config[:real_name] %>
     chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> $app_data
     chmod 775 $app_data
 <% if EZBake::Config[:create_varlib] -%>

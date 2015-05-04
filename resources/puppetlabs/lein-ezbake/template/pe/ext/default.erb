@@ -3,14 +3,14 @@
 ###########################################
 
 # Location of your Java binary (version 7 or higher)
-JAVA_BIN="/opt/puppet/bin/java"
+JAVA_BIN="/opt/puppetlabs/server/bin/java"
 
 # Modify this if you'd like to change the memory allocation, enable JMX, etc
 JAVA_ARGS="<%= EZBake::Config[:java_args] %>"
 
 # These normally shouldn't need to be edited if using OS packages
 USER="<%= EZBake::Config[:user] %>"
-INSTALL_DIR="/opt/puppet/share/<%= EZBake::Config[:real_name] %>"
+INSTALL_DIR="/opt/puppetlabs/apps/<%= EZBake::Config[:real_name] %>/share/"
 CONFIG="/etc/puppetlabs/<%= EZBake::Config[:real_name] %>/conf.d"
 BOOTSTRAP_CONFIG="/etc/puppetlabs/<%= EZBake::Config[:real_name] %>/bootstrap.cfg"
 SERVICE_STOP_RETRIES=60
