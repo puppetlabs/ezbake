@@ -2,8 +2,8 @@
 
 case "$1" in
     purge)
-        # Remove <%= EZBake::Config[:project] %> log files
-        rm -rf /var/log/<%= EZBake::Config[:project] %>
+        # Remove <%= EZBake::Config[:real_name] %> log files
+        rm -rf /var/log/puppetlabs/<%= EZBake::Config[:real_name] %>
         ;;
     remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
         ;;
