@@ -10,7 +10,7 @@ JAVA_ARGS="<%= EZBake::Config[:java_args] %>"
 
 # These normally shouldn't need to be edited if using OS packages
 USER="<%= EZBake::Config[:user] %>"
-INSTALL_DIR="/opt/puppetlabs/apps/<%= EZBake::Config[:real_name] %>"
+INSTALL_DIR="/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>"
 CONFIG="/etc/puppetlabs/<%= EZBake::Config[:real_name] %>/conf.d"
 BOOTSTRAP_CONFIG="/etc/puppetlabs/<%= EZBake::Config[:real_name] %>/bootstrap.cfg"
 SERVICE_STOP_RETRIES=60
