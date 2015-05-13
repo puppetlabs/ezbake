@@ -8,7 +8,7 @@ packager: 'puppet'
 gpg_key: '4BD6EC30'
 sign_tar: FALSE
 # a space separated list of mock configs
-final_mocks: 'pupent-3.7-el6-x86_64 pupent-3.7-el7-x86_64'
+final_mocks: 'pupent-el6-x86_64 pupent-el7-x86_64'
 yum_host: 'yum.puppetlabs.com'
 yum_repo_path: '/opt/repository/yum/'
 build_gem: FALSE
