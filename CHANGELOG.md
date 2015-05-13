@@ -1,3 +1,10 @@
+## 0.3.5 - 2015-05-13
+This release updates PE templates for AIO paths
+
+ * Update PE packaging templates to use the AIO paths as specified in 
+   http://git.io/vUXTv
+ * PE packaging templates now depend on 'puppet-agent' where appropriate
+
 ## 0.3.4 - 2015-04-24
  * Bugfix: Quiet install.sh debug output by default (can be overridden by
    setting EZ_VERBOSE). It is still enabled for package builds.
