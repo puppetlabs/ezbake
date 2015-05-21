@@ -1,3 +1,8 @@
+## 0.3.6 - 2015-05-21
+ * Bugfix: Set sudo HOME for foreground
+ * Packaging: Do not build stable or testing for debian
+ * Packaging: Set default cow to precise
+
 ## 0.3.5 - 2015-05-13
 This release updates PE templates for AIO paths
 
