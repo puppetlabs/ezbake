@@ -1,3 +1,8 @@
+## 0.2.10 - 2015-05-21
+ * Bugfix: Set sudo HOME for foreground
+ * Packaging: Do not build stable or testing for debian
+ * Packaging: Set default cow to precise
+
 ## 0.2.9 - 2015-04-23
  * Bugfix: Quiet install.sh debug output by default (can be overridden by
    setting EZ_VERBOSE). It is still enabled for package builds.
