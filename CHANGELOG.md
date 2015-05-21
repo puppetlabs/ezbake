@@ -40,6 +40,11 @@ This release contains bug fixes and AIO path changes.
  * (SERVER-369) Update ezbake to use new AIO directories (2eb3628)
  * (SERVER-387) Update to AIO server confdir layout (ee0a593)
 
+## 0.2.10 - 2015-05-21
+ * Bugfix: Set sudo HOME for foreground
+ * Packaging: Do not build stable or testing for debian
+ * Packaging: Set default cow to precise
+
 ## 0.2.9 - 2015-04-23
  * Bugfix: Quiet install.sh debug output by default (can be overridden by
    setting EZ_VERBOSE). It is still enabled for package builds.
