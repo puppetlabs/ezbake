@@ -1,3 +1,7 @@
+## 0.3.7 - 2015-05-29
+
+ * Packaging: Add Ubuntu Precise and SLES for PE builds
+
 ## 0.3.6 - 2015-05-21
  * Bugfix: Set sudo HOME for foreground
  * Packaging: Do not build stable or testing for debian
