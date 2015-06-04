@@ -1,3 +1,10 @@
+## 0.3.8 - 2015-06-04
+
+ * Packaging: Correct termini install.sh rubylibdir fallback detection for
+   source based builds to work.
+ * Packaging: Make rubylibdir setting in packaging consistent between PE/FOSS
+   and Debian/Redhat.
+
 ## 0.3.7 - 2015-05-29
 
  * Packaging: Add Ubuntu Precise and SLES for PE builds
