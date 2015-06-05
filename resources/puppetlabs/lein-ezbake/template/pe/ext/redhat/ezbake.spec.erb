@@ -267,7 +267,7 @@ fi
 %{_ux_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
 <% end -%>
 %dir %attr(0775, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_data}
-%ghost %attr(0755, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_rundir}
+%dir %attr(0755, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_rundir}
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
 %files termini
