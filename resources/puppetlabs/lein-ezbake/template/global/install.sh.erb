@@ -23,10 +23,11 @@ bindir=${bindir:=/opt/puppetlabs/server/apps/${real_name}/bin}
 uxbindir=${uxbindir:=/opt/puppetlabs/bin}
 # symlinks of server binaries
 symbindir=${symbindir:=/opt/puppetlabs/server/bin}
-localstatedir=${localstatedir:=/var}
 app_prefix=${app_prefix:=/opt/puppetlabs/server/apps/${real_name}}
 app_data=${app_data:=/opt/puppetlabs/server/data/${real_name}}
 app_logdir=${app_logdir:=/var/log/puppetlabs/${real_name}}
+localstatedir=${localstatedir:=${app_data}}
+
 
 ##################
 # EZBake Vars    #
@@ -281,8 +282,8 @@ function task_postinst_permissions {
     chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> $app_data
     chmod 775 $app_data
 <% if EZBake::Config[:create_varlib] -%>
-    chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> /var/lib/<%= EZBake::Config[:project] %>
-    chmod 700 /var/lib/<%= EZBake::Config[:project] %>
+    chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> ${localstatedir}/lib/<%= EZBake::Config[:real_name] %>
+    chmod 700 ${localstatedir}/lib/<%= EZBake::Config[:real_name] %>
 <% end -%>
 <% EZBake::Config[:create_dirs].each do |dir| -%>
     chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> <%= dir %>
