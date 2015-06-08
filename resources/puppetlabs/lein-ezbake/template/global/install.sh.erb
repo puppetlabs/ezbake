@@ -144,7 +144,7 @@ function task_install {
     install -d -m 0755 "${DESTDIR}${rundir}"
     install -d -m 700 "${DESTDIR}${app_logdir}"
 <% if EZBake::Config[:create_varlib] -%>
-    install -d -m 700 "${DESTDIR}${localstatedir}/lib/<%= EZBake::Config[:project] %>"
+    install -d -m 700 "${DESTDIR}${localstatedir}/lib/<%= EZBake::Config[:real_name] %>"
 <% end -%>
 <% EZBake::Config[:create_dirs].each do |dir| -%>
     install -d -m 700 "${DESTDIR}<%= dir %>"
