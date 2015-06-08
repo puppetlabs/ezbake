@@ -242,7 +242,7 @@ fi
 %defattr(-, root, root)
 %dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_logdir}
 <% if EZBake::Config[:create_varlib] -%>
-%dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_localstatedir}/lib/%{name}
+%dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_localstatedir}/lib/%{realname}
 <% end -%>
 <% if File.exists?("ext/docs") -%>
 %doc ext/docs
