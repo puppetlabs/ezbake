@@ -26,7 +26,6 @@ symbindir=${symbindir:=/opt/puppetlabs/server/bin}
 app_prefix=${app_prefix:=/opt/puppetlabs/server/apps/${real_name}}
 app_data=${app_data:=/opt/puppetlabs/server/data/${real_name}}
 app_logdir=${app_logdir:=/var/log/puppetlabs/${real_name}}
-localstatedir=${localstatedir:=${app_data}}
 
 
 ##################
@@ -144,7 +143,7 @@ function task_install {
     install -d -m 0755 "${DESTDIR}${rundir}"
     install -d -m 700 "${DESTDIR}${app_logdir}"
 <% if EZBake::Config[:create_varlib] -%>
-    install -d -m 700 "${DESTDIR}${localstatedir}/lib/<%= EZBake::Config[:real_name] %>"
+    install -d -m 700 "${DESTDIR}${app_data}/lib/<%= EZBake::Config[:real_name] %>"
 <% end -%>
 <% EZBake::Config[:create_dirs].each do |dir| -%>
     install -d -m 700 "${DESTDIR}<%= dir %>"
@@ -282,8 +281,8 @@ function task_postinst_permissions {
     chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> $app_data
     chmod 775 $app_data
 <% if EZBake::Config[:create_varlib] -%>
-    chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> ${localstatedir}/lib/<%= EZBake::Config[:real_name] %>
-    chmod 700 ${localstatedir}/lib/<%= EZBake::Config[:real_name] %>
+    chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> ${app_data}/lib/<%= EZBake::Config[:real_name] %>
+    chmod 700 ${app_data}/lib/<%= EZBake::Config[:real_name] %>
 <% end -%>
 <% EZBake::Config[:create_dirs].each do |dir| -%>
     chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> <%= dir %>

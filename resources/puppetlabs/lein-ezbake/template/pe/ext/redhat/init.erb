@@ -49,7 +49,7 @@ START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 find_my_pid() {
     if [ ! -d  "/var/run/puppetlabs/${realname}" ] ; then
         mkdir -p /var/run/puppetlabs/${realname}
-        chown -R $USER:$USER /var/run/puppetlabs/${realname}
+        chown -R $USER:$GROUP /var/run/puppetlabs/${realname}
     fi
     pid=`ps -ef | grep $JAVA_BIN | grep $JARFILE | awk '{print $2}'`
 }
