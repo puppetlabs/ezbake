@@ -58,7 +58,7 @@ do_start()
     <%= action %>
     <% end -%>
 
-    start-stop-daemon --start $EXTRA_ARGS --quiet --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
+    start-stop-daemon --start $EXTRA_ARGS --quiet --oknodo --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
         --startas /bin/bash -- -c "exec $EXEC >> /var/log/puppetlabs/<%= EZBake::Config[:real_name] %>/<%= EZBake::Config[:real_name] %>-daemon.log 2>&1"
     retval=$?
 
@@ -89,7 +89,7 @@ do_stop()
     #   1 if daemon was already stopped
     #   2 if daemon could not be stopped
     #   other if a failure occurred
-    start-stop-daemon --stop --quiet --retry=TERM/${SERVICE_STOP_RETRIES}/KILL/5 --pidfile $PIDFILE --exec $JAVA_BIN
+    start-stop-daemon --stop --quiet --oknodo --retry=TERM/${SERVICE_STOP_RETRIES}/KILL/5 --pidfile $PIDFILE --exec $JAVA_BIN
     RETVAL="$?"
     [ "$RETVAL" = 2 ] && return 2
     # Many daemons don't delete their pidfiles when they exit.
