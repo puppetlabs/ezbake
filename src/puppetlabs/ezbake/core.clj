@@ -390,6 +390,7 @@ Dependency tree:
                                                                        :create-dirs []))
          :debian-deps               (get-quoted-ezbake-values :debian :dependencies)
          :debian-preinst            (get-quoted-ezbake-values :debian :preinst)
+         :debian-prerm              (get-quoted-ezbake-values :debian :prerm)
          :debian-postinst           (get-quoted-ezbake-values :debian :postinst)
          :debian-install            (get-quoted-ezbake-values :debian :install)
          :debian-pre-start-action   (get-quoted-ezbake-values :debian :pre-start-action)
