@@ -42,11 +42,12 @@ PIDFILE="/var/run/puppetlabs/$prog/$prog"
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 find_my_pid() {
+    pid=`pgrep -f "${JARFILE}"`
     if [ ! -d  "/var/run/puppetlabs/$prog" ] ; then
       mkdir -p /var/run/puppetlabs/$prog
       chown -R $USER:$GROUP /var/run/puppetlabs/$prog
     fi
-    pid=`ps -ef | grep $JAVA_BIN | grep $JARFILE | awk '{print $2}'`
+    echo $pid > $PIDFILE
 }
 
 start() {
@@ -68,7 +69,6 @@ start() {
     sleep 1
     popd &> /dev/null
     find_my_pid
-    echo $pid > $PIDFILE
     [ -s $PIDFILE ] && success $"$base startup" || failure $"$base startup"
     echo
     [ -s $PIDFILE ] && touch $lockfile
@@ -112,6 +112,7 @@ restart() {
 }
 
 rh_status() {
+    find_my_pid
     status -p $PIDFILE $prog
 }
 
