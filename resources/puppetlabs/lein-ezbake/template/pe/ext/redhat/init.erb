@@ -50,7 +50,7 @@ find_my_pid() {
     pid=`pgrep -f "${JARFILE}"`
     if [ ! -d  "/var/run/puppetlabs/${realname}" ] ; then
         mkdir -p /var/run/puppetlabs/${realname}
-        chown -R $USER:$USER /var/run/puppetlabs/${realname}
+        chown -R $USER:$GROUP /var/run/puppetlabs/${realname}
     fi
     echo $pid > $PIDFILE
 }
