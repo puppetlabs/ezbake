@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if [ "$1" = "failed-upgrade" ]; then
+    invoke-rc.d <%= EZBake::Config[:project] -%> stop || :
+else
+    if [ -x "/etc/init.d/<%= EZBake::Config[:project] -%>" ] || [ -e "/etc/init/<%= EZBake::Config[:project] -%>.conf" ]; then
+        invoke-rc.d <%= EZBake::Config[:project] -%> stop || exit $?
+    fi
+fi
