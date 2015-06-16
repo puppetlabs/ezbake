@@ -22,7 +22,7 @@ Description: Puppet Labs <%= EZBake::Config[:project] %>
 <% unless EZBake::Config[:terminus_info].empty? %>
 Package: <%= EZBake::Config[:project] %>-termini
 Architecture: all
-Depends: ${misc:Depends}, puppet
+Depends: ${misc:Depends}, puppet-agent
 Provides: <%=  EZBake::Config[:terminus_info].map {|proj_name, _| "#{proj_name}-terminus"}.join(",") %>
 Replaces: <%=  EZBake::Config[:terminus_info].map {|proj_name, _| "#{proj_name}-terminus"}.join(",") %>
 Conflicts: <%=  EZBake::Config[:terminus_info].map {|proj_name, _| "#{proj_name}-terminus"}.join(",") %>

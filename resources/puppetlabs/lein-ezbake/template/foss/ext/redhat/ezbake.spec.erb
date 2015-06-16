@@ -85,7 +85,7 @@ Requires:         <%= dep %>
 %package termini
 Group: Development/Libraries
 Summary: Termini for <%= EZBake::Config[:project] %>
-Requires: puppet
+Requires: puppet-agent
 <% EZBake::Config[:terminus_info].each do |proj_name, info| -%>
 Obsoletes: <%= proj_name -%>-terminus < <%= info[:version].gsub('-', '.') %>
 Provides:  <%= proj_name -%>-terminus >= <%= info[:version].gsub('-', '.') %>
