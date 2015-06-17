@@ -19,7 +19,7 @@ ExecStartPre=<%= action %>
 ExecStart=/usr/bin/java $JAVA_ARGS \
           '-XX:OnOutOfMemoryError=kill -9 %%p' \
           -XX:+HeapDumpOnOutOfMemoryError \
-          -XX:HeapDumpPath=/var/log/puppetlabs/<%= EZBake::Config[:project] %> \
+          -XX:HeapDumpPath=/var/log/puppetlabs/<%= EZBake::Config[:real_name] %> \
           -Djava.security.egd=/dev/urandom \
           -cp "${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %>" clojure.main \
           -m <%= EZBake::Config[:main_namespace] %> \

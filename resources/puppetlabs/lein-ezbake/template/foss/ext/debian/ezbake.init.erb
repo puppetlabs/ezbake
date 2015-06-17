@@ -25,15 +25,16 @@ fi
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 NAME=<%= EZBake::Config[:project] %>
+REALNAME=<%= EZBake::Config[:real_name] %>
 DESC="<%= EZBake::Config[:project] %> Puppet Labs version-checking backend"
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
-PIDFILE=/var/run/puppetlabs/$NAME/$NAME.pid
+PIDFILE=/var/run/puppetlabs/${REALNAME}/${REALNAME}.pid
 SCRIPTNAME=/etc/init.d/$NAME
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 JAVA_ARGS="${JAVA_ARGS} -cp '${INSTALL_DIR}/${JARFILE}' clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b '${BOOTSTRAP_CONFIG}'"
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"
-EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/puppetlabs/$NAME -Djava.security.egd=/dev/urandom $JAVA_ARGS"
+EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/puppetlabs/${REALNAME} -Djava.security.egd=/dev/urandom $JAVA_ARGS"
 
 # Exit if the package is not installed
 [ -x "$JAVA_BIN" ] || exit 0
@@ -61,7 +62,7 @@ do_start()
     fi
 
     start-stop-daemon --start $EXTRA_ARGS --quiet --oknodo --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
-      --startas /bin/bash -- -c "exec $EXEC >> /var/log/puppetlabs/${NAME}/${NAME}-daemon.log 2>&1"
+      --startas /bin/bash -- -c "exec $EXEC >> /var/log/puppetlabs/${REALNAME}/${REALNAME}-daemon.log 2>&1"
     retval=$?
 
     if [ "$retval" -ne 0 ] \
