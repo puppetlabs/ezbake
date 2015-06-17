@@ -456,15 +456,12 @@ Dependency tree:
     (generate-manifest-file lein-project)
     (create-git-repo lein-project)))
 
-; TODO: make PE_VER either command line or config file driven
 (defmethod action "build"
   [_ lein-project build-target]
   (action "stage" lein-project build-target)
   (exec/exec "rake" "package:bootstrap" :dir staging-dir)
   (let [downstream-job nil
-        rake-call (if (= build-target "foss")
-                    ["rake" "pl:jenkins:uber_build[5]"]
-                    ["rake" "pe:jenkins:uber_build[5]" "PE_VER=3.7"])]
+        rake-call ["rake" "pl:jenkins:uber_build[5]"]]
     (exec/lazy-sh rake-call {:dir staging-dir})))
 
 (defmethod action :default
