@@ -1,3 +1,22 @@
+## 0.3.9 - 2015-06-XX
+
+ * Packaging: Fix varlibdir to use real_name for PE (so its
+   app_data/lib/puppetdb, not app_data/lib/pe-puppetdb)
+ * Packaging: In Debian, ignore service stops for services that are already
+   stopped during upgrade.
+ * Packaging: In Debian, add a prerm section to stop services gracefully on a
+   failed upgrade.
+ * Packaging: Fixed lots of inconsistencies between PE and FOSS, now we are
+   closer then ever.
+ * Packaging: Users were being created using the old FOSS based homedirs.
+ * Packaging: Removal of log files for FOSS during package uninstall removed old
+   non-AIO log file dirs.
+ * Packaging: sharedstatedir and localstatedir were no longer used, app_data is
+   preferred so these have been removed.
+ * Packaging: call install.sh in PE using exec
+ * Packaging: Debian with PE was not using the group to set permissions, default
+   file and init set correctly.
+
 ## 0.3.8 - 2015-06-05
 
  * Packaging: Correct termini install.sh rubylibdir fallback detection for
