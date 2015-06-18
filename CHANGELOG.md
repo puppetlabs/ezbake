@@ -1,4 +1,4 @@
-## 0.3.9 - 2015-06-XX
+## 0.3.9 - 2015-06-18
 
  * Packaging: Fix varlibdir to use real_name for PE (so its
    app_data/lib/puppetdb, not app_data/lib/pe-puppetdb)
@@ -16,6 +16,8 @@
  * Packaging: call install.sh in PE using exec
  * Packaging: Debian with PE was not using the group to set permissions, default
    file and init set correctly.
+ * Packaging: Tighten up permissions on application data directories, no longer
+   world-readable.
 
 ## 0.3.8 - 2015-06-05
 
