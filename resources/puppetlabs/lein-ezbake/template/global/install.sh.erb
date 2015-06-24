@@ -215,20 +215,28 @@ function task_sysv_init_deb {
     install -d -m 0755 "${DESTDIR}${rundir}"
 }
 
+function task_service_account {
+    # Add <%= EZBake::Config[:group] %> group
+    getent group <%= EZBake::Config[:group] %> > /dev/null || \
+        groupadd -r <%= EZBake::Config[:group] %> || :
+    # Add or update <%= EZBake::Config[:user] %> user
+    if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
+        usermod --gid <%= EZBake::Config[:group] %> --home "${app_data}" \
+            --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
+    else
+        useradd -r --gid <%= EZBake::Config[:group] %> --home "${app_data}" --shell $(which nologin) \
+            --comment "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
+    fi
+}
+
 # RPM based pre-installation tasks.
 # Note: Any changes to this section may require synchronisation with the
 # packaging, due to the fact that we can't access this script from the pre
 # section of an rpm/deb.
 function task_preinst_redhat {
-    # Add <%= EZBake::Config[:group] %> group
-    getent group <%= EZBake::Config[:group] %> > /dev/null || \
-           groupadd -r <%= EZBake::Config[:group] %> || :
-    # Add <%= EZBake::Config[:user] %> user
-    getent passwd <%= EZBake::Config[:user] %> > /dev/null || \
-           useradd -r -g <%= EZBake::Config[:group] %> -d "${app_data}" -s /sbin/nologin \
-           -c "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
+    task service_account
 <% EZBake::Config[:redhat][:additional_preinst].each do |preinst| -%>
-   <%= preinst %>
+    <%= preinst %>
 <% end -%>
 }
 
@@ -237,20 +245,7 @@ function task_preinst_redhat {
 # packaging, due to the fact that we can't access this script from the pre
 # section of an rpm/deb.
 function task_preinst_deb {
-    # Create the "<%= EZBake::Config[:user] %>" user
-    if ! getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
-        adduser --quiet --system --group --home "${app_data}"  \
-        --no-create-home                                 \
-        --gecos "<%= EZBake::Config[:project] %> daemon" \
-        <%= EZBake::Config[:user] %> ; \
-    fi
-
-    # Create the "<%= EZBake::Config[:group] %>" group, if it is missing, and set the
-    # primary group of the "<%= EZBake::Config[:user] %>" user to this group.
-    if ! getent group <%= EZBake::Config[:group] %> > /dev/null; then
-        addgroup --quiet --system <%= EZBake::Config[:group] %>; \
-        usermod -g <%= EZBake::Config[:group] %> <%= EZBake::Config[:user] %>; \
-    fi
+    task service_account
 <% EZBake::Config[:debian][:additional_preinst].each do |preinst| -%>
     <%= preinst %>
 <% end -%>

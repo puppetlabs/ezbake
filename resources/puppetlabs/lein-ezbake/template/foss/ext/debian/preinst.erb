@@ -9,15 +9,15 @@ if [ "$1" = install ] || [ "$1" = upgrade ]; then
     #
     # Add <%= EZBake::Config[:group] %> group
     getent group <%= EZBake::Config[:group] %> > /dev/null || \
-      groupadd --system <%= EZBake::Config[:group] %> || :
+      groupadd -r <%= EZBake::Config[:group] %> || :
     # Add <%= EZBake::Config[:user] %> user
     if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
       usermod --gid <%= EZBake::Config[:group] %> \
         --home /opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %> \
         --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
     else
-      useradd --system --gid <%= EZBake::Config[:group] %> \
-        --home /opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>  --shell /sbin/nologin \
+      useradd -r --gid <%= EZBake::Config[:group] %> \
+        --home /opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>  --shell $(which nologin) \
         --comment "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
     fi
 
