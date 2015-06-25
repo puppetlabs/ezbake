@@ -1,8 +1,13 @@
+## 0.3.11 - 2015-06-24
+
+ * Fixes for service account handling on package
+   and source based installations
+ 
 ## 0.3.10 - 2015-06-23
 
  * On package upgrade, update service account information (home dir, 
    group membership, etc) if necessary
-   
+
 ## 0.3.9 - 2015-06-18
 
  * Packaging: Fix varlibdir to use real_name for PE (so its

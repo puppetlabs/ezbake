@@ -134,13 +134,13 @@ rm -rf $RPM_BUILD_ROOT
 #
 # Add <%= EZBake::Config[:group] %> group
 getent group <%= EZBake::Config[:group] %> > /dev/null || \
-  groupadd --system <%= EZBake::Config[:group] %> || :
+  groupadd -r <%= EZBake::Config[:group] %> || :
 # Add <%= EZBake::Config[:user] %> user
 if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
   usermod --gid <%= EZBake::Config[:group] %> --home %{_app_data} \
   --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
 else
-  useradd --system --gid <%= EZBake::Config[:group] %> --home %{_app_data} --shell /sbin/nologin \
+  useradd -r --gid <%= EZBake::Config[:group] %> --home %{_app_data} --shell $(which nologin) \
     --comment "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
 fi
 <% EZBake::Config[:redhat][:additional_preinst].each do |cmd| -%>
