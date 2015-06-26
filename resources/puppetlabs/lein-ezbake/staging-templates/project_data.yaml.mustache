@@ -29,6 +29,8 @@ templates:
     target: ext/{{{project}}}.logrotate.conf
   - source: ext/ezbake.logrotate-legacy.conf.erb
     target: ext/{{{project}}}.logrotate-legacy.conf
+  - source: ext/ezbake.tmpfiles.conf.erb
+    target: ext/{{{project}}}.tmpfiles.conf
   - ext/redhat/init.erb
   - ext/redhat/init.suse.erb
   - ext/debian/changelog.erb
