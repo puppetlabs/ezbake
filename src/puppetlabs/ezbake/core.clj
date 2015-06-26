@@ -404,7 +404,7 @@ Dependency tree:
          :terminus-map              termini
          :replaces-pkgs             (get-local-ezbake-var lein-project :replaces-pkgs [])
          :start-after               (quoted-list (get-local-ezbake-var lein-project :start-after []))
-         :start-timeout             (get-local-ezbake-var lein-project :start-timeout "60")
+         :start-timeout             (get-local-ezbake-var lein-project :start-timeout "180")
          :main-namespace            (get-local-ezbake-var lein-project
                                                           :main-namespace
                                                           "puppetlabs.trapperkeeper.main")
