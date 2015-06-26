@@ -11,6 +11,7 @@ fi
 prefix=${prefix:=/usr}
 initdir=${initdir:=/etc/init.d}
 unitdir=${unitdir:=/usr/lib/systemd/system}
+tmpfilesdir=${tmpfilesdir:=/usr/lib/tmpfiles.d}
 datadir=${datadir:=${prefix}/share}
 real_name=${real_name:=<%= EZBake::Config[:real_name] -%>}
 projdatadir=${projdatadir:=${datadir}/${real_name}}
@@ -204,7 +205,9 @@ function task_sysv_init_suse {
 function task_systemd_redhat {
     task defaults
     install -d -m 0755 "${DESTDIR}${unitdir}"
-    install -m 0755 ext/redhat/<%= EZBake::Config[:project] %>.service "${DESTDIR}${unitdir}/<%= EZBake::Config[:project] %>.service"
+    install -m 0644 ext/redhat/<%= EZBake::Config[:project] %>.service "${DESTDIR}${unitdir}/<%= EZBake::Config[:project] %>.service"
+    install -d -m 0755 "${DESTDIR}${tmpfilesdir}"
+    install -m 0644 ext/<%= EZBake::Config[:project] %>.tmpfiles.conf "${DESTDIR}${tmpfilesdir}/<%= EZBake::Config[:project] %>.conf"
 }
 
 # Install the sysv and defaults configuration for Debian.

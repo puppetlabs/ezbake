@@ -208,6 +208,7 @@ fi
 %{_app_prefix}
 %if %{_with_systemd}
 %{_unitdir}/%{name}.service
+%{_tmpfilesdir}/%{name}.conf
 %else
 %{_initrddir}/%{name}
 %endif
