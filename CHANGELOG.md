@@ -1,7 +1,10 @@
-## 0.3.11 - 2015-06-24
+## 0.3.11 - 2015-06-26
 
  * Fixes for service account handling on package
    and source based installations
+ * Update default startup timeout to 180 seconds
+ * Remove EL-5 as a build target
+ * Add support for systemd tmpfiles.d configs
  
 ## 0.3.10 - 2015-06-23
 
