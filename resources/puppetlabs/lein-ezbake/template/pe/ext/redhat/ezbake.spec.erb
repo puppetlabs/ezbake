@@ -179,6 +179,7 @@ fi
 <% end -%>
 
 %post
+%{_app_prefix}/scripts/install.sh postinst_redhat
 %if %{_with_systemd}
 # Reload the systemd units if this is an upgrade
 if [ "$1" = "2" ]; then
@@ -204,7 +205,6 @@ elif [ "$1" = "2" ]; then
     fi
 fi
 %endif
-%{_app_prefix}/scripts/install.sh postinst_redhat
 
 %preun
 %if %{_systemd_el}
