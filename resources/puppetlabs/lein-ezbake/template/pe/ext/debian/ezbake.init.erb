@@ -58,6 +58,11 @@ do_start()
     <%= action %>
     <% end -%>
 
+    if [ ! -d  "/var/run/puppetlabs/$REALNAME" ] ; then
+      mkdir -p /var/run/puppetlabs/$REALNAME
+      chown -R $USER:$GROUP /var/run/puppetlabs/$REALNAME
+    fi
+
     start-stop-daemon --start $EXTRA_ARGS --quiet --oknodo --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
       --startas /bin/bash -- -c "exec $EXEC >> /var/log/puppetlabs/${REALNAME}/${REALNAME}-daemon.log 2>&1"
     retval=$?
