@@ -222,10 +222,11 @@ fi
 <% end -%>
 <% EZBake::Config[:bin_files].each do |bin_file| -%>
 %{_app_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
+%{_sym_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
+%{_ux_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
 <% end -%>
 %dir %attr(0770, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_data}
-%ghost %attr(0755, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_rundir}
-
+%dir %attr(0755, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_rundir}
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
 %files termini
