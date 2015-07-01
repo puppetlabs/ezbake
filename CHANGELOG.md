@@ -1,3 +1,10 @@
+## 0.3.12 - 2015-07-01
+
+ * Ubuntu PE init script template now creates
+   PID directory correctly
+ * More init script cleanups and synchronizing
+   PE and FOSS templates
+
 ## 0.3.11 - 2015-06-26
 
  * Fixes for service account handling on package
