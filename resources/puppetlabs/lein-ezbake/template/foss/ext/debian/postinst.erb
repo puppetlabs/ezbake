@@ -1,3 +1,15 @@
 #!/bin/sh
 
-exec "/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] -%>/scripts/install.sh" postinst_deb
+/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] -%>/scripts/install.sh postinst_deb
+
+# On upgrade, we should restart the service if it's running
+if [ $1 = 'configure' -a -n $2 ] ; then
+  if [ -x '/etc/init.d/<%= EZBake::Config[:project] %>' ] ; then
+    # Using sysv
+    invoke-rc.d <%= EZBake::Config[:project] %> try-restart || :
+  elif [ -x /bin/systemctl ] ; then
+    # Using systemd
+    systemctl daemon-reload >/dev/null 2>&1 || :
+    systemctl try-restart <%= EZBake::Config[:project] %>.service
+  fi
+fi
