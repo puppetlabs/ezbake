@@ -1,3 +1,9 @@
+## 0.3.13 - 2015-07-06
+
+ * Debian/Ubuntu should now correctly restart the process on upgrade
+   if necessary.
+ * Set the Vendor string in the RPM templates.
+
 ## 0.3.12 - 2015-07-01
 
  * Ubuntu PE init script template now creates
