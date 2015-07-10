@@ -5,7 +5,7 @@
     :password :env/nexus_jenkins_password
     :sign-releases false })
 
-(defproject puppetlabs/lein-ezbake "0.3.14"
+(defproject puppetlabs/lein-ezbake "0.3.15-SNAPSHOT"
   :description "A system for building packages for trapperkeeper-based applications"
   :dependencies [[me.raynes/fs "1.4.6" :exclusions [org.clojure/clojure]]
                  [me.raynes/conch "0.8.0"]
