@@ -1,3 +1,7 @@
+## 0.3.14 - 2015-07-10
+
+ * Do not obsolete/provide with termini packaging for rpms
+
 ## 0.3.13 - 2015-07-06
 
  * Debian/Ubuntu should now correctly restart the process on upgrade
