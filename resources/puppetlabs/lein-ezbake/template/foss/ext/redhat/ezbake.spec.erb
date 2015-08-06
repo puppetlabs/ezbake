@@ -147,11 +147,8 @@ fi
 %post
 %{_app_prefix}/scripts/install.sh postinst_redhat
 %if %{_with_systemd}
-# Reload the systemd units if this is an upgrade
-if [ "$1" = "2" ]; then
-    systemctl daemon-reload >/dev/null 2>&1 || :
-    systemctl try-restart %{name}.service
-fi
+# Reload the systemd units
+systemctl daemon-reload >/dev/null 2>&1 || :
 %systemd_post <%= EZBake::Config[:project] %>.service
 %else
 # If this is an install (as opposed to an upgrade)...
