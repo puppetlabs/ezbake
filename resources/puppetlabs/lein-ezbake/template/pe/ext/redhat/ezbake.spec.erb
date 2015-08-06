@@ -184,6 +184,7 @@ fi
 %if %{_with_systemd}
 # Reload the systemd units
 systemctl daemon-reload >/dev/null 2>&1 || :
+%endif
 %if %{_systemd_el}
 %systemd_post <%= EZBake::Config[:project] %>.service
 %endif
