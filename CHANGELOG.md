@@ -1,3 +1,11 @@
+## 0.3.15 - 2015-08-06
+
+  * RPM scriptlet fixes and cleanups
+  * Fix RPM packaging for arbitrary dirs using create-dirs
+  * Drop unused create-varlib function
+  * Update permissions on ezbake-functions.sh
+  * Stop hardcoding heap dumps in the init scripts
+
 ## 0.3.14 - 2015-07-10
 
  * Do not obsolete/provide with termini packaging for rpms
@@ -22,10 +30,10 @@
  * Update default startup timeout to 180 seconds
  * Remove EL-5 as a build target
  * Add support for systemd tmpfiles.d configs
- 
+
 ## 0.3.10 - 2015-06-23
 
- * On package upgrade, update service account information (home dir, 
+ * On package upgrade, update service account information (home dir,
    group membership, etc) if necessary
 
 ## 0.3.9 - 2015-06-18
@@ -70,7 +78,7 @@
 ## 0.3.5 - 2015-05-13
 This release updates PE templates for AIO paths
 
- * Update PE packaging templates to use the AIO paths as specified in 
+ * Update PE packaging templates to use the AIO paths as specified in
    http://git.io/vUXTv
  * PE packaging templates now depend on 'puppet-agent' where appropriate
 

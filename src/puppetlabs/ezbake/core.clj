@@ -383,9 +383,6 @@ Dependency tree:
          :config-files              (quoted-list (map remove-erb-extension config-files))
          :cli-app-files             (quoted-list (map remove-erb-extension cli-app-files))
          :bin-files                 (quoted-list bin-files)
-         :create-varlib             (str (boolean (get-local-ezbake-var lein-project
-                                                                        :create-varlib
-                                                                        false)))
          :create-dirs               (quoted-list (get-local-ezbake-var lein-project
                                                                        :create-dirs []))
          :debian-deps               (get-quoted-ezbake-values :debian :dependencies)
