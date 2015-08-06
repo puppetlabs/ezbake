@@ -155,12 +155,6 @@ systemctl daemon-reload >/dev/null 2>&1 || :
 if [ "$1" = "1" ]; then
     # Register the <%= EZBake::Config[:project] %> service
     /sbin/chkconfig --add %{name}
-# If this is an upgrade, restart if we are already running
-elif [ "$1" = "2" ]; then
-    if /sbin/service %{name} status > /dev/null 2>&1; then
-        /sbin/service %{name} restart || :
-    fi
-fi
 %endif
 
 %preun
@@ -193,9 +187,6 @@ fi
 %files
 %defattr(-, root, root)
 %dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_logdir}
-<% if EZBake::Config[:create_varlib] -%>
-%dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_data}/lib/%{realname}
-<% end -%>
 <%- EZBake::Config[:create_dirs].each do |dir| -%>
 %dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) <%= dir %>
 <%- end -%>
