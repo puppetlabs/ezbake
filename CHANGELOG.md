@@ -1,3 +1,11 @@
+## 0.3.17 - 2015-08-10
+
+  * Update permissions on ezbake-functions.sh
+
+## 0.3.16 - 2015-08-06
+
+  * Fix typo (unclosed %if) in the PE rpm spec file
+
 ## 0.3.15 - 2015-08-06
 
   * RPM scriptlet fixes and cleanups
