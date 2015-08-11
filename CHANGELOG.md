@@ -1,3 +1,7 @@
+## 0.3.18 - 2015-8-11
+
+  * Fix unterminated 'if' in RPM spec template
+
 ## 0.3.17 - 2015-08-10
 
   * Update permissions on ezbake-functions.sh
