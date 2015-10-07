@@ -22,7 +22,7 @@ PermissionsStartOnly=true
 ExecStartPre=<%= action %>
 <% end -%>
 <% end -%>
-
+ExecReload=/bin/kill -HUP $MAINPID
 ExecStart=/usr/bin/java $JAVA_ARGS \
           '-XX:OnOutOfMemoryError=kill -9 %%p' \
           -Djava.security.egd=/dev/urandom \
