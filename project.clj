@@ -1,12 +1,9 @@
-(defn deploy-info
-  [url]
-  { :url url
-    :username :env/nexus_jenkins_username
-    :password :env/nexus_jenkins_password
-    :sign-releases false })
-
 (defproject puppetlabs/lein-ezbake "0.3.21-SNAPSHOT"
   :description "A system for building packages for trapperkeeper-based applications"
+  :url "https://github.com/puppetlabs/ezbake"
+  :license {:name "Apache License 2.0"
+            :url "http://www.apache.org/licenses/LICENSE-2.0"}
+
   :dependencies [[me.raynes/fs "1.4.6" :exclusions [org.clojure/clojure]]
                  [me.raynes/conch "0.8.0"]
                  [clj-time "0.6.0"]
@@ -15,8 +12,13 @@
   :repositories [["releases" "http://nexus.delivery.puppetlabs.net/content/repositories/releases/"]
                  ["snapshots" "http://nexus.delivery.puppetlabs.net/content/repositories/snapshots/"]]
 
-  :deploy-repositories [["releases" ~(deploy-info "http://nexus.delivery.puppetlabs.net/content/repositories/releases/")]
-                        ["snapshots" ~(deploy-info "http://nexus.delivery.puppetlabs.net/content/repositories/snapshots/")]]
+  :deploy-repositories [["releases" {:url "https://clojars.org/repo"
+                                     :username :env/clojars_jenkins_username
+                                     :password :env/clojars_jenkins_password
+                                     :sign-releases false}]]
+
+  :scm {:name "git" :url "https://github.com/puppetlabs/ezbake"}
+
   :resource-paths ["resources/"]
 
   :profiles {:dev {:dependencies [[io.aviso/pretty "0.1.10"]]}}
