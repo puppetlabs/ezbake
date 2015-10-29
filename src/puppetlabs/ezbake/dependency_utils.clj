@@ -4,6 +4,7 @@
   (:require [cemerick.pomegranate.aether :as aether]
             [me.raynes.fs :as fs]
             [clojure.string :as str]
+            [clojure.tools.logging :as log]
             [leiningen.core.main :as lein-main]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -116,6 +117,22 @@
         (assoc acc project-name (.getInputStream jar-file jar-entry)))
       acc)))
 
+(defn get-stream-from-project-jar
+  [lein-project file-path]
+  (let [project-jar-file (fs/file (:target-path lein-project)
+                                  (str
+                                   (:name lein-project)
+                                   "-"
+                                   (:version lein-project)
+                                   ".jar"))]
+    (if (fs/exists? project-jar-file)
+      (let [project-jar (JarFile. project-jar-file)]
+        (if-let [project-jar-entry (find-file-in-jar project-jar
+                                                     file-path)]
+          (.getInputStream project-jar project-jar-entry)))
+      (lein-main/abort
+       (format "Unable to find project jar file: '%s'" project-jar-file)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Public
 
@@ -154,8 +171,16 @@
   specified file, and whose values are InputStreams for reading the contents of
   those files."
   [lein-project file-path]
-  (let [deps (get-relevant-deps lein-project)]
-    (reduce (partial add-stream-from-jar-to-map lein-project file-path) {} deps)))
+  (let [deps (get-relevant-deps lein-project)
+        upstream-jars (reduce (partial add-stream-from-jar-to-map
+                                       lein-project
+                                       file-path)
+                              {}
+                              deps)]
+    (if-let [stream-from-project (get-stream-from-project-jar lein-project
+                                                              file-path)]
+      (assoc upstream-jars (:name lein-project) stream-from-project)
+      upstream-jars)))
 
 (defn generate-manifest-string
   [lein-project]
