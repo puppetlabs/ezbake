@@ -130,7 +130,8 @@
         (if-let [project-jar-entry (find-file-in-jar project-jar
                                                      file-path)]
           (.getInputStream project-jar project-jar-entry)))
-      (log/warnf "Unable to find project jar file: '%s'" project-jar-file))))
+      (lein-main/abort
+       (format "Unable to find project jar file: '%s'" project-jar-file)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Public
