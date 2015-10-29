@@ -1,3 +1,10 @@
+## 0.3.19 - 2015-10-29
+
+  * Updates to allow pulling in an ezbake.conf from 
+    the immediate project jar in addition to using the file
+    from upstream dependencies.
+  * Removes Ubuntu Utopic (14.10) and Fedora 20 build targets
+
 ## 0.3.18 - 2015-8-11
 
   * Fix unterminated 'if' in RPM spec template
