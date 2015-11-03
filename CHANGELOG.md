@@ -1,3 +1,8 @@
+## 0.3.20 - 2015-11-03
+
+  * Increase default service startup timeout to 300 seconds
+    (5 minutes) to avoid intermittent timeouts in testing.
+
 ## 0.3.19 - 2015-10-29
 
   * Updates to allow pulling in an ezbake.conf from 
