@@ -1,3 +1,8 @@
+## 0.3.21 - 2015-11-10
+
+  * Update to publish to clojars instead of internal repository.
+  * Manage logfile ownership for SLES11 init scripts
+
 ## 0.3.20 - 2015-11-03
 
   * Increase default service startup timeout to 300 seconds
