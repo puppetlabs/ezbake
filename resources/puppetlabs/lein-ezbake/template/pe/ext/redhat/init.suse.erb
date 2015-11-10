@@ -68,6 +68,11 @@ start() {
     <%= action %>
     <% end -%>
 
+    # startproc creates logfiles but doesn't set ownership correctly for new
+    # files. Let's always do this in case the file ownership is wrong.
+    touch "${LOGFILE}"
+    chown $USER:$USER "${LOGFILE}"
+
     export HOME="$(getent passwd ${USER} | cut -d':' -f6)"
     # startproc will change users, so make sure that user has permission
     # to access the present working directory.
