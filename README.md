@@ -154,7 +154,7 @@ repository.
 ### Packaging Configuration Files
 
 In the final packages produced by an ezbake build, there will be a "config' directory
-(usually `/etc/puppetlabs/<ezbake-project-name`) that contains all of the final
+(usually `/etc/puppetlabs/<ezbake-project-name>`) that contains all of the final
 configuration files for the ezbake application.
 
 EZBake will assemble the contents of this directory from two sources:
