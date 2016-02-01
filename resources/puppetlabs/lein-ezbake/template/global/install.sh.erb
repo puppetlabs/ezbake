@@ -275,6 +275,8 @@ function task_postinst_permissions {
     chmod 700 /var/log/puppetlabs/<%= EZBake::Config[:real_name] %>
     chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> $app_data
     chmod 770 $app_data
+    chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> $projconfdir
+    chmod 750 $projconfdir
 <% EZBake::Config[:create_dirs].each do |dir| -%>
     chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> <%= dir %>
     chmod 700 <%= dir %>
