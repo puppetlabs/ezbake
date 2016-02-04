@@ -17,6 +17,7 @@
 # https://github.com/puppetlabs/puppet-specifications/blob/af82509/file_paths.md
 %global _app_prefix /opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>
 %global _app_data /opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>
+%global _projconfdir /etc/puppetlabs/<%= EZBake::Config[:real_name] %>
 
 # java 1.8.0 is available starting in fedora 20 and el 6
 %if 0%{?fedora} >= 20 || 0%{?rhel} >= 6
@@ -188,6 +189,7 @@ fi
 %files
 %defattr(-, root, root)
 %dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_logdir}
+%dir %attr(0750, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_projconfdir}
 <%- EZBake::Config[:create_dirs].each do |dir| -%>
 %dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) <%= dir %>
 <%- end -%>
