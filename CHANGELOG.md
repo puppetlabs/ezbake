@@ -1,3 +1,7 @@
+## 0.3.22 - 2016-02-09
+
+  * Update permissions for "projconfdir".
+
 ## 0.3.21 - 2015-11-10
 
   * Update to publish to clojars instead of internal repository.
