@@ -151,6 +151,61 @@ anything that might be found in the `:ezbake` profile. This is primarily useful
 for projects that need to build their PE and FOSS packages from the same
 repository.
 
+### Packaging Configuration Files
+
+In the final packages produced by an ezbake build, there will be a "config' directory
+(usually `/etc/puppetlabs/<ezbake-project-name>`) that contains all of the final
+configuration files for the ezbake application.
+
+EZBake will assemble the contents of this directory from two sources:
+
+1. Config files embedded in the jars of any of the dependencies
+2. Config files local to the ezbake project
+
+#### Config files embedded in jars of dependencies
+
+If the jar produced by any of the dependencies of the ezbake project contains a
+directory called `ext/config/`, then any files therein will be included in the final
+`conf.d` directory of the ezbake package.
+
+This is useful if your project uses a "composite" ezbake build.  For example, we build
+`pe-puppetserver` packages from a composite project called `pe-puppetserver`, which does
+not contain any code; it's a project that just exists for use with ezbake, to compose
+other things together.  One of the dependencies that it brings in is `puppet-server`,
+which is the main codebase where all of the OSS Puppet Server code lives.  The puppet-server
+jar includes some config files, such as `puppetserver.conf`, which are specific to Puppet
+Server.  These config files won't change based on packaging, and it is useful/important
+to keep them in sync with the related Puppet Server source code, so they live in the
+upstream repos and ezbake retrieves them from the jar files.
+
+#### Config files local to the ezbake project
+
+EZBake supports a setting in the `:lein-ezbake` portion of your `project.clj` called `:config-dir`.
+The default value if you do not provide this setting is `config`.  The value of this setting
+tells ezbake where to look for local config files that may vary based on the packaging task
+at hand; so, for example, files like `webserver.conf` and `web-routes.conf` may vary depending
+on what services you are composing together at build time, so they are not guaranteed to be static
+based on the upstream code.
+
+To build on our `pe-puppetserver` example above; this composite ezbake project brings in services
+like the file sync service and code manager, and we need to build out the `web-routes.conf` file
+based on the list of all of the services that we are composing together.  Thus, this type of
+config file needs to live in the repo of the ezbake build project itself, and wouldn't make sense
+to try to include inside of the 'puppet-server' jar, since we could be building many permutations
+of packages that contain Puppet Server and can't know ahead of time what a valid `web-routes.conf`
+will look like.
+
+#### tl;dr on where to put config files
+
+The rule of thumb is:
+
+* For config files that are specific to an individual project, such as the OSS Puppet Server project,
+  the files should be embedded in the jar under `ext/config`.  e.g.: `ext/config/conf.d/puppetserver.conf`.
+* For config files that are specific to the *packaging* task (usually this implies a composite ezbake build),
+  the files should live in the repo of the ezbake packaging project; e.g. in the `pe-puppetserver` composite
+  project, there is a directory at the root called `config`, and this will contain files like
+  `config/conf.d/web-routes.conf`.
+
 ### Testing
 
 After building packages it is often necessary to install those packages in live
