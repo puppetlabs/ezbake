@@ -4,7 +4,6 @@
   (:require [cemerick.pomegranate.aether :as aether]
             [me.raynes.fs :as fs]
             [clojure.string :as str]
-            [clojure.tools.logging :as log]
             [leiningen.core.main :as lein-main]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -34,7 +33,8 @@
   (-> (aether/resolve-artifacts
         :coordinates [coords]
         :repositories (:repositories lein-project)
-        :local-repo (:local-repo lein-project))
+        :local-repo (:local-repo lein-project)
+        :mirrors (:mirrors lein-project))
       first
       meta
       :file
@@ -195,7 +195,8 @@
           (aether/resolve-dependencies
             :coordinates (:dependencies lein-project)
             :repositories (:repositories lein-project)
-            :local-repo (:local-repo lein-project)))
+            :local-repo (:local-repo lein-project)
+            :mirrors (:mirrors lein-project)))
         (add-dep-hierarchy-to-string! sb 0))
     (.toString sb)))
 
