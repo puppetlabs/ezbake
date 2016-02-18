@@ -8,6 +8,8 @@ EnvironmentFile=/etc/sysconfig/<%= EZBake::Config[:project] %>
 User=<%= EZBake::Config[:user] %>
 TimeoutStartSec=<%= EZBake::Config[:start_timeout] %>
 TimeoutStopSec=60
+Restart=on-failure
+StartLimitBurst=5
 
 <% unless EZBake::Config[:redhat][:pre_start_action].empty? -%>
 PermissionsStartOnly=true
