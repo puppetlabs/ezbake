@@ -1,3 +1,8 @@
+## 0.3.23 - 2016-02-18
+
+  * Add restart on failure functionality to systemd services
+  * Improved handling of mirrors and/or local repos for dependency resolution
+
 ## 0.3.22 - 2016-02-09
 
   * Update permissions for "projconfdir".
@@ -14,7 +19,7 @@
 
 ## 0.3.19 - 2015-10-29
 
-  * Updates to allow pulling in an ezbake.conf from 
+  * Updates to allow pulling in an ezbake.conf from
     the immediate project jar in addition to using the file
     from upstream dependencies.
   * Removes Ubuntu Utopic (14.10) and Fedora 20 build targets
