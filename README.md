@@ -212,3 +212,11 @@ After building packages it is often necessary to install those packages in live
 environments on the OSes supported by the ezbake templates. For this purpose
 [Puppetlabs' Beaker](https://github.com/puppetlabs/beaker) is the, uh, choice
 tool of discerning developers.
+
+## Maintainers
+
+Release Engineering at Puppet Labs.
+
+Maintainer: Michael Stahnke <stahnma@puppetlabs.com>
+
+Tickets: https://tickets.puppetlabs.com/browse/EZ/
