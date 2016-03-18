@@ -1,3 +1,7 @@
+## 0.2.11 - 2016-03-18
+ * Update to publish to clojars instead of internal repository
+ * Packaging: Removes Fedora 20 build targets
+
 ## 0.2.10 - 2015-05-21
  * Bugfix: Set sudo HOME for foreground
  * Packaging: Do not build stable or testing for debian
