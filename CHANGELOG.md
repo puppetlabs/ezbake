@@ -1,3 +1,9 @@
+## 0.3.24 - 2016-04-20
+
+  * Add updated maintainers information in README
+  * Remove Fedora21 from default mocks
+  * Add 5 second sleep to wait_for_app to help with race conditions on start
+
 ## 0.3.23 - 2016-02-18
 
   * Add restart on failure functionality to systemd services
