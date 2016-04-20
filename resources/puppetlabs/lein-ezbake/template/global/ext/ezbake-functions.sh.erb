@@ -23,6 +23,7 @@ wait_for_app()
         # if there are any TCP ports associated with the process, return success
         netstat -tulpn 2>/dev/null | grep "$pid" 2>&1 >/dev/null
         if [ "$?" = 0 ]; then
+            sleep 5
             return 0
         fi
 
