@@ -1,3 +1,6 @@
+## 0.3.25 - 2016-04-26
+  * Change Java dependency for deb platforms to non-virtual package
+
 ## 0.3.24 - 2016-04-20
 
   * Add updated maintainers information in README
