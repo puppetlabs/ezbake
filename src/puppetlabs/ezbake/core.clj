@@ -8,6 +8,7 @@
             [stencil.core :as stencil]
             [leiningen.core.main :as lein-main]
             [leiningen.uberjar :as uberjar]
+            [schema.core :as schema]
             [puppetlabs.ezbake.dependency-utils :as deputils]
             [puppetlabs.ezbake.exec :as exec]
             [puppetlabs.config.typesafe :as ts]))
@@ -26,6 +27,8 @@
 (def staging-dir "target/staging")
 (def shared-bin-prefix "ext/bin/")
 (def shared-config-prefix "ext/config/")
+(def config-dir "ext/config/public")
+(def private-config-dir "ext/config/private")
 (def shared-cli-apps-prefix "ext/cli/")
 (def docs-prefix "ext/docs/")
 (def terminus-prefix "puppet/")
@@ -99,14 +102,12 @@
 (defn relativize
   "Convert an absolute File to a relative File"
   [base-path absolute-file]
-  (let [base-file (if (instance? File base-path)
-                    base-path
-                    (File. base-path))]
-    (-> base-file
-        .toURI
-        (.relativize (.toURI absolute-file))
-        .getPath
-        (File.))))
+  (-> base-path
+      io/as-file
+      .toURI
+      (.relativize (.toURI absolute-file))
+      .getPath
+      (File.)))
 
 (defn remove-erb-extension
   [f]
@@ -134,6 +135,11 @@
 (defn get-project-config-dir
   [lein-project]
   (let [config-dir (get-in lein-project [:lein-ezbake :config-dir] "config")]
+    (fs/file config-dir)))
+
+(defn get-private-config-dir
+  [lein-project]
+  (let [config-dir (get-in lein-project [:lein-ezbake :private-config-dir])]
     (fs/file config-dir)))
 
 (defn generate-manifest-file
@@ -183,22 +189,35 @@ Dependency tree:
     ;; Return just a list of the files
     (mapcat last files)))
 
-(defn cp-project-config-file
-  [project-config-dir config-file]
-  (let [out-file (fs/file staging-dir "ext" "config"
-                          (relativize project-config-dir config-file))
+(schema/defn cp-to-staging-dir :- File
+  "Copy a file to the staging directory"
+  [config-dir :- File
+   config-file :- File
+   destination :- schema/Str]
+  (let [out-file (fs/file staging-dir destination
+                          (relativize config-dir config-file))
         out-dir (.getParent out-file)]
     (fs/mkdirs out-dir)
     (fs/copy config-file out-file)
     (relativize staging-dir out-file)))
 
-(defn cp-project-config-files
+(schema/defn cp-project-config-files :- [File]
+  "Copy files from config-dir to the staging directory"
   [lein-project]
   (let [project-config-dir    (get-project-config-dir lein-project)
         project-config-files  (if (fs/directory? project-config-dir)
                                 (find-files-recursively project-config-dir))]
     (for [config-file project-config-files]
-      (cp-project-config-file project-config-dir config-file))))
+      (cp-to-staging-dir project-config-dir config-file config-dir))))
+
+(schema/defn cp-private-config-files :- [File]
+  "Copy files from private-config-dir to the staging directory"
+  [lein-project]
+  (let [config-dir    (get-private-config-dir lein-project)
+        config-files  (if (fs/directory? config-dir)
+                        (find-files-recursively config-dir))]
+    (for [config-file config-files]
+      (cp-to-staging-dir config-dir config-file private-config-dir))))
 
 (defn get-real-name
   [project-name]
@@ -356,7 +375,7 @@ Dependency tree:
 ;; file from that.  All of these options sound unappealing in their own special
 ;; ways.
 (defn generate-ezbake-config-file
-  [lein-project build-target config-files cli-app-files bin-files terminus-files]
+  [lein-project build-target config-files private-config-files cli-app-files bin-files terminus-files]
   (lein-main/info "generating ezbake config file")
   (let [termini (for [[name version files] terminus-files]
                   {:name name
@@ -381,6 +400,7 @@ Dependency tree:
                                                           (:name lein-project))
          :uberjar-name              (:uberjar-name lein-project)
          :config-files              (quoted-list (map remove-erb-extension config-files))
+         :private-config-files      (quoted-list (map remove-erb-extension private-config-files))
          :cli-app-files             (quoted-list (map remove-erb-extension cli-app-files))
          :bin-files                 (quoted-list bin-files)
          :create-dirs               (quoted-list (get-local-ezbake-var lein-project
@@ -406,7 +426,9 @@ Dependency tree:
                                                           :main-namespace
                                                           "puppetlabs.trapperkeeper.main")
          :java-args                 (get-local-ezbake-var lein-project :java-args
-                                                          "-Xmx192m")}))))
+                                                          "-Xmx192m")
+         :split-bootstraps          (get-local-ezbake-var lein-project
+                                                          :split-bootstraps false)}))))
 
 (defn generate-project-data-yaml
   [lein-project build-target]
@@ -439,6 +461,7 @@ Dependency tree:
   (let [dependencies    (deputils/get-dependencies-with-jars lein-project)
         config-files    (cp-shared-files dependencies get-config-files-in)
         config-files    (concat config-files  (cp-project-config-files lein-project))
+        private-config-files (cp-private-config-files lein-project)
         _               (cp-shared-files dependencies get-cli-app-files-in)
         cli-app-files   (->> (str/join "/" [staging-dir "ext" "cli"])
                              fs/list-dir
@@ -448,7 +471,7 @@ Dependency tree:
     (if cli-app-files
       (cp-cli-wrapper-scripts (:name lein-project)))
     (cp-doc-files lein-project)
-    (generate-ezbake-config-file lein-project build-target config-files cli-app-files bin-files terminus-files)
+    (generate-ezbake-config-file lein-project build-target config-files private-config-files cli-app-files bin-files terminus-files)
     (generate-project-data-yaml lein-project build-target)
     (generate-manifest-file lein-project)
     (create-git-repo lein-project)))

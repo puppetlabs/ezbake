@@ -7,6 +7,7 @@ module EZBake
       :start_timeout  => '{{{start-timeout}}}',
       :uberjar_name   => '{{{uberjar-name}}}',
       :config_files   => [{{{config-files}}}],
+      :private_config_files   => [{{{private-config-files}}}],
       :cli_app_files  => [{{{cli-app-files}}}],
       :bin_files      => [{{{bin-files}}}],
       :create_dirs    => [{{{create-dirs}}}],
@@ -42,5 +43,6 @@ module EZBake
                             "{{package}}" => "{{version}}",
                           {{/replaces-pkgs}}
                           },
+      :split_bootstraps => {{{split-bootstraps}}}
   }
 end
