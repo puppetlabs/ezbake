@@ -15,7 +15,7 @@ INSTALL_DIR="/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>"
 CONFIG="/etc/puppetlabs/<%= EZBake::Config[:real_name] %>/conf.d"
 
 # Bootstrap path
-<% if EZBake::Config[:split_bootstraps] -%>
+<% if EZBake::Config[:bootstrap_source] == :directory -%>
 BOOTSTRAP_CONFIG="/etc/puppetlabs/<%= EZBake::Config[:real_name] %>/services.d/,${INSTALL_DIR}/config/services.d/"
 <% else -%>
 BOOTSTRAP_CONFIG="/etc/puppetlabs/<%= EZBake::Config[:real_name] %>/bootstrap.cfg"

@@ -27,8 +27,8 @@
 (def staging-dir "target/staging")
 (def shared-bin-prefix "ext/bin/")
 (def shared-config-prefix "ext/config/")
-(def config-dir "ext/config/public")
-(def private-config-dir "ext/config/private")
+(def config-dir "ext/config/user")
+(def system-config-dir "ext/config/system")
 (def shared-cli-apps-prefix "ext/cli/")
 (def docs-prefix "ext/docs/")
 (def terminus-prefix "puppet/")
@@ -137,9 +137,9 @@
   (let [config-dir (get-in lein-project [:lein-ezbake :config-dir] "config")]
     (fs/file config-dir)))
 
-(defn get-private-config-dir
+(defn get-system-config-dir
   [lein-project]
-  (let [config-dir (get-in lein-project [:lein-ezbake :private-config-dir])]
+  (let [config-dir (get-in lein-project [:lein-ezbake :system-config-dir] "system-config")]
     (fs/file config-dir)))
 
 (defn generate-manifest-file
@@ -210,14 +210,14 @@ Dependency tree:
     (for [config-file project-config-files]
       (cp-to-staging-dir project-config-dir config-file config-dir))))
 
-(schema/defn cp-private-config-files :- [File]
-  "Copy files from private-config-dir to the staging directory"
+(schema/defn cp-system-config-files :- [File]
+  "Copy files from system-config-dir to the staging directory"
   [lein-project]
-  (let [config-dir    (get-private-config-dir lein-project)
+  (let [config-dir    (get-system-config-dir lein-project)
         config-files  (if (fs/directory? config-dir)
                         (find-files-recursively config-dir))]
     (for [config-file config-files]
-      (cp-to-staging-dir config-dir config-file private-config-dir))))
+      (cp-to-staging-dir config-dir config-file system-config-dir))))
 
 (defn get-real-name
   [project-name]
@@ -375,7 +375,7 @@ Dependency tree:
 ;; file from that.  All of these options sound unappealing in their own special
 ;; ways.
 (defn generate-ezbake-config-file
-  [lein-project build-target config-files private-config-files cli-app-files bin-files terminus-files]
+  [lein-project build-target config-files system-config-files cli-app-files bin-files terminus-files]
   (lein-main/info "generating ezbake config file")
   (let [termini (for [[name version files] terminus-files]
                   {:name name
@@ -400,7 +400,7 @@ Dependency tree:
                                                           (:name lein-project))
          :uberjar-name              (:uberjar-name lein-project)
          :config-files              (quoted-list (map remove-erb-extension config-files))
-         :private-config-files      (quoted-list (map remove-erb-extension private-config-files))
+         :system-config-files      (quoted-list (map remove-erb-extension system-config-files))
          :cli-app-files             (quoted-list (map remove-erb-extension cli-app-files))
          :bin-files                 (quoted-list bin-files)
          :create-dirs               (quoted-list (get-local-ezbake-var lein-project
@@ -427,8 +427,7 @@ Dependency tree:
                                                           "puppetlabs.trapperkeeper.main")
          :java-args                 (get-local-ezbake-var lein-project :java-args
                                                           "-Xmx192m")
-         :split-bootstraps          (get-local-ezbake-var lein-project
-                                                          :split-bootstraps false)}))))
+         :bootstrap-source          (get-local-ezbake-var lein-project :bootstrap-source :file)}))))
 
 (defn generate-project-data-yaml
   [lein-project build-target]
@@ -461,7 +460,7 @@ Dependency tree:
   (let [dependencies    (deputils/get-dependencies-with-jars lein-project)
         config-files    (cp-shared-files dependencies get-config-files-in)
         config-files    (concat config-files  (cp-project-config-files lein-project))
-        private-config-files (cp-private-config-files lein-project)
+        system-config-files (cp-system-config-files lein-project)
         _               (cp-shared-files dependencies get-cli-app-files-in)
         cli-app-files   (->> (str/join "/" [staging-dir "ext" "cli"])
                              fs/list-dir
@@ -471,7 +470,7 @@ Dependency tree:
     (if cli-app-files
       (cp-cli-wrapper-scripts (:name lein-project)))
     (cp-doc-files lein-project)
-    (generate-ezbake-config-file lein-project build-target config-files private-config-files cli-app-files bin-files terminus-files)
+    (generate-ezbake-config-file lein-project build-target config-files system-config-files cli-app-files bin-files terminus-files)
     (generate-project-data-yaml lein-project build-target)
     (generate-manifest-file lein-project)
     (create-git-repo lein-project)))
