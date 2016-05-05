@@ -119,7 +119,7 @@ function task_install {
     install -m 0644 ext/ezbake.manifest "${DESTDIR}${app_prefix}"
     install -d -m 0755 "${DESTDIR}${projconfdir}/conf.d"
 
-<% if EZBake::Config[:bootstrap_source] == :directory -%>
+<% if EZBake::Config[:bootstrap_source] == 'services-d' -%>
     install -d -m 0755 "${DESTDIR}${system_config_dir}/services.d"
     install -d -m 0755 "${DESTDIR}${projconfdir}/services.d"
 

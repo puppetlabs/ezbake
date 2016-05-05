@@ -9,6 +9,7 @@
             [leiningen.core.main :as lein-main]
             [leiningen.uberjar :as uberjar]
             [schema.core :as schema]
+            [schema.utils :as schema-utils]
             [puppetlabs.ezbake.dependency-utils :as deputils]
             [puppetlabs.ezbake.exec :as exec]
             [puppetlabs.config.typesafe :as ts]))
@@ -32,6 +33,20 @@
 (def shared-cli-apps-prefix "ext/cli/")
 (def docs-prefix "ext/docs/")
 (def terminus-prefix "puppet/")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Schemas / Validation
+
+(def BootstrapSource
+  (schema/enum :bootstrap-cfg :services-d))
+
+(defn validate-bootstrap-source
+  [bootstrap-source]
+  "Throws IllegalArgumentException if it can't be validated"
+  (when-let [error (schema/check BootstrapSource bootstrap-source)]
+    (throw (IllegalArgumentException. (str "Invalid value for setting ':bootstrap-source': "
+                                           (schema-utils/validation-error-explain error)))))
+  bootstrap-source)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Shell / Filesystem Helpers
@@ -400,7 +415,7 @@ Dependency tree:
                                                           (:name lein-project))
          :uberjar-name              (:uberjar-name lein-project)
          :config-files              (quoted-list (map remove-erb-extension config-files))
-         :system-config-files      (quoted-list (map remove-erb-extension system-config-files))
+         :system-config-files       (quoted-list (map remove-erb-extension system-config-files))
          :cli-app-files             (quoted-list (map remove-erb-extension cli-app-files))
          :bin-files                 (quoted-list bin-files)
          :create-dirs               (quoted-list (get-local-ezbake-var lein-project
@@ -427,7 +442,8 @@ Dependency tree:
                                                           "puppetlabs.trapperkeeper.main")
          :java-args                 (get-local-ezbake-var lein-project :java-args
                                                           "-Xmx192m")
-         :bootstrap-source          (get-local-ezbake-var lein-project :bootstrap-source :file)}))))
+                                    ; Convert to string so ruby doesn't barf on the hyphens
+         :bootstrap-source          (name (get-local-ezbake-var lein-project :bootstrap-source :bootstrap-cfg))}))))
 
 (defn generate-project-data-yaml
   [lein-project build-target]
@@ -450,6 +466,9 @@ Dependency tree:
 
 (defmethod action "stage"
   [_ lein-project build-target]
+  ; Perform some validation first
+  (validate-bootstrap-source (get-local-ezbake-var lein-project :bootstrap-source :bootstrap-cfg))
+
   (let [template-dir (get-template-file build-target)
         uberjar-name (:uberjar-name lein-project)]
     (uberjar/uberjar lein-project)
