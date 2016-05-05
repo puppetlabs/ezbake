@@ -379,6 +379,61 @@ Dependency tree:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; File templates
 
+(defn make-template-map
+  "Construct the map of variables to pass on to the ezbake.rb template"
+  [lein-project build-target config-files system-config-files cli-app-files bin-files terminus-files upstream-ezbake-configs]
+  (let [termini (for [[name version files] terminus-files]
+                  {:name name
+                   :version version
+                   :files (quoted-list files)})
+        get-quoted-ezbake-values (fn [platform variable]
+                                   (quoted-list
+                                    (get-ezbake-value (get-ezbake-vars lein-project)
+                                                      upstream-ezbake-configs
+                                                      build-target
+                                                      platform
+                                                      variable)))]
+    {:project                   (:name lein-project)
+     :real-name                 (get-real-name (:name lein-project))
+     :user                      (get-local-ezbake-var lein-project :user
+                                                      (:name lein-project))
+     :group                     (get-local-ezbake-var lein-project :group
+                                                      (:name lein-project))
+     :uberjar-name              (:uberjar-name lein-project)
+     :config-files              (quoted-list (map remove-erb-extension config-files))
+     :system-config-files       (quoted-list (map remove-erb-extension system-config-files))
+     :cli-app-files             (quoted-list (map remove-erb-extension cli-app-files))
+     :bin-files                 (quoted-list bin-files)
+     :create-dirs               (quoted-list (get-local-ezbake-var lein-project
+                                                                   :create-dirs []))
+     :debian-deps               (get-quoted-ezbake-values :debian :dependencies)
+     :debian-preinst            (get-quoted-ezbake-values :debian :preinst)
+     :debian-prerm              (get-quoted-ezbake-values :debian :prerm)
+     :debian-postinst           (get-quoted-ezbake-values :debian :postinst)
+     :debian-install            (get-quoted-ezbake-values :debian :install)
+     :debian-pre-start-action   (get-quoted-ezbake-values :debian :pre-start-action)
+     :debian-post-start-action  (get-quoted-ezbake-values :debian :post-start-action)
+     :redhat-deps               (get-quoted-ezbake-values :redhat :dependencies)
+     :redhat-preinst            (get-quoted-ezbake-values :redhat :preinst)
+     :redhat-postinst           (get-quoted-ezbake-values :redhat :postinst)
+     :redhat-install            (get-quoted-ezbake-values :redhat :install)
+     :redhat-pre-start-action   (get-quoted-ezbake-values :redhat :pre-start-action)
+     :redhat-post-start-action  (get-quoted-ezbake-values :redhat :post-start-action)
+     :terminus-map              termini
+     :replaces-pkgs             (get-local-ezbake-var lein-project :replaces-pkgs [])
+     :start-after               (quoted-list (get-local-ezbake-var lein-project :start-after []))
+     :start-timeout             (get-local-ezbake-var lein-project :start-timeout "300")
+     :main-namespace            (get-local-ezbake-var lein-project
+                                                      :main-namespace
+                                                      "puppetlabs.trapperkeeper.main")
+     :java-args                 (get-local-ezbake-var lein-project :java-args
+                                                      "-Xmx192m")
+     ; Convert to string so ruby doesn't barf on the hyphens
+     :bootstrap-source          (name (validate-bootstrap-source
+                                       (get-local-ezbake-var lein-project
+                                                             :bootstrap-source
+                                                             :bootstrap-cfg)))}))
+
 ;; TODO: this is wonky; we're basically doing some templating here and it
 ;; might make more sense to use an actual template for it.  However, I'm a bit
 ;; leery of introducing another template language since we're already using
@@ -389,61 +444,28 @@ Dependency tree:
 ;; other config format that ruby could read, and then generate a lein project
 ;; file from that.  All of these options sound unappealing in their own special
 ;; ways.
-(defn generate-ezbake-config-file
-  [lein-project build-target config-files system-config-files cli-app-files bin-files terminus-files]
+(defn generate-ezbake-config-file!
+  [lein-project
+   build-target
+   config-files
+   system-config-files
+   cli-app-files
+   bin-files
+   terminus-files
+   upstream-ezbake-configs]
   (lein-main/info "generating ezbake config file")
-  (let [termini (for [[name version files] terminus-files]
-                  {:name name
-                   :version version
-                   :files (quoted-list files)})
-        get-quoted-ezbake-values (fn [platform variable]
-                                   (quoted-list
-                                     (get-ezbake-value (get-ezbake-vars lein-project)
-                                                       (get-upstream-ezbake-configs lein-project)
-                                                       build-target
-                                                       platform
-                                                       variable)))]
-    (spit
-      (fs/file staging-dir "ezbake.rb")
-      (stencil/render-string
-        (slurp (get-staging-template-file "ezbake.rb.mustache"))
-        {:project                   (:name lein-project)
-         :real-name                 (get-real-name (:name lein-project))
-         :user                      (get-local-ezbake-var lein-project :user
-                                                          (:name lein-project))
-         :group                     (get-local-ezbake-var lein-project :group
-                                                          (:name lein-project))
-         :uberjar-name              (:uberjar-name lein-project)
-         :config-files              (quoted-list (map remove-erb-extension config-files))
-         :system-config-files       (quoted-list (map remove-erb-extension system-config-files))
-         :cli-app-files             (quoted-list (map remove-erb-extension cli-app-files))
-         :bin-files                 (quoted-list bin-files)
-         :create-dirs               (quoted-list (get-local-ezbake-var lein-project
-                                                                       :create-dirs []))
-         :debian-deps               (get-quoted-ezbake-values :debian :dependencies)
-         :debian-preinst            (get-quoted-ezbake-values :debian :preinst)
-         :debian-prerm              (get-quoted-ezbake-values :debian :prerm)
-         :debian-postinst           (get-quoted-ezbake-values :debian :postinst)
-         :debian-install            (get-quoted-ezbake-values :debian :install)
-         :debian-pre-start-action   (get-quoted-ezbake-values :debian :pre-start-action)
-         :debian-post-start-action  (get-quoted-ezbake-values :debian :post-start-action)
-         :redhat-deps               (get-quoted-ezbake-values :redhat :dependencies)
-         :redhat-preinst            (get-quoted-ezbake-values :redhat :preinst)
-         :redhat-postinst           (get-quoted-ezbake-values :redhat :postinst)
-         :redhat-install            (get-quoted-ezbake-values :redhat :install)
-         :redhat-pre-start-action   (get-quoted-ezbake-values :redhat :pre-start-action)
-         :redhat-post-start-action  (get-quoted-ezbake-values :redhat :post-start-action)
-         :terminus-map              termini
-         :replaces-pkgs             (get-local-ezbake-var lein-project :replaces-pkgs [])
-         :start-after               (quoted-list (get-local-ezbake-var lein-project :start-after []))
-         :start-timeout             (get-local-ezbake-var lein-project :start-timeout "300")
-         :main-namespace            (get-local-ezbake-var lein-project
-                                                          :main-namespace
-                                                          "puppetlabs.trapperkeeper.main")
-         :java-args                 (get-local-ezbake-var lein-project :java-args
-                                                          "-Xmx192m")
-                                    ; Convert to string so ruby doesn't barf on the hyphens
-         :bootstrap-source          (name (get-local-ezbake-var lein-project :bootstrap-source :bootstrap-cfg))}))))
+  (spit
+   (fs/file staging-dir "ezbake.rb")
+   (stencil/render-string
+    (slurp (get-staging-template-file "ezbake.rb.mustache"))
+    (make-template-map lein-project
+                       build-target
+                       config-files
+                       system-config-files
+                       cli-app-files
+                       bin-files
+                       terminus-files
+                       upstream-ezbake-configs))))
 
 (defn generate-project-data-yaml
   [lein-project build-target]
@@ -466,9 +488,6 @@ Dependency tree:
 
 (defmethod action "stage"
   [_ lein-project build-target]
-  ; Perform some validation first
-  (validate-bootstrap-source (get-local-ezbake-var lein-project :bootstrap-source :bootstrap-cfg))
-
   (let [template-dir (get-template-file build-target)
         uberjar-name (:uberjar-name lein-project)]
     (uberjar/uberjar lein-project)
@@ -485,11 +504,19 @@ Dependency tree:
                              fs/list-dir
                              (map #(relativize staging-dir %)))
         bin-files       (cp-shared-files dependencies get-bin-files-in)
-        terminus-files  (cp-terminus-files dependencies build-target)]
+        terminus-files  (cp-terminus-files dependencies build-target)
+        upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)]
     (if cli-app-files
       (cp-cli-wrapper-scripts (:name lein-project)))
     (cp-doc-files lein-project)
-    (generate-ezbake-config-file lein-project build-target config-files system-config-files cli-app-files bin-files terminus-files)
+    (generate-ezbake-config-file! lein-project
+                                  build-target
+                                  config-files
+                                  system-config-files
+                                  cli-app-files
+                                  bin-files
+                                  terminus-files
+                                  upstream-ezbake-configs)
     (generate-project-data-yaml lein-project build-target)
     (generate-manifest-file lein-project)
     (create-git-repo lein-project)))

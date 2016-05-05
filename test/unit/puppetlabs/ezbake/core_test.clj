@@ -10,4 +10,4 @@
     (is (thrown-with-msg?
          IllegalArgumentException
          #"Invalid value for setting ':bootstrap-source': \(not \(#\{:services-d :bootstrap-cfg\} :bad-value\)\)"
-         (core/action "stage" dummy-project "dummy-build-target")))))
+         (core/make-template-map dummy-project "dummy-build-target" [] [] [] [] [] {})))))
