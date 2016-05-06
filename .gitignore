@@ -8,4 +8,3 @@ pom.xml
 target
 /template/ext/packaging
 .nrepl-port
-.lein-failures
