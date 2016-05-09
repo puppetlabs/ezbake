@@ -27,6 +27,7 @@ symbindir=${symbindir:=/opt/puppetlabs/server/bin}
 app_prefix=${app_prefix:=/opt/puppetlabs/server/apps/${real_name}}
 app_data=${app_data:=/opt/puppetlabs/server/data/${real_name}}
 app_logdir=${app_logdir:=/var/log/puppetlabs/${real_name}}
+system_config_dir=${system_config_dir:=${app_prefix}/config}
 
 
 ##################
@@ -117,11 +118,23 @@ function task_install {
     install -m 0755 ext/ezbake-functions.sh "${DESTDIR}${app_prefix}"
     install -m 0644 ext/ezbake.manifest "${DESTDIR}${app_prefix}"
     install -d -m 0755 "${DESTDIR}${projconfdir}/conf.d"
-<% EZBake::Config[:config_files].each do |config_file| -%>
-    install -m 0644 <%= config_file %> "${DESTDIR}${projconfdir}/<%= config_file.sub(/^ext\/config\//, "") %>"
+
+<% if EZBake::Config[:bootstrap_source] == 'services-d' -%>
+    install -d -m 0755 "${DESTDIR}${system_config_dir}/services.d"
+    install -d -m 0755 "${DESTDIR}${projconfdir}/services.d"
+
+    <% EZBake::Config[:system_config_files].each do |config_file| -%>
+    install -m 0644 <%= config_file %> "${DESTDIR}${system_config_dir}/<%= config_file.sub(/^ext\/config\/system\//, "") %>"
+    <% end -%>
 <% end -%>
+
+<% EZBake::Config[:config_files].each do |config_file| -%>
+    install -m 0644 <%= config_file %> "${DESTDIR}${projconfdir}/<%= config_file.sub(/^ext\/config\/user\//, "") %>"
+<% end -%>
+
     install -d -m 0755 "${DESTDIR}${app_prefix}/scripts"
     install -m 0755 install.sh "${DESTDIR}${app_prefix}/scripts"
+
 <% if ! EZBake::Config[:cli_app_files].empty? -%>
     install -d -m 0755 "${DESTDIR}${app_prefix}/cli"
     install -d -m 0755 "${DESTDIR}${app_prefix}/cli/apps"
