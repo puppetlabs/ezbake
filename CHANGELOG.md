@@ -1,3 +1,11 @@
+## 0.4.0 - 2016-05-11
+  * Add Ubuntu 15.10 (Wily) to default build targets
+  * Add Ubuntu 16.04 (Xenial) to default build targets
+  * Add Debian systemd script support
+  * Add split bootstrap functionality to allow for user-configurable service
+  entries alongside services that shouldn't be modified.
+  * Changed folder structure for staging to add an ezbake/system-config dir
+
 ## 0.3.25 - 2016-04-26
   * Change Java dependency for deb platforms to non-virtual package
 
