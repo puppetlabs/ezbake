@@ -1,9 +1,12 @@
 #!/bin/sh
 
-if [ "$1" = "failed-upgrade" ]; then
+if [ "$1" = "failed-upgrade" ] || [ "$1" = "remove" ] ; then
+  if [ -e "/lib/systemd/system/<%= EZBake::Config[:project] -%>.service" ] ; then
+    # Using systemd
+    systemctl --no-reload disable <%= EZBake::Config[:project] -%>.service > /dev/null 2>&1 || :
+    systemctl stop <%= EZBake::Config[:project] -%>.service > /dev/null 2>&1 || :
+  else
+    # Using sysv
     invoke-rc.d <%= EZBake::Config[:project] -%> stop || :
-else
-    if [ -x "/etc/init.d/<%= EZBake::Config[:project] -%>" ] || [ -e "/etc/init/<%= EZBake::Config[:project] -%>.conf" ]; then
-        invoke-rc.d <%= EZBake::Config[:project] -%> stop || exit $?
-    fi
+  fi
 fi

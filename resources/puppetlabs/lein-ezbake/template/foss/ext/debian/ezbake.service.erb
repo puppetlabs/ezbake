@@ -1,0 +1,41 @@
+[Unit]
+Description=<%= EZBake::Config[:project] %> Service
+After=syslog.target network.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/default/<%= EZBake::Config[:project] %>
+User=<%= EZBake::Config[:user] %>
+TimeoutStartSec=<%= EZBake::Config[:start_timeout] %>
+TimeoutStopSec=60
+Restart=on-failure
+StartLimitBurst=5
+
+<% unless EZBake::Config[:debian][:pre_start_action].empty? -%>
+PermissionsStartOnly=true
+<% EZBake::Config[:debian][:pre_start_action].each do |action| -%>
+ExecStartPre=<%= action %>
+<% end -%>
+<% end -%>
+
+ExecStart=/usr/bin/java $JAVA_ARGS \
+          '-XX:OnOutOfMemoryError=kill -9 %%p' \
+          -Djava.security.egd=/dev/urandom \
+          -cp "${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %>" clojure.main \
+          -m <%= EZBake::Config[:main_namespace] %> \
+          --config "${CONFIG}" \
+          -b "${BOOTSTRAP_CONFIG}" $@
+
+KillMode=process
+
+ExecStartPost=/bin/bash "${INSTALL_DIR}/ezbake-functions.sh" wait_for_app
+
+<% EZBake::Config[:debian][:post_start_action].each do |action| -%>
+ExecStartPost=-<%= action %>
+<% end -%>
+SuccessExitStatus=143
+
+StandardOutput=syslog
+
+[Install]
+WantedBy=multi-user.target

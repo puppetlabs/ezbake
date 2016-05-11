@@ -7,6 +7,8 @@ BUILD_ROOT=$(CURDIR)/debian/$(cdbs_curpkg)
 export rubylibdir=/opt/puppetlabs/puppet/lib/ruby/vendor_ruby
 DIST := $(shell lsb_release -i | awk '{print tolower($$3)}')
 RELEASE := $(shell lsb_release -r | awk '{print $$2}')
+CODENAME := $(shell lsb_release -c | sed -n 's/^Codename:\s*\(.*\)$$/\1/p')
+SYSV_CODENAMES := squeeze wheezy lucid precise trusty jessie
 export DESTDIR=$(BUILD_ROOT)
 export prefix=/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>
 export bindir=/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin
@@ -29,6 +31,11 @@ install/<%= EZBake::Config[:project] %>::
 		else \
 			bash install.sh logrotate_legacy ; \
 		fi ; \
+	fi
+	if $$(echo "${SYSV_CODENAMES}" | grep -q ${CODENAME}) ; then \
+		bash install.sh sysv_init_deb ; \
+	else \
+		bash install.sh systemd_deb ; \
 	fi
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
