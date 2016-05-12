@@ -10,10 +10,10 @@ fi
 # to change in the future.
 prefix=${prefix:=/usr}
 initdir=${initdir:=/etc/init.d}
-unitdir_redhat=${unitdir:=/usr/lib/systemd/system}
-unitdir_debian=${unitdir:=/lib/systemd/system}
-defaultsdir_redhat=${defaultsdir:=/etc/sysconfig}
-defaultsdir_debian=${defaultsdir:=/etc/default}
+unitdir_redhat=${unitdir:-/usr/lib/systemd/system}
+unitdir_debian=${unitdir:-/lib/systemd/system}
+defaultsdir_redhat=${defaultsdir:-/etc/sysconfig}
+defaultsdir_debian=${defaultsdir:-/etc/default}
 tmpfilesdir=${tmpfilesdir:=/usr/lib/tmpfiles.d}
 datadir=${datadir:=${prefix}/share}
 real_name=${real_name:=<%= EZBake::Config[:real_name] -%>}
@@ -68,12 +68,16 @@ function task_service {
     osdetection
 
     if [ "$OSFAMILY" = "RedHat" ]; then
+        unitdir=${unitdir_redhat}
+        defaultsdir=${defaultsdir_redhat}
         if [ $MAJREV -lt 7 ]; then
             task install_source_rpm_sysv
         else
             task install_source_rpm_systemd
         fi
     elif [ "$OSFAMILY" = "Debian" ]; then
+        unitdir=${unitdir_debian}
+        defaultsdir=${defaultsdir_debian}
         sysv_codenames=("squeeze" "wheezy" "lucid" "precise" "trusty" "jessie")
         if $(echo ${sysv_codenames[@]} | grep -q $CODENAME) ; then
             task install_source_deb_sysv
