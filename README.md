@@ -40,6 +40,11 @@ configuration necessary.
   ; configuration files to copy into the staging directory.
   :config-dir "config"
 
+  ; If specified, this is a directory where lein-ezbake will look for additional
+  ; configuration files will end up under the install directory under /opt. It's
+  ; intended for configuration files that an end user should not edit
+  :system-config-dir "system-config"
+
   ; These variables are available to either modify the behavior of lein-ezbake
   ; in various ways or to populate values in template files.
   :vars {
@@ -153,9 +158,21 @@ repository.
 
 ### Packaging Configuration Files
 
-In the final packages produced by an ezbake build, there will be a "config' directory
+By default, in the final packages produced by an ezbake build, there will be a "config" directory
 (usually `/etc/puppetlabs/<ezbake-project-name>`) that contains all of the final
 configuration files for the ezbake application.
+
+#### bootstrap-source
+The `bootstrap-source` setting can be one of:
+* (Default) `:bootstrap-cfg`
+* `:services-d`
+
+If the `:bootstrap-source` setting is set to `:services-d`, there will also be an additional
+configuration directory under the installation directory:
+`/opt/puppetlabs/server/apps/{project-name}/config/`
+This directory will then be used to hold a `services.d/` directory that contains bootstrap files.
+Usually this will be for bootstrap entries the application could not run without, and which should
+not be modified by the user. See [Bootstrap Files](#bootstrap_files)
 
 EZBake will assemble the contents of this directory from two sources:
 
@@ -205,6 +222,37 @@ The rule of thumb is:
   the files should live in the repo of the ezbake packaging project; e.g. in the `pe-puppetserver` composite
   project, there is a directory at the root called `config`, and this will contain files like
   `config/conf.d/web-routes.conf`.
+
+### Bootstrap Files
+There are two ways of specifying a set of services to bootstrap your TK application with:
+
+1. A single `bootstrap.cfg` file in your project's `:config-dir` directory
+2. Two `services.d` directories which can contain any number of `*.cfg` files that will be
+   merged together
+
+This choice is controlled by the `:bootstrap-source` setting. The default value
+of `:bootstrap-cfg` makes ezbake look for a single file called `bootstrap.cfg`
+directly under your `:config-dir`. Setting `:booststrap-source` to `:services-d`
+will cause ezbake to construct service init scripts that pass TK two directories,
+usually `/etc/puppetlabs/{project-name}/services.d/`, and
+`/opt/puppetlabs/server/apps/{project-name}/config/services.d`.
+
+This means that in your TK project, you'll need to at least put a `service.d/` directory
+in your `:config-dir`, and optionally another in your `:system-config-dir`. You might want to use
+the `system-config-dir` if you are concerned about users editing files under `/etc`.
+
+For example, with the default lein-ezbake settings, your directories might look like this:
+```
+.
+├── config
+│   └── services.d
+│       ├── more_services.cfg
+│       ├── other_services.cfg
+│       └── some_services.cfg
+└── system-config
+    └── services.d
+        └── really_important_services.cfg
+```
 
 ### Testing
 
