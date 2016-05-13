@@ -1,3 +1,7 @@
+## 0.4.1 - 2016-05-13
+  * Update build-defaults to build for Ubuntu 16.04 (Xenial)
+  * Fixed debian init script naming
+
 ## 0.4.0 - 2016-05-11
   * Add Ubuntu 15.10 (Wily) to default build targets
   * Add Ubuntu 16.04 (Xenial) to default build targets
