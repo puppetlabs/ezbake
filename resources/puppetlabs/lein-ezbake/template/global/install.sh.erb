@@ -248,7 +248,7 @@ function task_systemd_redhat {
 function task_sysv_init_deb {
     task defaults_deb
     install -d -m 0755 "${DESTDIR}${initdir}"
-    install -m 0755 ext/debian/${real_name}.init_script "${DESTDIR}${initdir}/${real_name}"
+    install -m 0755 ext/debian/<%= EZBake::Config[:project] %>.init_script "${DESTDIR}${initdir}/<%= EZBake::Config[:project] %>"
     install -d -m 0755 "${DESTDIR}${rundir}"
 }
 
