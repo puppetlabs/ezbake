@@ -1,3 +1,6 @@
+## 0.4.2 - 2016-05-20
+  * Fix a bug in the new bootstrap `services.d` mode, for compatibility with systemd
+
 ## 0.4.1 - 2016-05-13
   * Update build-defaults to build for Ubuntu 16.04 (Xenial)
   * Fixed debian init script naming
