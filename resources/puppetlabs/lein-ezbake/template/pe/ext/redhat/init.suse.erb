@@ -71,7 +71,7 @@ start() {
     # startproc will change users, so make sure that user has permission
     # to access the present working directory.
     cd "${INSTALL_DIR}"
-    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog}" -Djava.security.egd=/dev/urandom ${JAVA_ARGS}
+    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\" -Djava.security.egd=/dev/urandom ${JAVA_ARGS}
     rc_status -v
     retval=$?
 
@@ -123,7 +123,7 @@ stop() {
         print_service_pid > "${PIDFILE}"
     fi
 
-    killproc -p "${PIDFILE}" -t"${SERVICE_STOP_RETRIES}"s -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog}" "${JAVA_ARGS}"
+    killproc -p "${PIDFILE}" -t"${SERVICE_STOP_RETRIES}"s -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\" "${JAVA_ARGS}"
     rc_status -v
     retval=$?
 
@@ -149,7 +149,7 @@ sl_status_q() {
 }
 
 sl_status() {
-    checkproc -p "${PIDFILE}" -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/${prog}" "${JAVA_ARGS}"
+    checkproc -p "${PIDFILE}" -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\"" "${JAVA_ARGS}"
     rc_status -v
 }
 
