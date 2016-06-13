@@ -1,3 +1,6 @@
+## 0.2.12 - 2016-06-13
+ * Backport changes to avoid setting -XX:+HeapDumpOnOutOfMemoryError by default
+
 ## 0.2.11 - 2016-03-18
  * Update to publish to clojars instead of internal repository
  * Packaging: Removes Fedora 20 build targets
