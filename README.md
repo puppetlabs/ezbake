@@ -144,6 +144,15 @@ This will do everything the `stage` action does and then call the external
 builder defined for this project. Currently, the only builder supported is
 [Puppetlabs' Packaging tool](https://github.com/puppetlabs/packaging).
 
+#### `build` for PE
+
+For PE builds, you need to set an environment variable PE_VER to reflect the
+version of PE you're building a package for.  e.g.:
+
+```shell
+PE_VER=2016.3 lein with-profile ezbake ezbake build
+```
+
 #### `build` with a different profile
 
 ```shell
