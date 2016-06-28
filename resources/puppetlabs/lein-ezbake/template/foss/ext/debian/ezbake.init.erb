@@ -15,6 +15,8 @@
 
 # Copyright 2014 Puppet Labs
 
+#set default privileges to -rw-r-----
+umask 027
 
 # You should only need to edit the default/<%= EZBake::Config[:project] %> file and not
 #   this init script directly
