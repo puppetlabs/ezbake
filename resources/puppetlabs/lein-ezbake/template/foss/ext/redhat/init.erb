@@ -24,6 +24,9 @@
 # Source function library.
 . /etc/rc.d/init.d/functions
 
+#set default privileges to -rw-r-----
+umask 027
+
 prog="<%= EZBake::Config[:project] %>"
 realname="<%= EZBake::Config[:real_name] %>"
 

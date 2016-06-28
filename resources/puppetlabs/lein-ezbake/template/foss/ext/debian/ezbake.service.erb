@@ -10,6 +10,8 @@ TimeoutStartSec=<%= EZBake::Config[:start_timeout] %>
 TimeoutStopSec=60
 Restart=on-failure
 StartLimitBurst=5
+#set default privileges to -rw-r-----
+UMask=027
 
 <% unless EZBake::Config[:debian][:pre_start_action].empty? -%>
 PermissionsStartOnly=true
