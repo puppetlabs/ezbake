@@ -58,6 +58,10 @@ EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -Djava.security.egd=/dev/u
 #
 do_start()
 {
+    <% if EZBake::Config[:open_file_limit] -%>
+    [ -n "$OPEN_FILE_LIMIT" ] && ulimit -n $OPEN_FILE_LIMIT
+    <% end -%>
+
     <% EZBake::Config[:debian][:pre_start_action].each do |action| -%>
     <%= action %>
     <% end -%>
