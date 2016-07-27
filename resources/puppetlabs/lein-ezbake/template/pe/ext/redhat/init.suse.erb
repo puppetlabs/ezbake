@@ -67,6 +67,10 @@ start() {
     [ -e "${config}" ] || exit 6
     echo -n $"Starting ${prog}: "
 
+    <% if EZBake::Config[:open_file_limit] -%>
+    [ -n "$OPEN_FILE_LIMIT" ] && ulimit -n $OPEN_FILE_LIMIT
+    <% end -%>
+
     <% EZBake::Config[:redhat][:pre_start_action].each do |action| -%>
     <%= action %>
     <% end -%>

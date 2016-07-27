@@ -12,6 +12,9 @@ Restart=on-failure
 StartLimitBurst=5
 #set default privileges to -rw-r-----
 UMask=027
+<% if EZBake::Config[:open_file_limit] -%>
+LimitNOFILE=<%= EZBake::Config[:open_file_limit] %>
+<% end -%>
 
 <% unless EZBake::Config[:debian][:pre_start_action].empty? -%>
 PermissionsStartOnly=true

@@ -27,3 +27,11 @@ SERVICE_STOP_RETRIES=60
 # seconds.  This is used in System-V style init scripts only, and will have no
 # effect in systemd.
 # START_TIMEOUT=<%= EZBake::Config[:start_timeout] %>
+
+
+<% if EZBake::Config[:open_file_limit] -%>
+# OPEN_FILE_LIMIT can be set here to alter the number of open file descriptors
+# allowed by the service. This is used in System-V style init scripts only, and
+# will have no effect in systemd.
+OPEN_FILE_LIMIT=<%= EZBake::Config[:open_file_limit] %>
+<% end -%>
