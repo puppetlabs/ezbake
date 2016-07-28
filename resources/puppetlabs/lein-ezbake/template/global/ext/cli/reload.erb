@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+restartfile=/opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>/restartcounter.txt
+cur=$(head -1 $restartfile)
+initial=$cur
+timeout="300"
+
+if [ -e $restartfile ];  then
+    kill -HUP $(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
+    while [ "$cur" == "$initial" ] ;do
+        sleep 0.1
+        cur=$(head -1 $restartfile)
+
+        ((timeout--))
+        if [ "$timeout" = 0 ]; then
+            exit 1
+        fi
+    done
+else
+    echo "Restart file does not exist"
+    exit 1
+fi
+
+exit 0
