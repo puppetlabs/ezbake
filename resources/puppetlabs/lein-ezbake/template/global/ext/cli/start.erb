@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+restartfile=/opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>/restartcounter.txt
+cur=$(head -1 $restartfile)
+initial=$cur
+timeout="300"
+source /etc/sysconfig/puppetserver
+
+if [ -e $restartfile ];  then
+    /usr/bin/java $JAVA_ARGS -Djava.security.egd=/dev/urandom -cp "${INSTALL_DIR}/puppet-server-release.jar" clojure.main -m puppetlabs.trapperkeeper.main --config "${CONFIG}" -b "${BOOTSTRAP_CONFIG}" &
+    while [ "$cur" == "$initial" ] ;do
+        sleep 0.1
+        cur=$(head -1 $restartfile)
+
+        ((timeout--))
+        if [ "$timeout" = 0 ]; then
+            exit 1
+        fi
+    done
+else
+    echo "Restart file does not exist"
+    exit 1
+fi
+
+exit 0
