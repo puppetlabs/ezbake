@@ -6,7 +6,7 @@ initial=$cur
 timeout="300"
 
 if [ -e $restartfile ];  then
-    /usr/bin/java $JAVA_ARGS -Djava.security.egd=/dev/urandom -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> clojure.main -m <%= EZBake::Config[:main_namespace] %> --config "${CONFIG}" -b "${BOOTSTRAP_CONFIG}" &
+    ${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> clojure.main -m <%= EZBake::Config[:main_namespace] %> --config "${CONFIG}" -b "${BOOTSTRAP_CONFIG}" &
     while [ "$cur" == "$initial" ] ;do
         sleep 0.1
         cur=$(head -n 1 $restartfile)
