@@ -1,3 +1,8 @@
+## 0.4.3 - 2016-07-28
+ * Add configuration of open file limit to services
+ * Set umask 027 on service startup
+ * Fix issue where EL init script could create an empty pidfile
+
 ## 0.4.2 - 2016-05-20
   * Fix a bug in the new bootstrap `services.d` mode, for compatibility with systemd
 
