@@ -55,7 +55,7 @@ find_my_pid() {
         mkdir -p /var/run/puppetlabs/${realname}
         chown -R $USER:$GROUP /var/run/puppetlabs/${realname}
     fi
-    echo $pid > $PIDFILE
+    [ -n "$pid" ] && echo $pid > $PIDFILE
 }
 
 start() {
