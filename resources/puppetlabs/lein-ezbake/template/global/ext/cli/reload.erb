@@ -9,7 +9,7 @@ if [ -e $restartfile ];  then
     kill -HUP $(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
     while [ "$cur" == "$initial" ] ;do
         sleep 0.1
-        cur=$(head -1 $restartfile)
+        cur=$(head -n 1 $restartfile)
 
         ((timeout--))
         if [ "$timeout" = 0 ]; then
