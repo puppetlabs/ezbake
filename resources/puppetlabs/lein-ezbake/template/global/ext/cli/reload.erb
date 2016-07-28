@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 restartfile=/opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>/restartcounter.txt
-cur=$(head -1 $restartfile)
+cur=$(head -n 1 $restartfile)
 initial=$cur
 timeout="300"
 
