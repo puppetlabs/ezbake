@@ -22,13 +22,17 @@ templates:
   - source: ext/redhat/ezbake.service.erb
     target: ext/redhat/{{{project}}}.service
   - source: ext/default.erb
-    target: ext/debian/{{{project}}}.default
+    target: ext/debian/{{{project}}}.default_file
   - source: ext/debian/ezbake.init.erb
-    target: ext/debian/{{{project}}}.init
+    target: ext/debian/{{{project}}}.init_script
+  - source: ext/debian/ezbake.service.erb
+    target: ext/debian/{{{project}}}.service_file
   - source: ext/ezbake.logrotate.conf.erb
     target: ext/{{{project}}}.logrotate.conf
   - source: ext/ezbake.logrotate-legacy.conf.erb
     target: ext/{{{project}}}.logrotate-legacy.conf
+  - source: ext/ezbake.tmpfiles.conf.erb
+    target: ext/{{{project}}}.tmpfiles.conf
   - ext/redhat/init.erb
   - ext/redhat/init.suse.erb
   - ext/debian/changelog.erb
@@ -37,9 +41,10 @@ templates:
   - ext/debian/docs.erb
   - ext/debian/postrm.erb
   - ext/debian/preinst.erb
+  - ext/debian/prerm.erb
   - ext/debian/postinst.erb
   - ext/debian/rules.erb
-  - ext/config/conf.d/*.erb
+  - ext/config/user/conf.d/*.erb
   - ext/bin/*.erb
   - ext/cli/apps/*.erb
   - ext/cli/*.erb
@@ -50,6 +55,8 @@ templates:
 tar_excludes:
   - .gitignore
 build_pe: {{{is-pe-build}}}
+apt_repo_name: {{{repo-name}}}
+yum_repo_name: {{{repo-name}}}
 gem_files:
 gem_require_path:
 gem_test_files:

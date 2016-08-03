@@ -11,6 +11,10 @@
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
+<% if EZBake::Config[:start_after] -%>
+# Should-Start:      <%= EZBake::Config[:start_after].map {|dep| "#{dep}" }.join(" ") %>
+# Should-Stop:       <%= EZBake::Config[:start_after].map {|dep| "#{dep}" }.join(" ") %>
+<% end -%>
 # Short-Description: <%= EZBake::Config[:project] %>
 # Description:       Start <%= EZBake::Config[:project] %> daemon placed in /etc/init.d.
 ### END INIT INFO
@@ -20,7 +24,11 @@
 # Source function library.
 . /etc/rc.d/init.d/functions
 
+#set default privileges to -rw-r-----
+umask 027
+
 prog="<%= EZBake::Config[:project] %>"
+realname="<%= EZBake::Config[:real_name] %>"
 
 ##########################################
 #  You should not have to edit this init script.
@@ -38,15 +46,16 @@ JAVA_ARGS="${JAVA_ARGS} -cp '${INSTALL_DIR}/${JARFILE}' clojure.main -m <%= EZBa
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile=/var/lock/subsys/$prog
 EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -Djava.security.egd=/dev/urandom $JAVA_ARGS"
-PIDFILE="/var/run/$prog/$prog"
+PIDFILE="/var/run/puppetlabs/${realname}/${realname}"
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 find_my_pid() {
-    if [ ! -d  "/var/run/$prog" ] ; then
-      mkdir -p /var/run/$prog
-      chown -R $USER:$USER /var/run/$prog
+    pid=`pgrep -f "${JARFILE}"`
+    if [ ! -d  "/var/run/puppetlabs/${realname}" ] ; then
+        mkdir -p /var/run/puppetlabs/${realname}
+        chown -R $USER:$GROUP /var/run/puppetlabs/${realname}
     fi
-    pid=`ps -ef | grep $JAVA_BIN | grep $JARFILE | awk '{print $2}'`
+    [ -n "$pid" ] && echo $pid > $PIDFILE
 }
 
 start() {
@@ -57,18 +66,20 @@ start() {
     # Move any heap dumps aside
     echo -n $"Starting $prog: "
 
+    <% if EZBake::Config[:open_file_limit] -%>
+    [ -n "$OPEN_FILE_LIMIT" ] && ulimit -n $OPEN_FILE_LIMIT
+    <% end -%>
+
     <% EZBake::Config[:redhat][:pre_start_action].each do |action| -%>
     <%= action %>
     <% end -%>
 
     pushd "${INSTALL_DIR}" &> /dev/null
-    daemon --user $USER --pidfile $PIDFILE "$EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1 &"
+    daemon --user $USER --pidfile $PIDFILE "$EXEC >> /var/log/puppetlabs/<%= EZBake::Config[:real_name] %>/<%= EZBake::Config[:real_name] %>-daemon.log 2>&1 &"
     retval=$?
-
     sleep 1
     popd &> /dev/null
     find_my_pid
-    echo $pid > $PIDFILE
     [ -s $PIDFILE ] && success $"$base startup" || failure $"$base startup"
     echo
     [ -s $PIDFILE ] && touch $lockfile
@@ -94,7 +105,7 @@ stop() {
     find_my_pid
 
     if [ ! -s "$PIDFILE" ] ; then
-      echo $pid > $PIDFILE
+        echo $pid > $PIDFILE
     fi
 
     killproc -p $PIDFILE -d ${SERVICE_STOP_RETRIES}s $prog
@@ -112,6 +123,7 @@ restart() {
 }
 
 rh_status() {
+    find_my_pid
     status -p $PIDFILE $prog
 }
 

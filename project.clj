@@ -1,4 +1,4 @@
-(defproject puppetlabs/lein-ezbake "0.2.13-SNAPSHOT"
+(defproject puppetlabs/lein-ezbake "0.4.4-SNAPSHOT"
   :description "A system for building packages for trapperkeeper-based applications"
   :url "https://github.com/puppetlabs/ezbake"
   :license {:name "Apache License 2.0"
@@ -7,6 +7,7 @@
   :dependencies [[me.raynes/fs "1.4.6" :exclusions [org.clojure/clojure]]
                  [me.raynes/conch "0.8.0"]
                  [clj-time "0.6.0"]
+                 [prismatic/schema "1.0.4"]
                  [puppetlabs/typesafe-config "0.1.3" :exclusions [org.clojure/clojure]]]
 
   :repositories [["releases" "http://nexus.delivery.puppetlabs.net/content/repositories/releases/"]

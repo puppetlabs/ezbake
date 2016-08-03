@@ -4,19 +4,21 @@
 # source based installation method.
 
 if [ "$1" = install ] || [ "$1" = upgrade ]; then
-    # Create the "<%= EZBake::Config[:user] %>" user
-    if ! getent passwd <%= EZBake::Config[:user] %>  > /dev/null; then
-        adduser --quiet --system --group --home /opt/puppet/share/<%= EZBake::Config[:real_name] %>  \
-            --no-create-home                                 \
-            --gecos "<%= EZBake::Config[:project] %>" \
-            <%= EZBake::Config[:user] %>
-    fi
-
-    # Create the "<%= EZBake::Config[:group] %>" group, if it is missing, and set the
-    # primary group of the "<%= EZBake::Config[:user] %>" user to this group.
-    if ! getent group <%= EZBake::Config[:group] %> > /dev/null; then
-         addgroup --quiet --system <%= EZBake::Config[:group] %>
-         usermod -g <%= EZBake::Config[:group] %> <%= EZBake::Config[:user] %>
+    # Note: changes to this section of the spec may require synchronisation with the
+    # install.sh source based installation methodology.
+    #
+    # Add <%= EZBake::Config[:group] %> group
+    getent group <%= EZBake::Config[:group] %> > /dev/null || \
+      groupadd -r <%= EZBake::Config[:group] %> || :
+    # Add <%= EZBake::Config[:user] %> user
+    if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
+      usermod --gid <%= EZBake::Config[:group] %> \
+        --home /opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %> \
+        --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
+    else
+      useradd -r --gid <%= EZBake::Config[:group] %> \
+        --home /opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>  --shell $(which nologin) \
+        --comment "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
     fi
 
 <% EZBake::Config[:debian][:additional_preinst].each do |cmd| -%>

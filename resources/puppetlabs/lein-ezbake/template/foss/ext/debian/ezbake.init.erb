@@ -5,12 +5,18 @@
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
+<% if EZBake::Config[:start_after] -%>
+# Should-Start:      <%= EZBake::Config[:start_after].map {|dep| "#{dep}" }.join(" ") %>
+# Should-Stop:       <%= EZBake::Config[:start_after].map {|dep| "#{dep}" }.join(" ") %>
+<% end -%>
 # Short-Description: <%= EZBake::Config[:project] %>
 # Description:       Start <%= EZBake::Config[:project] %> daemon placed in /etc/init.d.
 ### END INIT INFO
 
 # Copyright 2014 Puppet Labs
 
+#set default privileges to -rw-r-----
+umask 027
 
 # You should only need to edit the default/<%= EZBake::Config[:project] %> file and not
 #   this init script directly
@@ -25,15 +31,16 @@ fi
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 NAME=<%= EZBake::Config[:project] %>
+REALNAME=<%= EZBake::Config[:real_name] %>
 DESC="<%= EZBake::Config[:project] %> Puppet Labs version-checking backend"
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
-PIDFILE=/var/run/$NAME.pid
+PIDFILE=/var/run/puppetlabs/${REALNAME}/${REALNAME}.pid
 SCRIPTNAME=/etc/init.d/$NAME
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 JAVA_ARGS="${JAVA_ARGS} -cp '${INSTALL_DIR}/${JARFILE}' clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b '${BOOTSTRAP_CONFIG}'"
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"
-EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/$NAME -Djava.security.egd=/dev/urandom $JAVA_ARGS"
+EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -Djava.security.egd=/dev/urandom $JAVA_ARGS"
 
 # Exit if the package is not installed
 [ -x "$JAVA_BIN" ] || exit 0
@@ -51,12 +58,21 @@ EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -XX:+HeapDumpOnOutOfMemory
 #
 do_start()
 {
+    <% if EZBake::Config[:open_file_limit] -%>
+    [ -n "$OPEN_FILE_LIMIT" ] && ulimit -n $OPEN_FILE_LIMIT
+    <% end -%>
+
     <% EZBake::Config[:debian][:pre_start_action].each do |action| -%>
     <%= action %>
     <% end -%>
 
-    start-stop-daemon --start $EXTRA_ARGS --quiet --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
-        --startas /bin/bash -- -c "exec $EXEC >> /var/log/<%= EZBake::Config[:project] %>/<%= EZBake::Config[:project] %>-daemon.log 2>&1"
+    if [ ! -d  "/var/run/puppetlabs/$NAME" ] ; then
+      mkdir -p /var/run/puppetlabs/$NAME
+      chown -R $USER:$GROUP /var/run/puppetlabs/$NAME
+    fi
+
+    start-stop-daemon --start $EXTRA_ARGS --quiet --oknodo --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
+      --startas /bin/bash -- -c "exec $EXEC >> /var/log/puppetlabs/${REALNAME}/${REALNAME}-daemon.log 2>&1"
     retval=$?
 
     if [ "$retval" -ne 0 ] \
@@ -82,11 +98,10 @@ do_start()
 do_stop()
 {
     # Return
-    #   0 if daemon has been stopped
-    #   1 if daemon was already stopped
+    #   0 if daemon has been stopped or was already stopped
     #   2 if daemon could not be stopped
     #   other if a failure occurred
-    start-stop-daemon --stop --quiet --retry=TERM/${SERVICE_STOP_RETRIES}/KILL/5 --pidfile $PIDFILE --exec $JAVA_BIN
+    start-stop-daemon --stop --quiet --oknodo --retry=TERM/${SERVICE_STOP_RETRIES}/KILL/5 --pidfile $PIDFILE --exec $JAVA_BIN
     RETVAL="$?"
     [ "$RETVAL" = 2 ] && return 2
     # Many daemons don't delete their pidfiles when they exit.

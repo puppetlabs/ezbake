@@ -1,10 +1,10 @@
 [Unit]
 Description=<%= EZBake::Config[:project] %> Service
-After=syslog.target network.target <%= EZBake::Config[:start_after].map {|dep| "#{dep}.service" }.join(" ") %>
+After=syslog.target network.target
 
 [Service]
 Type=simple
-EnvironmentFile=/etc/sysconfig/<%= EZBake::Config[:project] %>
+EnvironmentFile=/etc/default/<%= EZBake::Config[:project] %>
 User=<%= EZBake::Config[:user] %>
 TimeoutStartSec=<%= EZBake::Config[:start_timeout] %>
 TimeoutStopSec=60
@@ -16,14 +16,14 @@ UMask=027
 LimitNOFILE=<%= EZBake::Config[:open_file_limit] %>
 <% end -%>
 
-<% unless EZBake::Config[:redhat][:pre_start_action].empty? -%>
+<% unless EZBake::Config[:debian][:pre_start_action].empty? -%>
 PermissionsStartOnly=true
-<% EZBake::Config[:redhat][:pre_start_action].each do |action| -%>
+<% EZBake::Config[:debian][:pre_start_action].each do |action| -%>
 ExecStartPre=<%= action %>
 <% end -%>
 <% end -%>
 
-ExecStart=/opt/puppetlabs/server/bin/java $JAVA_ARGS \
+ExecStart=/usr/bin/java $JAVA_ARGS \
           '-XX:OnOutOfMemoryError=kill -9 %%p' \
           -Djava.security.egd=/dev/urandom \
           -cp "${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %>" clojure.main \
@@ -35,7 +35,7 @@ KillMode=process
 
 ExecStartPost=/bin/bash "${INSTALL_DIR}/ezbake-functions.sh" wait_for_app
 
-<% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
+<% EZBake::Config[:debian][:post_start_action].each do |action| -%>
 ExecStartPost=-<%= action %>
 <% end -%>
 SuccessExitStatus=143

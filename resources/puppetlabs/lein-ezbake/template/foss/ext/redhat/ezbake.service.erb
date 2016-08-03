@@ -8,6 +8,13 @@ EnvironmentFile=/etc/sysconfig/<%= EZBake::Config[:project] %>
 User=<%= EZBake::Config[:user] %>
 TimeoutStartSec=<%= EZBake::Config[:start_timeout] %>
 TimeoutStopSec=60
+Restart=on-failure
+StartLimitBurst=5
+#set default privileges to -rw-r-----
+UMask=027
+<% if EZBake::Config[:open_file_limit] -%>
+LimitNOFILE=<%= EZBake::Config[:open_file_limit] %>
+<% end -%>
 
 <% unless EZBake::Config[:redhat][:pre_start_action].empty? -%>
 PermissionsStartOnly=true

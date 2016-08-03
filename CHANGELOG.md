@@ -1,3 +1,189 @@
+## 0.4.3 - 2016-07-28
+ * Add configuration of open file limit to services
+ * Set umask 027 on service startup
+ * Fix issue where EL init script could create an empty pidfile
+
+## 0.4.2 - 2016-05-20
+  * Fix a bug in the new bootstrap `services.d` mode, for compatibility with systemd
+
+## 0.4.1 - 2016-05-13
+  * Update build-defaults to build for Ubuntu 16.04 (Xenial)
+  * Fixed debian init script naming
+
+## 0.4.0 - 2016-05-11
+  * Add Ubuntu 15.10 (Wily) to default build targets
+  * Add Ubuntu 16.04 (Xenial) to default build targets
+  * Add Debian systemd script support
+  * Add split bootstrap functionality to allow for user-configurable service
+  entries alongside services that shouldn't be modified.
+  * Changed folder structure for staging to add an ezbake/system-config dir
+
+## 0.3.25 - 2016-04-26
+  * Change Java dependency for deb platforms to non-virtual package
+
+## 0.3.24 - 2016-04-20
+
+  * Add updated maintainers information in README
+  * Remove Fedora21 from default mocks
+  * Add 5 second sleep to wait_for_app to help with race conditions on start
+
+## 0.3.23 - 2016-02-18
+
+  * Add restart on failure functionality to systemd services
+  * Improved handling of mirrors and/or local repos for dependency resolution
+
+## 0.3.22 - 2016-02-09
+
+  * Update permissions for "projconfdir".
+
+## 0.3.21 - 2015-11-10
+
+  * Update to publish to clojars instead of internal repository.
+  * Manage logfile ownership for SLES11 init scripts
+
+## 0.3.20 - 2015-11-03
+
+  * Increase default service startup timeout to 300 seconds
+    (5 minutes) to avoid intermittent timeouts in testing.
+
+## 0.3.19 - 2015-10-29
+
+  * Updates to allow pulling in an ezbake.conf from
+    the immediate project jar in addition to using the file
+    from upstream dependencies.
+  * Removes Ubuntu Utopic (14.10) and Fedora 20 build targets
+
+## 0.3.18 - 2015-8-11
+
+  * Fix unterminated 'if' in RPM spec template
+
+## 0.3.17 - 2015-08-10
+
+  * Update permissions on ezbake-functions.sh
+
+## 0.3.16 - 2015-08-06
+
+  * Fix typo (unclosed %if) in the PE rpm spec file
+
+## 0.3.15 - 2015-08-06
+
+  * RPM scriptlet fixes and cleanups
+  * Fix RPM packaging for arbitrary dirs using create-dirs
+  * Drop unused create-varlib function
+  * Update permissions on ezbake-functions.sh
+  * Stop hardcoding heap dumps in the init scripts
+
+## 0.3.14 - 2015-07-10
+
+ * Do not obsolete/provide with termini packaging for rpms
+
+## 0.3.13 - 2015-07-06
+
+ * Debian/Ubuntu should now correctly restart the process on upgrade
+   if necessary.
+ * Set the Vendor string in the RPM templates.
+
+## 0.3.12 - 2015-07-01
+
+ * Ubuntu PE init script template now creates
+   PID directory correctly
+ * More init script cleanups and synchronizing
+   PE and FOSS templates
+
+## 0.3.11 - 2015-06-26
+
+ * Fixes for service account handling on package
+   and source based installations
+ * Update default startup timeout to 180 seconds
+ * Remove EL-5 as a build target
+ * Add support for systemd tmpfiles.d configs
+
+## 0.3.10 - 2015-06-23
+
+ * On package upgrade, update service account information (home dir,
+   group membership, etc) if necessary
+
+## 0.3.9 - 2015-06-18
+
+ * Packaging: Fix varlibdir to use real_name for PE (so its
+   app_data/lib/puppetdb, not app_data/lib/pe-puppetdb)
+ * Packaging: In Debian, ignore service stops for services that are already
+   stopped during upgrade.
+ * Packaging: In Debian, add a prerm section to stop services gracefully on a
+   failed upgrade.
+ * Packaging: Fixed lots of inconsistencies between PE and FOSS, now we are
+   closer then ever.
+ * Packaging: Users were being created using the old FOSS based homedirs.
+ * Packaging: Removal of log files for FOSS during package uninstall removed old
+   non-AIO log file dirs.
+ * Packaging: sharedstatedir and localstatedir were no longer used, app_data is
+   preferred so these have been removed.
+ * Packaging: call install.sh in PE using exec
+ * Packaging: Debian with PE was not using the group to set permissions, default
+   file and init set correctly.
+ * Packaging: Tighten up permissions on application data directories, no longer
+   world-readable.
+
+## 0.3.8 - 2015-06-05
+
+ * Packaging: Correct termini install.sh rubylibdir fallback detection for
+   source based builds to work.
+ * Packaging: Make rubylibdir setting in packaging consistent between PE/FOSS
+   and Debian/Redhat.
+ * Packaging: Fix: rundir should be created by the rpm package on install/upgrade
+ * Packaging: Make install.sh use "localstatedir" variable instad of hardcoding '/var'
+
+## 0.3.7 - 2015-05-29
+
+ * Packaging: Add Ubuntu Precise and SLES for PE builds
+
+## 0.3.6 - 2015-05-21
+ * Bugfix: Set sudo HOME for foreground
+ * Packaging: Do not build stable or testing for debian
+ * Packaging: Set default cow to precise
+
+## 0.3.5 - 2015-05-13
+This release updates PE templates for AIO paths
+
+ * Update PE packaging templates to use the AIO paths as specified in
+   http://git.io/vUXTv
+ * PE packaging templates now depend on 'puppet-agent' where appropriate
+
+## 0.3.4 - 2015-04-24
+ * Bugfix: Quiet install.sh debug output by default (can be overridden by
+   setting EZ_VERBOSE). It is still enabled for package builds.
+ * Update FOSS debian templates to allow the use java 8 if java 7 is not
+   available
+ * Add Ubuntu Utopic, Debian Jessie as build targets by default
+ * Add 'Should-Start' LSB headers to SUSE and EL init script templates
+ * Add Fedora 21 build target
+ * Fix copy-paste error in EL init script template
+ * Use templated :start_timeout value in Debian init scripts.
+
+## 0.3.3 - 2015-04-15
+ * Remove Fedora 19 build target
+
+## 0.3.2 - 2015-03-30
+ * (EZ-34) Allow ezbake to set apt/yum repo_name to ship to alternate repos
+
+## 0.3.1 - 2015-03-25
+ * Feature: Add a full lein dependency tree to the ezbake.manifest file that is
+   included in packages.
+ * Feature: Support for Fedora 21 as a build target.
+ * Bugfix: Update to AIO layout for debian7, ubuntu1404, ubuntu1204 platforms.
+
+## 0.3.0 - 2015-03-12
+This release contains bug fixes and AIO path changes.
+
+ * (SERVER-358) Update owner/group of the pid dir and add data dir (599d733)
+ * (SERVER-344) Remove quotes around sudo command (070bac0)
+ * (SERVER-344) Remove hardcoded puppet user (c13648a)
+ * (SERVER-344) Choose best method to become puppet (1335712)
+ * (PE-8274) Update oomkill parameter for systemd (f0bc4e9)
+ * (SERVER-369) Update run directory for EL-7 (4625cd7)
+ * (SERVER-369) Update ezbake to use new AIO directories (2eb3628)
+ * (SERVER-387) Update to AIO server confdir layout (ee0a593)
+
 ## 0.2.12 - 2016-06-13
  * Backport changes to avoid setting -XX:+HeapDumpOnOutOfMemoryError by default
 

@@ -3,19 +3,34 @@
 ###########################################
 
 # Location of your Java binary (version 7 or higher)
-JAVA_BIN="/opt/puppet/bin/java"
+JAVA_BIN="/opt/puppetlabs/server/bin/java"
 
 # Modify this if you'd like to change the memory allocation, enable JMX, etc
 JAVA_ARGS="<%= EZBake::Config[:java_args] %>"
 
 # These normally shouldn't need to be edited if using OS packages
 USER="<%= EZBake::Config[:user] %>"
-INSTALL_DIR="/opt/puppet/share/<%= EZBake::Config[:real_name] %>"
+GROUP="<%= EZBake::Config[:group] %>"
+INSTALL_DIR="/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>"
 CONFIG="/etc/puppetlabs/<%= EZBake::Config[:real_name] %>/conf.d"
+
+# Bootstrap path
+<% if EZBake::Config[:bootstrap_source] == 'services-d' -%>
+BOOTSTRAP_CONFIG="/etc/puppetlabs/<%= EZBake::Config[:real_name] %>/services.d/,/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/config/services.d/"
+<% else -%>
 BOOTSTRAP_CONFIG="/etc/puppetlabs/<%= EZBake::Config[:real_name] %>/bootstrap.cfg"
+<% end -%>
+
 SERVICE_STOP_RETRIES=60
 
 # START_TIMEOUT can be set here to alter the default startup timeout in
 # seconds.  This is used in System-V style init scripts only, and will have no
 # effect in systemd.
 # START_TIMEOUT=<%= EZBake::Config[:start_timeout] %>
+
+<% if EZBake::Config[:open_file_limit] -%>
+# OPEN_FILE_LIMIT can be set here to alter the number of open file descriptors
+# allowed by the service. This is used in System-V style init scripts only, and
+# will have no effect in systemd.
+OPEN_FILE_LIMIT=<%= EZBake::Config[:open_file_limit] %>
+<% end -%>
