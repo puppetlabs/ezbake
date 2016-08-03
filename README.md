@@ -5,6 +5,11 @@ EZBake is a leiningen plugin that integrates multiple Trapperkeeper services
 and their config files into a single uberjar and stages them in preparation for
 packaging.
 
+## EZBake branches
+
+The branching strategy is now covered in the
+[Branching Strategy page on the EZBake wiki](https://github.com/puppetlabs/ezbake/wiki/Branching-Strategy).
+
 ## Using
 
 To get started using EZBake, please add it to the `:plugins` key in your
