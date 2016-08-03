@@ -18,14 +18,5 @@ referenced in their project.clj files.
 
 ## EZBake branches
 
-Similar to most of the other projects at Puppet Labs, there should generally
-only be two branches that are relevant at all in the puppetlabs github repo:
-`master`, and `stable`.
-
-In the case of EZBake, the `stable` branch currently represents the 0.2.x
-series of EZBake plugin releases.  In places where it makes assumptions about
-filesystem paths, it uses the *Puppet 3.x* paths.
-
-The `master` branch currently represents the 0.3.x series of EZBake plugin
-releases.  In places where it makes assumptions about filesystem paths,
-it uses the *Puppet 4.x/AIO* paths.
+The branching strategy is now covered in the
+[Branching Strategy page on the EZBake wiki](https://github.com/puppetlabs/ezbake/wiki/Branching-Strategy).
