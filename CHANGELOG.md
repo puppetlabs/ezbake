@@ -184,6 +184,13 @@ This release contains bug fixes and AIO path changes.
  * (SERVER-369) Update ezbake to use new AIO directories (2eb3628)
  * (SERVER-387) Update to AIO server confdir layout (ee0a593)
 
+## 0.2.12 - 2016-06-13
+ * Backport changes to avoid setting -XX:+HeapDumpOnOutOfMemoryError by default
+
+## 0.2.11 - 2016-03-18
+ * Update to publish to clojars instead of internal repository
+ * Packaging: Removes Fedora 20 build targets
+
 ## 0.2.10 - 2015-05-21
  * Bugfix: Set sudo HOME for foreground
  * Packaging: Do not build stable or testing for debian
