@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+restartfile=<%= EZBake::Config[:restart_file] %>
+timeout="300"
+
+if [ ! -e $restartfile ];  then
+    echo "1" > $restartfile
+fi
+
+${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> clojure.main -m <%= EZBake::Config[:main_namespace] %> --config "${CONFIG}" -b "${BOOTSTRAP_CONFIG}" &
+
+cur=$(head -n 1 $restartfile)
+initial=$cur
+
+while [ "$cur" == "$initial" ] ;do
+    sleep 0.1
+    cur=$(head -n 1 $restartfile)
+
+    ((timeout--))
+    if [ "$timeout" = 0 ]; then
+        echo "Startup timed out"
+        exit 1
+    fi
+done
+
+exit 0
