@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 restartfile=<%= EZBake::Config[:restart_file] %>
 timeout=<%= EZBake::Config[:start_timeout] %>
@@ -13,7 +14,7 @@ if [ -r "$restartfile" ];  then
 
         ((timeout--))
         if [ "$timeout" = 0 ]; then
-            echo "Reload timed out"
+            echo "Reload timed out after <%= EZbake::Config[:start_timeout] %> seconds"
             exit 1
         fi
     done
