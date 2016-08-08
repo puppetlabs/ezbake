@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 restartfile=<%= EZBake::Config[:restart_file] %>
-timeout="300"
+timeout=<%= EZBake::Config[:start_timeout] %>
 
-if [ -e $restartfile ];  then
+if [ -r "$restartfile" ];  then
     kill -HUP $(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
     cur=$(head -n 1 $restartfile)
     initial=$cur
@@ -18,7 +18,7 @@ if [ -e $restartfile ];  then
         fi
     done
 else
-    echo "Application 'puppetserver' does not support 'reload'"
+    echo "Application '<%= EZBake::Config[:real_name] %>' does not support 'reload'"
     exit 1
 fi
 

@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 
 restartfile=<%= EZBake::Config[:restart_file] %>
-timeout="300"
+timeout=<%= EZBake::Config[:start_timeout] %>
 
-if [ ! -e $restartfile ];  then
+if [ ! -r "$restartfile" ] || [ ! -w "$restartfile" ]; then
+    echo "The restart-file at <%= EZBake::Config[:restart_file] %> is not readable and/or writeable."
+    exit 1
+fi
+
+if [ ! -e "$restartfile" ]; then
+    mkdir -p $restartfile
     echo "1" > $restartfile
 fi
 
