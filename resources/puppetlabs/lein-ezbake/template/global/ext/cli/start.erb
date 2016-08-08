@@ -2,6 +2,7 @@
 
 restartfile=<%= EZBake::Config[:restart_file] %>
 timeout=<%= EZBake::Config[:start_timeout] %>
+dir=$(dirname "$restartfile")
 
 if [ ! -r "$restartfile" ] || [ ! -w "$restartfile" ]; then
     echo "The restart-file at <%= EZBake::Config[:restart_file] %> is not readable and/or writeable."
@@ -9,7 +10,7 @@ if [ ! -r "$restartfile" ] || [ ! -w "$restartfile" ]; then
 fi
 
 if [ ! -e "$restartfile" ]; then
-    mkdir -p "$restartfile"
+    mkdir -p "$dir"
     echo "1" > "$restartfile"
 fi
 
