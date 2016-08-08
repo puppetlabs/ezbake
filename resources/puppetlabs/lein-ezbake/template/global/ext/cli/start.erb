@@ -9,18 +9,18 @@ if [ ! -r "$restartfile" ] || [ ! -w "$restartfile" ]; then
 fi
 
 if [ ! -e "$restartfile" ]; then
-    mkdir -p $restartfile
-    echo "1" > $restartfile
+    mkdir -p "$restartfile"
+    echo "1" > "$restartfile"
 fi
 
 ${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> clojure.main -m <%= EZBake::Config[:main_namespace] %> --config "${CONFIG}" -b "${BOOTSTRAP_CONFIG}" &
 
-cur=$(head -n 1 $restartfile)
+cur=$(head -n 1 "$restartfile")
 initial=$cur
 
 while [ "$cur" == "$initial" ] ;do
     sleep 0.1
-    cur=$(head -n 1 $restartfile)
+    cur=$(head -n 1 "$restartfile")
 
     ((timeout--))
     if [ "$timeout" = 0 ]; then

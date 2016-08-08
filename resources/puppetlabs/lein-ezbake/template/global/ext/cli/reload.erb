@@ -5,11 +5,11 @@ timeout=<%= EZBake::Config[:start_timeout] %>
 
 if [ -r "$restartfile" ];  then
     kill -HUP $(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
-    cur=$(head -n 1 $restartfile)
+    cur=$(head -n 1 "$restartfile")
     initial=$cur
     while [ "$cur" == "$initial" ] ;do
         sleep 0.1
-        cur=$(head -n 1 $restartfile)
+        cur=$(head -n 1 "$restartfile")
 
         ((timeout--))
         if [ "$timeout" = 0 ]; then
