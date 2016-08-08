@@ -14,7 +14,7 @@ if [ -r "$restartfile" ];  then
 
         ((timeout--))
         if [ "$timeout" = 0 ]; then
-            echo "$timeout" | awk '{printf "Reload timed out after %.3f secs\n", $1/10}'
+            echo "Reload timed out after <%= EZBake::Config[:start_timeout] / 10 %> seconds"
             exit 1
         fi
     done
