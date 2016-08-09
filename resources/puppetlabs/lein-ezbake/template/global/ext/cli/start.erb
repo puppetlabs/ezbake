@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -e
+
+restartfile=<%= EZBake::Config[:restart_file] %>
+timeout=<%= EZBake::Config[:start_timeout] %>
+dir=$(dirname "$restartfile")
+
+if [ ! -r "$restartfile" ] || [ ! -w "$restartfile" ]; then
+    echo "The restart-file at <%= EZBake::Config[:restart_file] %> is not readable and/or writeable."
+    exit 1
+fi
+
+if [ ! -e "$restartfile" ]; then
+    mkdir -p "$dir"
+    echo "1" > "$restartfile"
+fi
+
+${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> clojure.main -m <%= EZBake::Config[:main_namespace] %> --config "${CONFIG}" -b "${BOOTSTRAP_CONFIG}" &
+
+cur=$(head -n 1 "$restartfile")
+initial=$cur
+
+while [ "$cur" == "$initial" ] ;do
+    sleep 1
+    cur=$(head -n 1 "$restartfile")
+
+    ((timeout--))
+    if [ "$timeout" = 0 ]; then
+        echo "Startup timed out after <%= EZbake::Config[:start_timeout] %> seconds"
+        exit 1
+    fi
+done
+
+exit 0

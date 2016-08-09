@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -e
+
+restartfile=<%= EZBake::Config[:restart_file] %>
+timeout=<%= EZBake::Config[:start_timeout] %>
+
+if [ -r "$restartfile" ];  then
+    kill -HUP $(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
+    cur=$(head -n 1 "$restartfile")
+    initial=$cur
+    while [ "$cur" == "$initial" ] ;do
+        sleep 0.1
+        cur=$(head -n 1 "$restartfile")
+
+        ((timeout--))
+        if [ "$timeout" = 0 ]; then
+            echo "Reload timed out after <%= EZBake::Config[:start_timeout] / 10 %> seconds"
+            exit 1
+        fi
+    done
+else
+    echo "Application '<%= EZBake::Config[:real_name] %>' does not support 'reload'"
+    exit 1
+fi
+
+exit 0
