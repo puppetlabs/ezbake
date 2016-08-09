@@ -26,7 +26,7 @@ while [ "$cur" == "$initial" ] ;do
 
     ((timeout--))
     if [ "$timeout" = 0 ]; then
-        echo "Startup timed out after <%= EZbake::Config[:start_timeout] %> seconds"
+        echo "Startup timed out after <%= EZBake::Config[:start_timeout] %> seconds"
         exit 1
     fi
 done

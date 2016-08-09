@@ -1,5 +1,5 @@
 This document attempts to capture the details of our branching strategy
-for EZbake.
+for EZBake.
 
 ## NOTE: EZBake is now a lein plugin!
 
