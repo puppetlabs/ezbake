@@ -127,7 +127,6 @@ get_status_q()
     get_status >/dev/null 2>&1
 }
 
-
 #
 # Function that restarts the daemon/service
 #
@@ -154,13 +153,8 @@ do_restart()
 # Function that sends a SIGHUP to the daemon/service
 #
 do_reload() {
-     #
-     # If the daemon can reload its configuration without
-     # restarting (for example, when it is sent a SIGHUP),
-     # then implement that here.
-     #
-     start-stop-daemon --stop --signal HUP --quiet --pidfile $PIDFILE --name $NAME
-     return 0
+    /opt/puppetlabs/server/apps/${REALNAME}/bin/${REALNAME} reload
+    echo $?
 }
 
 case "$1" in

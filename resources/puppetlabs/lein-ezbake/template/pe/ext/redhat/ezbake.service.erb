@@ -23,7 +23,7 @@ ExecStartPre=<%= action %>
 <% end -%>
 <% end -%>
 
-ExecReload=/bin/kill -HUP $MAINPID
+ExecReload=/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin/<%= EZBake::Config[:real_name] %> reload
 ExecStart=/opt/puppetlabs/server/bin/java $JAVA_ARGS \
           '-XX:OnOutOfMemoryError=kill -9 %%p' \
           -Djava.security.egd=/dev/urandom \

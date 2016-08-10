@@ -133,7 +133,7 @@ rh_status_q() {
 
 reload() {
     echo -n $"Reloading $prog: "
-    killproc -p $PIDFILE $prog -HUP
+    /opt/puppetlabs/server/apps/${realname}/bin/${realname} reload
     RETVAL=$?
     echo
     return $RETVAL
