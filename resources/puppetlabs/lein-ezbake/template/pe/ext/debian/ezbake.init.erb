@@ -154,8 +154,8 @@ do_restart()
 # Function that sends a SIGHUP to the daemon/service
 #
 do_reload() {
-     /opt/puppetlabs/server/apps/${REALNAME}/bin/${REALNAME} reload
-     echo $?
+    /opt/puppetlabs/server/apps/${REALNAME}/bin/${REALNAME} reload
+    return $?
 }
 
 case "$1" in

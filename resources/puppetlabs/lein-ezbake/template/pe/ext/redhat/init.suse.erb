@@ -168,7 +168,7 @@ sl_status() {
 
 reload() {
     echo -n $"Reloading ${prog}:"
-    killproc -p "${PIDFILE}" "$prog" -HUP
+    /opt/puppetlabs/server/apps/${realname}/bin/${realname} reload
     rc_status -v
 }
 

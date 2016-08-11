@@ -154,7 +154,7 @@ do_restart()
 #
 do_reload() {
     /opt/puppetlabs/server/apps/${REALNAME}/bin/${REALNAME} reload
-    echo $?
+    return $?
 }
 
 case "$1" in
