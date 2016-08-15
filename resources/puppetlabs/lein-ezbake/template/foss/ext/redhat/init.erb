@@ -59,8 +59,36 @@ find_my_pid() {
 }
 
 start() {
-    /opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin/<%= EZBake::Config[:real_name] %> start
+    # call status here and figure out current state
+    rh_status_q
+    [ -x $JAVA_BIN ] || exit 5
+    [ -e $config ] || exit 6
+    # Move any heap dumps aside
+    echo -n $"Starting $prog: "
+
+    <% if EZBake::Config[:open_file_limit] -%>
+    [ -n "$OPEN_FILE_LIMIT" ] && ulimit -n $OPEN_FILE_LIMIT
+    <% end -%>
+
+    <% EZBake::Config[:redhat][:pre_start_action].each do |action| -%>
+    <%= action %>
+    <% end -%>
+
+    /opt/puppetlabs/server/apps/${realname}/bin/${realname} start >> /var/log/puppetlabs/${realname}/${realname}-daemon.log 2>&1
     retval=$?
+
+    [ -s $PIDFILE ] && success $"$base startup" || failure $"$base startup"
+    echo
+    [ -s $PIDFILE ] && touch $lockfile
+
+    <% if not EZBake::Config[:redhat][:post_start_action].empty? -%>
+    if [ "$retval" -eq 0 ]; then
+    <% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
+        <%= action %>
+    <% end -%>
+    fi
+    <% end -%>
+
     return $retval
 }
 

@@ -4,7 +4,8 @@ set -e
 restartfile=<%= EZBake::Config[:restart_file] %>
 timeout=<%= EZBake::Config[:start_timeout] %>
 dir=$(dirname "$restartfile")
-PIDFILE=/var/run/puppetlabs/<%= EZBake::Config[:real_name] %>/<%= EZBake::Config[:real_name] %>
+realname="<%= EZBake::Config[:real_name] %>"
+PIDFILE="/var/run/puppetlabs/${realname}/${realname}"
 
 find_my_pid() {
     pid=`pgrep -f <%= EZBake::Config[:uberjar_name] %>`
@@ -18,11 +19,9 @@ find_my_pid() {
 if [ ! -e "$restartfile" ]; then
     mkdir -p "$dir"
     echo "1" > "$restartfile"
-else
-    if [ ! -r "$restartfile" ] || [ ! -w "$restartfile" ]; then
+elif [ ! -r "$restartfile" ] || [ ! -w "$restartfile" ]; then
         echo "The restart-file at <%= EZBake::Config[:restart_file] %> is not readable and/or writeable." >2
         exit 1
-    fi
 fi
 
 ${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> clojure.main -m <%= EZBake::Config[:main_namespace] %> --config "${CONFIG}" -b "${BOOTSTRAP_CONFIG}" &

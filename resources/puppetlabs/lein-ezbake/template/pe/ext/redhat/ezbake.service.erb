@@ -29,8 +29,6 @@ ExecStart=/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin/<%= 
 
 KillMode=process
 
-ExecStartPost=/bin/bash "${INSTALL_DIR}/ezbake-functions.sh" wait_for_app
-
 <% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
 ExecStartPost=-<%= action %>
 <% end -%>

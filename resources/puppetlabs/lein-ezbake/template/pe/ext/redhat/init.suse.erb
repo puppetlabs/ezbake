@@ -45,7 +45,7 @@ JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 JAVA_ARGS="${JAVA_ARGS} -cp ${INSTALL_DIR}/${JARFILE} clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b ${BOOTSTRAP_CONFIG}"
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile="/var/lock/subsys/${prog}"
-PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
+PIDFILE="/var/run/puppetlabs/${realname}/${realname}"
 LOGFILE="/var/log/puppetlabs/${realname}/${realname}.log"
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
@@ -62,9 +62,50 @@ print_service_pid() {
 }
 
 start() {
-    /opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin/<%= EZBake::Config[:real_name] %> start
+    local service_pid
+    [ -x "${JAVA_BIN}" ] || exit 5
+    [ -e "${config}" ] || exit 6
+    echo -n $"Starting ${prog}: "
+
+    <% if EZBake::Config[:open_file_limit] -%>
+    [ -n "$OPEN_FILE_LIMIT" ] && ulimit -n $OPEN_FILE_LIMIT
+    <% end -%>
+
+    <% EZBake::Config[:redhat][:pre_start_action].each do |action| -%>
+    <%= action %>
+    <% end -%>
+
+    /opt/puppetlabs/server/apps/${realname}/bin/${realname} start >> /var/log/puppetlabs/${realname}/${realname}-daemon.log 2>&1
+    rc_status -v
     retval=$?
-    return $retval
+
+    # If rc_status didn't succeed, bail out early without bothering to poll
+    # waiting for the application or doing work that assumes a launching state
+    if [ "$retval" != 0 ]; then
+        log_failure_msg $"${prog} startup"
+        echo
+        return $retval
+    fi
+
+    <% if not EZBake::Config[:redhat][:post_start_action].empty? -%>
+    if [ "$retval" = 0 ]; then
+        <% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
+        <%= action %>
+        <% end -%>
+    fi
+    <% end -%>
+
+    # if the pid file exists, with the PID in it (non-zero size)
+    if [ -s "${PIDFILE}" ]; then
+        log_success_msg $"${prog} startup"
+        echo
+        touch "${lockfile}"
+        return 0
+    else
+        log_failure_msg $"${prog} startup"
+        echo
+        return 1
+    fi
 }
 
 stop() {

@@ -58,8 +58,25 @@ EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -Djava.security.egd=/dev/u
 #
 do_start()
 {
-    /opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin/<%= EZBake::Config[:real_name] %> start
+    <% if EZBake::Config[:open_file_limit] -%>
+    [ -n "$OPEN_FILE_LIMIT" ] && ulimit -n $OPEN_FILE_LIMIT
+    <% end -%>
+
+    <% EZBake::Config[:debian][:pre_start_action].each do |action| -%>
+    <%= action %>
+    <% end -%>
+
+    /opt/puppetlabs/server/apps/${REALNAME}/bin/${REALNAME} start >> /var/log/puppetlabs/${REALNAME}/${REALNAME}-daemon.log 2>&1
     retval=$?
+
+    <% if not EZBake::Config[:debian][:post_start_action].empty? -%>
+    if [ "$retval" -eq 0 ]; then
+    <% EZBake::Config[:debian][:post_start_action].each do |action| -%>
+        <%= action %>
+    <% end -%>
+    fi
+    <% end -%>
+
     return $retval
 }
 
