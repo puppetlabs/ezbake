@@ -59,44 +59,8 @@ find_my_pid() {
 }
 
 start() {
-    # call status here and figure out current state
-    rh_status_q
-    [ -x $JAVA_BIN ] || exit 5
-    [ -e $config ] || exit 6
-    # Move any heap dumps aside
-    echo -n $"Starting $prog: "
-
-    <% if EZBake::Config[:open_file_limit] -%>
-    [ -n "$OPEN_FILE_LIMIT" ] && ulimit -n $OPEN_FILE_LIMIT
-    <% end -%>
-
-    <% EZBake::Config[:redhat][:pre_start_action].each do |action| -%>
-    <%= action %>
-    <% end -%>
-
-    pushd "${INSTALL_DIR}" &> /dev/null
-    daemon --user $USER --pidfile $PIDFILE "$EXEC >> /var/log/puppetlabs/<%= EZBake::Config[:real_name] %>/<%= EZBake::Config[:real_name] %>-daemon.log 2>&1 &"
+    /opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin/<%= EZBake::Config[:real_name] %> start
     retval=$?
-    sleep 1
-    popd &> /dev/null
-    find_my_pid
-    [ -s $PIDFILE ] && success $"$base startup" || failure $"$base startup"
-    echo
-    [ -s $PIDFILE ] && touch $lockfile
-
-    if [ "$retval" -ne 0 ] \
-        || ! wait_for_app $(cat $PIDFILE) $START_TIMEOUT ;then
-        failure $"$base startup"
-    fi
-
-    <% if not EZBake::Config[:redhat][:post_start_action].empty? -%>
-    if [ "$retval" -eq 0 ]; then
-    <% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
-        <%= action %>
-    <% end -%>
-    fi
-    <% end -%>
-
     return $retval
 }
 
@@ -131,6 +95,13 @@ rh_status_q() {
     rh_status >/dev/null 2>&1
 }
 
+reload() {
+    echo -n $"Reloading $prog: "
+    /opt/puppetlabs/server/apps/${realname}/bin/${realname} reload
+    RETVAL=$?
+    echo
+    return $RETVAL
+}
 
 case "$1" in
     start)
@@ -148,11 +119,14 @@ case "$1" in
         rh_status_q || exit 0
         restart
         ;;
+    reload)
+        $1
+        ;;
     status)
         rh_status
         ;;
     *)
-        echo $"Usage: $0 {start|stop|restart|condrestart|try-restart|status}"
+        echo $"Usage: $0 {start|stop|restart|condrestart|try-restart|reload|status}"
         exit 2
 esac
 exit $?

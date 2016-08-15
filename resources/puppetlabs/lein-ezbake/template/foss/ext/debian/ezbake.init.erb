@@ -58,37 +58,8 @@ EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -Djava.security.egd=/dev/u
 #
 do_start()
 {
-    <% if EZBake::Config[:open_file_limit] -%>
-    [ -n "$OPEN_FILE_LIMIT" ] && ulimit -n $OPEN_FILE_LIMIT
-    <% end -%>
-
-    <% EZBake::Config[:debian][:pre_start_action].each do |action| -%>
-    <%= action %>
-    <% end -%>
-
-    if [ ! -d  "/var/run/puppetlabs/$NAME" ] ; then
-      mkdir -p /var/run/puppetlabs/$NAME
-      chown -R $USER:$GROUP /var/run/puppetlabs/$NAME
-    fi
-
-    start-stop-daemon --start $EXTRA_ARGS --quiet --oknodo --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
-      --startas /bin/bash -- -c "exec $EXEC >> /var/log/puppetlabs/${REALNAME}/${REALNAME}-daemon.log 2>&1"
+    /opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin/<%= EZBake::Config[:real_name] %> start
     retval=$?
-
-    if [ "$retval" -ne 0 ] \
-        || ! wait_for_pidfile $PIDFILE 5 \
-        || ! wait_for_app $(cat $PIDFILE) $START_TIMEOUT ;then
-        retval=2
-    fi
-
-    <% if not EZBake::Config[:debian][:post_start_action].empty? -%>
-    if [ "$retval" -eq 0 ]; then
-    <% EZBake::Config[:debian][:post_start_action].each do |action| -%>
-        <%= action %>
-    <% end -%>
-    fi
-    <% end -%>
-
     return $retval
 }
 
@@ -127,7 +98,6 @@ get_status_q()
     get_status >/dev/null 2>&1
 }
 
-
 #
 # Function that restarts the daemon/service
 #
@@ -148,6 +118,14 @@ do_restart()
             log_end_msg 1
             ;;
     esac
+}
+
+#
+# Function that sends a SIGHUP to the daemon/service
+#
+do_reload() {
+    /opt/puppetlabs/server/apps/${REALNAME}/bin/${REALNAME} reload
+    return $?
 }
 
 case "$1" in
@@ -175,18 +153,19 @@ case "$1" in
         get_status_q || exit 0
         do_restart
         ;;
-    restart|force-reload)
-        #
-        # If the "reload" option is implemented then remove the
-        # 'force-reload' alias
-        #
+    restart)
         [ "$VERBOSE" != no ] && log_daemon_msg "Restarting $DESC" "$NAME"
         do_restart
         ;;
+    force-reload|reload)
+        [ "$VERBOSE" != no ] && log_daemon_msg "Reloading $DESC" "$NAME"
+        do_reload
+        log_end_msg $?
+        ;;
     *)
-        echo "Usage: $SCRIPTNAME {start|stop|status|condrestart|try-restart|restart|force-reload}" >&2
+        echo "Usage: $SCRIPTNAME {start|stop|status|condrestart|try-restart|restart|force-reload|reload}" >&2
         exit 3
         ;;
 esac
 
-:
+exit $?

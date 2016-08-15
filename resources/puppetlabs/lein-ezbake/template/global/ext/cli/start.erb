@@ -4,15 +4,25 @@ set -e
 restartfile=<%= EZBake::Config[:restart_file] %>
 timeout=<%= EZBake::Config[:start_timeout] %>
 dir=$(dirname "$restartfile")
+PIDFILE=/var/run/puppetlabs/<%= EZBake::Config[:real_name] %>/<%= EZBake::Config[:real_name] %>
 
-if [ ! -r "$restartfile" ] || [ ! -w "$restartfile" ]; then
-    echo "The restart-file at <%= EZBake::Config[:restart_file] %> is not readable and/or writeable."
-    exit 1
-fi
+find_my_pid() {
+    pid=`pgrep -f <%= EZBake::Config[:uberjar_name] %>`
+    if [ ! -d  "/var/run/puppetlabs/${realname}" ] ; then
+        mkdir -p /var/run/puppetlabs/${realname}
+        chown -R $USER:$GROUP /var/run/puppetlabs/${realname}
+    fi
+    echo $pid > $PIDFILE
+}
 
 if [ ! -e "$restartfile" ]; then
     mkdir -p "$dir"
     echo "1" > "$restartfile"
+else
+    if [ ! -r "$restartfile" ] || [ ! -w "$restartfile" ]; then
+        echo "The restart-file at <%= EZBake::Config[:restart_file] %> is not readable and/or writeable." >2
+        exit 1
+    fi
 fi
 
 ${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> clojure.main -m <%= EZBake::Config[:main_namespace] %> --config "${CONFIG}" -b "${BOOTSTRAP_CONFIG}" &
@@ -26,9 +36,15 @@ while [ "$cur" == "$initial" ] ;do
 
     ((timeout--))
     if [ "$timeout" = 0 ]; then
-        echo "Startup timed out after <%= EZBake::Config[:start_timeout] %> seconds"
+        echo "Startup timed out after <%= EZBake::Config[:start_timeout] %> seconds" >2
         exit 1
     fi
 done
+
+find_my_pid
+
+pid=`cat $PIDFILE`
+source "${INSTALL_DIR}/ezbake-functions.sh"
+wait_for_app $pid 300
 
 exit 0
