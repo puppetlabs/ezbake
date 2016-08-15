@@ -166,6 +166,12 @@ sl_status() {
     rc_status -v
 }
 
+reload() {
+    echo -n $"Reloading ${prog}:"
+    /opt/puppetlabs/server/apps/${realname}/bin/${realname} reload
+    rc_status -v
+}
+
 
 case "$1" in
     start)
@@ -183,11 +189,14 @@ case "$1" in
         sl_status_q || exit 0
         restart
         ;;
+    reload|force-reload)
+        reload
+        ;;
     status)
         sl_status
         ;;
     *)
-        echo $"Usage: ${0} {start|stop|restart|condrestart|try-restart|status}"
+        echo $"Usage: ${0} {start|stop|restart|condrestart|try-restart|reload|force-reload|status}"
         exit 2
 esac
 exit $?

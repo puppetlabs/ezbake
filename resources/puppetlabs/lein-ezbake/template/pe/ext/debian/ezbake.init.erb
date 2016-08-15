@@ -150,6 +150,14 @@ do_restart()
     esac
 }
 
+#
+# Function that sends a SIGHUP to the daemon/service
+#
+do_reload() {
+    /opt/puppetlabs/server/apps/${REALNAME}/bin/${REALNAME} reload
+    return $?
+}
+
 case "$1" in
     start)
         [ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
@@ -175,18 +183,19 @@ case "$1" in
         get_status_q || exit 0
         do_restart
         ;;
-    restart|force-reload)
-        #
-        # If the "reload" option is implemented then remove the
-        # 'force-reload' alias
-        #
+    restart)
         [ "$VERBOSE" != no ] && log_daemon_msg "Restarting $DESC" "$NAME"
         do_restart
         ;;
+    force-reload|reload)
+        [ "$VERBOSE" != no ] && log_daemon_msg "Reloading $DESC" "$NAME"
+        do_reload
+        log_end_msg $?
+        ;;
     *)
-        echo "Usage: $SCRIPTNAME {start|stop|status|condrestart|try-restart|restart|force-reload}" >&2
+        echo "Usage: $SCRIPTNAME {start|stop|status|condrestart|try-restart|restart|force-reload|reload}" >&2
         exit 3
         ;;
 esac
 
-:
+exit $?
