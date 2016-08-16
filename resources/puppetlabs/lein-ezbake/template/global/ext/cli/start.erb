@@ -18,7 +18,7 @@ find_my_pid() {
 
 if [ ! -e "$restartfile" ]; then
     mkdir -p "$dir"
-    echo "1" > "$restartfile"
+    echo -n "0" > "$restartfile"
 elif [ ! -r "$restartfile" ] || [ ! -w "$restartfile" ]; then
         echo "The restart-file at <%= EZBake::Config[:restart_file] %> is not readable and/or writeable." >2
         exit 1
@@ -41,9 +41,4 @@ while [ "$cur" == "$initial" ] ;do
 done
 
 find_my_pid
-
-pid=`cat $PIDFILE`
-source "${INSTALL_DIR}/ezbake-functions.sh"
-wait_for_app $pid 300
-
 exit 0
