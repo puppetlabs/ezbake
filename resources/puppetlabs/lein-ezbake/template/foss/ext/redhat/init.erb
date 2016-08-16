@@ -74,7 +74,7 @@ start() {
     <%= action %>
     <% end -%>
 
-    /opt/puppetlabs/server/apps/${realname}/bin/${realname} start >> /var/log/puppetlabs/${realname}/${realname}-daemon.log 2>&1
+    daemon --user $USER --pidfile $PIDFILE "/opt/puppetlabs/server/apps/${realname}/bin/${realname} start >> /var/log/puppetlabs/${realname}/${realname}-daemon.log 2>&1"
     retval=$?
     [ -s $PIDFILE ] && success $"$base startup" || failure $"$base startup"
     echo

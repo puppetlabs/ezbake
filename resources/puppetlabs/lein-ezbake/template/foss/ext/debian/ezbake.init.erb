@@ -66,7 +66,8 @@ do_start()
     <%= action %>
     <% end -%>
 
-    /opt/puppetlabs/server/apps/${REALNAME}/bin/${REALNAME} start >> /var/log/puppetlabs/${REALNAME}/${REALNAME}-daemon.log 2>&1
+    start-stop-daemon --start $EXTRA_ARGS --quiet --oknodo --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
+      --startas /bin/bash -- -c "/opt/puppetlabs/server/apps/${REALNAME}/bin/${REALNAME} start >> /var/log/puppetlabs/${REALNAME}/${REALNAME}-daemon.log 2>&1"
     retval=$?
 
     <% if not EZBake::Config[:debian][:post_start_action].empty? -%>

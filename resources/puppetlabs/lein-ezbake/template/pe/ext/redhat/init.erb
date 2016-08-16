@@ -74,7 +74,7 @@ start() {
     <%= action %>
     <% end -%>
 
-    /opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin/<%= EZBake::Config[:real_name] %> start
+    daemon --user $USER --pidfile $PIDFILE "/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin/<%= EZBake::Config[:real_name] %> start"
     retval=$?
 
     [ -s $PIDFILE ] && success $"$base startup" || failure $"$base startup"
