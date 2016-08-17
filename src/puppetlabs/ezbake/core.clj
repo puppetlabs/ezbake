@@ -408,7 +408,9 @@ Dependency tree:
                                                           :main-namespace
                                                           "puppetlabs.trapperkeeper.main")
          :java-args                 (get-local-ezbake-var lein-project :java-args
-                                                          "-Xmx192m")}))))
+                                                          "-Xmx192m")
+         :logrotate-enabled         (get-local-ezbake-var lein-project :logrotate-enabled
+                                                          true)}))))
 
 (defn generate-project-data-yaml
   [lein-project build-target]
