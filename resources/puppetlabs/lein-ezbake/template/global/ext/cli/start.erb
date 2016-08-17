@@ -20,7 +20,7 @@ if [ ! -e "$restartfile" ]; then
     mkdir -p "$dir"
     echo -n "0" > "$restartfile"
 elif [ ! -r "$restartfile" ] || [ ! -w "$restartfile" ]; then
-        echo "The restart-file at <%= EZBake::Config[:restart_file] %> is not readable and/or writeable." >2
+        echo "The restart-file at <%= EZBake::Config[:restart_file] %> is not readable and/or writeable." 1>&2
         exit 1
 fi
 
@@ -35,7 +35,7 @@ while [ "$cur" == "$initial" ] ;do
 
     ((timeout--))
     if [ "$timeout" = 0 ]; then
-        echo "Startup timed out after <%= EZBake::Config[:start_timeout] %> seconds" >2
+        echo "Startup timed out after <%= EZBake::Config[:start_timeout] %> seconds" 1>&2
         exit 1
     fi
 done

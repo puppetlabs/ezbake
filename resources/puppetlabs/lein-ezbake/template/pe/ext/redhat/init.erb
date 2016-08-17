@@ -71,9 +71,10 @@ start() {
     <%= action %>
     <% end -%>
 
+    pushd "${INSTALL_DIR}" &> /dev/null
     daemon --user $USER --pidfile $PIDFILE "/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin/<%= EZBake::Config[:real_name] %> start"
+    popd &> /dev/null
     retval=$?
-
     [ -s $PIDFILE ] && success $"$base startup" || failure $"$base startup"
     echo
     [ -s $PIDFILE ] && touch $lockfile
@@ -125,9 +126,8 @@ reload() {
     /opt/puppetlabs/server/apps/${realname}/bin/${realname} reload
     RETVAL=$?
 
-    [ $RETVAL -eq 0 ] && success $"$base stopped" || failure $"$base reloaded"
+    [ $RETVAL -eq 0 ] && success $"$base reloaded" || failure $"$base reloaded"
     echo
-    [ $RETVAL -eq 0 ] && rm -f $lockfile $PIDFILE
     return $RETVAL
 }
 

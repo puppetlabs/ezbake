@@ -62,7 +62,7 @@ do_start()
     <%= action %>
     <% end -%>
 
-    start-stop-daemon --start --chuid $USER --oknodo --pidfile $PIDFILE --chdir $INSTALL_DIR \
+    start-stop-daemon --start --quiet --chuid $USER --oknodo --pidfile $PIDFILE --chdir $INSTALL_DIR \
       --startas "/opt/puppetlabs/server/apps/${REALNAME}/bin/${REALNAME}" -- start >> /var/log/puppetlabs/${REALNAME}/${REALNAME}-daemon.log 2>&1
     retval=$?
 
