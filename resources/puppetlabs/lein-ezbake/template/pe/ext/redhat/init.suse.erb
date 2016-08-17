@@ -74,7 +74,7 @@ start() {
     <%= action %>
     <% end -%>
 
-    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" "/opt/puppetlabs/server/apps/${realname}/bin/${realname} start >> /var/log/puppetlabs/${realname}/${realname}-daemon.log 1>&2"
+    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" "/opt/puppetlabs/server/apps/${realname}/bin/${realname} start >> /var/log/puppetlabs/${realname}/${realname}-daemon.log 2>&1"
     rc_status -v
     retval=$?
 

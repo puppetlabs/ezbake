@@ -125,7 +125,7 @@ reload() {
     /opt/puppetlabs/server/apps/${realname}/bin/${realname} reload
     RETVAL=$?
 
-    [ $RETVAL -eq 0 ] && success $"$base stopped" || failure $"$base stopped"
+    [ $RETVAL -eq 0 ] && success $"$base stopped" || failure $"$base reloaded"
     echo
     [ $RETVAL -eq 0 ] && rm -f $lockfile $PIDFILE
     return $RETVAL
