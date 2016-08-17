@@ -73,8 +73,8 @@ start() {
 
     pushd "${INSTALL_DIR}" &> /dev/null
     daemon --user $USER --pidfile $PIDFILE "/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin/<%= EZBake::Config[:real_name] %> start"
-    popd &> /dev/null
     retval=$?
+    popd &> /dev/null
     [ -s $PIDFILE ] && success $"$base startup" || failure $"$base startup"
     echo
     [ -s $PIDFILE ] && touch $lockfile
