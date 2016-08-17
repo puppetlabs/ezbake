@@ -45,7 +45,7 @@ JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 JAVA_ARGS="${JAVA_ARGS} -cp ${INSTALL_DIR}/${JARFILE} clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b ${BOOTSTRAP_CONFIG}"
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile="/var/lock/subsys/${prog}"
-PIDFILE="/var/run/puppetlabs/${realname}/${realname}"
+PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 LOGFILE="/var/log/puppetlabs/${realname}/${realname}.log"
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
@@ -75,7 +75,7 @@ start() {
     <%= action %>
     <% end -%>
 
-    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" "/opt/puppetlabs/server/apps/${realname}/bin/${realname} start >> /var/log/puppetlabs/${realname}/${realname}-daemon.log 2>&1"
+    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" "/opt/puppetlabs/server/apps/${realname}/bin/${realname} start >> /var/log/puppetlabs/${realname}/${realname}-daemon.log 1>&2"
     rc_status -v
     retval=$?
 
@@ -148,6 +148,17 @@ reload() {
     echo -n $"Reloading ${prog}:"
     /opt/puppetlabs/server/apps/${realname}/bin/${realname} reload
     rc_status -v
+    retval=$?
+
+    if [ "$retval" = 0 ]; then
+        log_success_msg $"${prog} stopped"
+        echo
+        return 0
+    else
+        log_failure_msg $"${prog} could not be stopped, check ${LOGFILE}"
+        echo
+        return 1
+    fi
 }
 
 

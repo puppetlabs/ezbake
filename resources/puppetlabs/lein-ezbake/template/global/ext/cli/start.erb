@@ -5,7 +5,7 @@ restartfile=<%= EZBake::Config[:restart_file] %>
 timeout=<%= EZBake::Config[:start_timeout] %>
 dir=$(dirname "$restartfile")
 realname="<%= EZBake::Config[:real_name] %>"
-PIDFILE="/var/run/puppetlabs/${realname}/${realname}"
+PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 
 find_my_pid() {
     pid=`pgrep -f <%= EZBake::Config[:uberjar_name] %>`

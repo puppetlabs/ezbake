@@ -10,7 +10,7 @@ TimeoutStartSec=<%= EZBake::Config[:start_timeout] %>
 TimeoutStopSec=60
 Restart=on-failure
 StartLimitBurst=5
-PIDFile=/var/run/puppetlabs/<%= EZBake::Config[:real_name] %>/<%= EZBake::Config[:real_name] %>
+PIDFile=/var/run/puppetlabs/<%= EZBake::Config[:real_name] %>/<%= EZBake::Config[:real_name] %>.pid
 #set default privileges to -rw-r-----
 UMask=027
 <% if EZBake::Config[:open_file_limit] -%>

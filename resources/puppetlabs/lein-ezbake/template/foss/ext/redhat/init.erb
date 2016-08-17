@@ -46,7 +46,7 @@ JAVA_ARGS="${JAVA_ARGS} -cp '${INSTALL_DIR}/${JARFILE}' clojure.main -m <%= EZBa
 EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile=/var/lock/subsys/$prog
 EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -Djava.security.egd=/dev/urandom $JAVA_ARGS"
-PIDFILE="/var/run/puppetlabs/${realname}/${realname}"
+PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 find_my_pid() {
@@ -126,7 +126,10 @@ reload() {
     echo -n $"Reloading $prog: "
     /opt/puppetlabs/server/apps/${realname}/bin/${realname} reload
     RETVAL=$?
+
+    [ $RETVAL -eq 0 ] && success $"$base stopped" || failure $"$base stopped"
     echo
+    [ $RETVAL -eq 0 ] && rm -f $lockfile $PIDFILE
     return $RETVAL
 }
 
