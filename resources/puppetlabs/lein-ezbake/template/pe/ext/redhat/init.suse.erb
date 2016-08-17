@@ -43,7 +43,6 @@ config=$CONFIG
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 JAVA_ARGS="${JAVA_ARGS} -cp ${INSTALL_DIR}/${JARFILE} clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b ${BOOTSTRAP_CONFIG}"
-EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile="/var/lock/subsys/${prog}"
 PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 LOGFILE="/var/log/puppetlabs/${realname}/${realname}.log"
