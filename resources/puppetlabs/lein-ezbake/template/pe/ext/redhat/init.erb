@@ -42,11 +42,8 @@ config=$CONFIG
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
-JAVA_ARGS="${JAVA_ARGS} -cp '${INSTALL_DIR}/${JARFILE}' clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b '${BOOTSTRAP_CONFIG}'"
-EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile=/var/lock/subsys/$prog
-EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -Djava.security.egd=/dev/urandom $JAVA_ARGS"
-PIDFILE="/var/run/puppetlabs/${realname}/${realname}"
+PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 find_my_pid() {
@@ -75,19 +72,12 @@ start() {
     <% end -%>
 
     pushd "${INSTALL_DIR}" &> /dev/null
-    daemon --user $USER --pidfile $PIDFILE "$EXEC >> /var/log/puppetlabs/<%= EZBake::Config[:real_name] %>/<%= EZBake::Config[:real_name] %>-daemon.log 2>&1 &"
+    daemon --user $USER --pidfile $PIDFILE "/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin/<%= EZBake::Config[:real_name] %> start"
     retval=$?
-    sleep 1
     popd &> /dev/null
-    find_my_pid
     [ -s $PIDFILE ] && success $"$base startup" || failure $"$base startup"
     echo
     [ -s $PIDFILE ] && touch $lockfile
-
-    if [ "$retval" -ne 0 ] \
-        || ! wait_for_app $(cat $PIDFILE) $START_TIMEOUT ;then
-        failure $"$base startup"
-    fi
 
     <% if not EZBake::Config[:redhat][:post_start_action].empty? -%>
     if [ "$retval" -eq 0 ]; then
@@ -135,6 +125,8 @@ reload() {
     echo -n $"Reloading $prog: "
     /opt/puppetlabs/server/apps/${realname}/bin/${realname} reload
     RETVAL=$?
+
+    [ $RETVAL -eq 0 ] && success $"$base reloaded" || failure $"$base reloaded"
     echo
     return $RETVAL
 }

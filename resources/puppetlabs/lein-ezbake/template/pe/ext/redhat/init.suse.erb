@@ -43,7 +43,6 @@ config=$CONFIG
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 JAVA_ARGS="${JAVA_ARGS} -cp ${INSTALL_DIR}/${JARFILE} clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b ${BOOTSTRAP_CONFIG}"
-EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile="/var/lock/subsys/${prog}"
 PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 LOGFILE="/var/log/puppetlabs/${realname}/${realname}.log"
@@ -81,15 +80,13 @@ start() {
     chown $USER:$USER "${LOGFILE}"
 
     export HOME="$(getent passwd ${USER} | cut -d':' -f6)"
+
     # startproc will change users, so make sure that user has permission
     # to access the present working directory.
     cd "${INSTALL_DIR}"
-    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\"" -Djava.security.egd=/dev/urandom ${JAVA_ARGS}
+    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" "/opt/puppetlabs/server/apps/${realname}/bin/${realname} start >> /var/log/puppetlabs/${realname}/${realname}-daemon.log 2>&1"
     rc_status -v
     retval=$?
-
-    # NOTE: retval holds the return value of `startproc`, not the process
-    # started by `startproc`.
 
     # If rc_status didn't succeed, bail out early without bothering to poll
     # waiting for the application or doing work that assumes a launching state
@@ -99,9 +96,6 @@ start() {
         return $retval
     fi
 
-    service_pid="$(print_service_pid)"
-    echo -n "${service_pid}" > "${PIDFILE}"
-
     <% if not EZBake::Config[:redhat][:post_start_action].empty? -%>
     if [ "$retval" = 0 ]; then
         <% EZBake::Config[:redhat][:post_start_action].each do |action| -%>
@@ -109,13 +103,6 @@ start() {
         <% end -%>
     fi
     <% end -%>
-
-    # Wait for the application to become available
-    if ! wait_for_app "${service_pid}" "$START_TIMEOUT"; then
-        log_failure_msg $"${prog} startup"
-        echo
-        return 1
-    fi
 
     # if the pid file exists, with the PID in it (non-zero size)
     if [ -s "${PIDFILE}" ]; then
@@ -170,6 +157,17 @@ reload() {
     echo -n $"Reloading ${prog}:"
     /opt/puppetlabs/server/apps/${realname}/bin/${realname} reload
     rc_status -v
+    retval=$?
+
+    if [ "$retval" = 0 ]; then
+        log_success_msg $"${prog} reloaded"
+        echo
+        return 0
+    else
+        log_failure_msg $"${prog} could not be reloaded, check ${LOGFILE}"
+        echo
+        return 1
+    fi
 }
 
 

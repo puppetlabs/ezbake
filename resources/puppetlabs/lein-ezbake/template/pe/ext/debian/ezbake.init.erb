@@ -38,10 +38,6 @@ PIDFILE=/var/run/puppetlabs/${REALNAME}/${REALNAME}.pid
 SCRIPTNAME=/etc/init.d/$NAME
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
-JAVA_ARGS="${JAVA_ARGS} -cp '${INSTALL_DIR}/${JARFILE}' clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b '${BOOTSTRAP_CONFIG}'"
-EXTRA_ARGS="--chuid $USER --background --make-pidfile"
-EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -Djava.security.egd=/dev/urandom $JAVA_ARGS"
-
 # Exit if the package is not installed
 [ -x "$JAVA_BIN" ] || exit 0
 
@@ -66,20 +62,9 @@ do_start()
     <%= action %>
     <% end -%>
 
-    if [ ! -d  "/var/run/puppetlabs/$REALNAME" ] ; then
-      mkdir -p /var/run/puppetlabs/$REALNAME
-      chown -R $USER:$GROUP /var/run/puppetlabs/$REALNAME
-    fi
-
-    start-stop-daemon --start $EXTRA_ARGS --quiet --oknodo --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
-      --startas /bin/bash -- -c "exec $EXEC >> /var/log/puppetlabs/${REALNAME}/${REALNAME}-daemon.log 2>&1"
+    start-stop-daemon --start --quiet --chuid $USER --oknodo --pidfile $PIDFILE --chdir $INSTALL_DIR \
+      --startas "/opt/puppetlabs/server/apps/${REALNAME}/bin/${REALNAME}" -- start >> /var/log/puppetlabs/${REALNAME}/${REALNAME}-daemon.log 2>&1
     retval=$?
-
-    if [ "$retval" -ne 0 ] \
-        || ! wait_for_pidfile $PIDFILE 5 \
-        || ! wait_for_app $(cat $PIDFILE) $START_TIMEOUT ;then
-        retval=2
-    fi
 
     <% if not EZBake::Config[:debian][:post_start_action].empty? -%>
     if [ "$retval" -eq 0 ]; then
