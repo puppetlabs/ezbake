@@ -19,19 +19,39 @@
 %global _app_data /opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>
 %global _projconfdir /etc/puppetlabs/<%= EZBake::Config[:real_name] %>
 
+%global rubylibdir        /opt/puppetlabs/puppet/lib/ruby/vendor_ruby
+
+%global _with_systemd  0
+%global _with_sysvinit 0
+%global _systemd_el    0
+%global _systemd_sles  0
+%global _old_el        0
+%global _sles          0
+
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
+%global _with_systemd 1
+%global _systemd_el   1
+%endif
+
+# We do not support any sles version less than 12, as there is not a sufficient
+# version of OpenJDK available to test against.
+%if 0%{?suse_version} >= 1210
+%global _with_systemd 1
+%global _systemd_sles 1
+%global _sles         1
+%endif
+
+%if 0%{?rhel} && 0%{?rhel} < 7
+%global _with_sysvinit 1
+%global _old_el        1
+%endif
+
 # java 1.8.0 is available starting in fedora 20 and el 6
+# SLES 12 still only has java 1.7.0
 %if 0%{?fedora} >= 20 || 0%{?rhel} >= 6
 %global open_jdk          java-1.8.0-openjdk-headless
 %else
 %global open_jdk          java-1.7.0-openjdk
-%endif
-
-%global rubylibdir        /opt/puppetlabs/puppet/lib/ruby/vendor_ruby
-
-%if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
-%global _with_systemd 1
-%else
-%global _with_systemd 0
 %endif
 
 # Use the alternate locations for things.
@@ -64,12 +84,20 @@ Conflicts:        <%=package-%> <= <%=version-%>-1
 BuildRequires:    ruby
 BuildRequires:    /usr/sbin/useradd
 %if %{_with_systemd}
+BuildRequires:    systemd
+%endif
+%if %{_old_el}
+Requires:         chkconfig
+%endif
+
+%if %{_systemd_el}
 Requires(post):   systemd
 Requires(preun):  systemd
 Requires(postun): systemd
-BuildRequires:    systemd
-%else
-Requires:         chkconfig
+%endif
+
+%if %{_systemd_sles}
+%{?systemd_requires}
 %endif
 
 Requires:         %{open_jdk}
@@ -113,7 +141,7 @@ env EZ_VERBOSE=1 DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix
 env EZ_VERBOSE=1 DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} defaultsdir=%{_sysconfdir}/sysconfig initdir=%{_initrddir} bash install.sh sysv_init_redhat
 %endif
 
-%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7 || 0%{?sles_version} >= 12
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7 || 0%{?suse_version} >= 1315
 env EZ_VERBOSE=1 DESTDIR=%{buildroot} confdir=%{_sysconfdir} bash install.sh logrotate
 %else
 env EZ_VERBOSE=1 DESTDIR=%{buildroot} confdir=%{_sysconfdir} bash install.sh logrotate_legacy
@@ -150,8 +178,14 @@ fi
 %if %{_with_systemd}
 # Reload the systemd units
 systemctl daemon-reload >/dev/null 2>&1 || :
+%endif
+%if %{_systemd_el}
 %systemd_post <%= EZBake::Config[:project] %>.service
-%else
+%endif
+%if %{_systemd_sles}
+%service_add_post <%= EZBake::Config[:project] %>.service
+%endif
+%if %{_with_sysvinit}
 # If this is an install (as opposed to an upgrade)...
 if [ "$1" = "1" ]; then
     # Register the <%= EZBake::Config[:project] %> service
@@ -160,9 +194,13 @@ fi
 %endif
 
 %preun
-%if %{_with_systemd}
+%if %{_systemd_el}
 %systemd_preun <%= EZBake::Config[:project] %>.service
-%else
+%endif
+%if %{_systemd_sles}
+%service_del_preun <%= EZBake::Config[:project] %>.service
+%endif
+%if %{_with_sysvinit}
 # If this is an uninstall (as opposed to an upgrade) then
 #  we want to shut down and disable the service.
 if [ "$1" = "0" ] ; then
@@ -172,9 +210,13 @@ fi
 %endif
 
 %postun
-%if %{_with_systemd}
+%if %{_systemd_el}
 %systemd_postun_with_restart <%= EZBake::Config[:project] %>.service
-%else
+%endif
+%if %{_systemd_sles}
+%service_del_postun <%= EZBake::Config[:project] %>.service
+%endif
+%if %{_with_sysvinit}
 # Remove the rundir if this is an uninstall (as opposed to an upgrade)...
 if [ "$1" = "0" ]; then
     rm -rf %{_app_rundir} || :

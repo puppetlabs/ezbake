@@ -1,3 +1,9 @@
+## 0.4.4 - 2016-08-22
+* Update FOSS build templates to work on SLES
+* Update branching strategy to point to wiki
+* Backport removal of heap dump to stable branch
+* Modify project.clj for publishing to clojars
+
 ## 0.4.3 - 2016-07-28
  * Add configuration of open file limit to services
  * Set umask 027 on service startup
