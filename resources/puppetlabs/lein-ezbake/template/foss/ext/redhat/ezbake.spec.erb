@@ -98,11 +98,13 @@ env EZ_VERBOSE=1 DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} b
 env EZ_VERBOSE=1 DESTDIR=%{buildroot} prefix=%{_prefix} confdir=%{_sysconfdir} bindir=%{_bindir} rundir=%{_rundir}/<%= EZBake::Config[:project] %> defaultsdir=%{_sysconfdir}/sysconfig initdir=%{_initrddir} bash install.sh sysv_init_redhat
 %endif
 
+<% if EZBake::Config[:logrotate_enabled]-%>
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7 || 0%{?sles_version} >= 12
 env EZ_VERBOSE=1 DESTDIR=%{buildroot} confdir=%{_sysconfdir} bash install.sh logrotate
 %else
 env EZ_VERBOSE=1 DESTDIR=%{buildroot} confdir=%{_sysconfdir} bash install.sh logrotate_legacy
 %endif
+<% end -%>
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
 env EZ_VERBOSE=1 DESTDIR=%{buildroot} rubylibdir=%{rubylibdir} prefix=%{_prefix} bash install.sh termini
@@ -192,7 +194,9 @@ fi
 %endif
 %config(noreplace) %{_sysconfdir}/%{name}
 %config(noreplace) %{_sysconfdir}/sysconfig/%{name}
+<% if EZBake::Config[:logrotate_enabled]-%>
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
+<% end -%>
 <% if ! EZBake::Config[:cli_app_files].empty? -%>
 %{_bindir}/<%= EZBake::Config[:real_name] %>
 <% end -%>
