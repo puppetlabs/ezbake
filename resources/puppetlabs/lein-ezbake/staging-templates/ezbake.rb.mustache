@@ -44,6 +44,7 @@ module EZBake
                             "{{package}}" => "{{version}}",
                           {{/replaces-pkgs}}
                           },
-      :bootstrap_source => '{{{bootstrap-source}}}'
+      :bootstrap_source => '{{{bootstrap-source}}}',
+      :logrotate_enabled => {{{logrotate-enabled}}}
   }
 end
