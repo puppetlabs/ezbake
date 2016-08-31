@@ -435,7 +435,9 @@ Dependency tree:
      :bootstrap-source          (name (validate-bootstrap-source
                                        (get-local-ezbake-var lein-project
                                                              :bootstrap-source
-                                                             :bootstrap-cfg)))}))
+                                                             :bootstrap-cfg)))
+     :logrotate-enabled         (get-local-ezbake-var lein-project :logrotate-enabled
+                                                      true)}))
 
 ;; TODO: this is wonky; we're basically doing some templating here and it
 ;; might make more sense to use an actual template for it.  However, I'm a bit
