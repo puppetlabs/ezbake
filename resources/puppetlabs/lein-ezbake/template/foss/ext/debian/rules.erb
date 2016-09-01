@@ -19,6 +19,7 @@ export EZ_VERBOSE=1
 
 install/<%= EZBake::Config[:project] %>::
 	bash install.sh install_deb
+<% if EZBake::Config[:logrotate_enabled]-%>
 	if [[ ${DIST} == debian ]] ; then \
 		if [[ $$(echo "${RELEASE}>=7" | bc -l) -eq 1 || ${RELEASE} == testing || ${RELEASE} == unstable ]] ; then \
 			bash install.sh logrotate ; \
@@ -32,6 +33,7 @@ install/<%= EZBake::Config[:project] %>::
 			bash install.sh logrotate_legacy ; \
 		fi ; \
 	fi
+<% end -%>
 	if $$(echo "${SYSV_CODENAMES}" | grep -q ${CODENAME}) ; then \
 		bash install.sh sysv_init_deb ; \
 	else \
