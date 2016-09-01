@@ -190,6 +190,13 @@ This release contains bug fixes and AIO path changes.
  * (SERVER-369) Update ezbake to use new AIO directories (2eb3628)
  * (SERVER-387) Update to AIO server confdir layout (ee0a593)
 
+## 0.2.13 - 2016-08-31
+ * Feature: Add `:logrotate-enabled` setting to allow disabling of logrotate.
+   Enabled by default.
+
+ Note: While technically a minor feature release, this is going to be a Z
+ release to avoid branch renaming hassles.
+
 ## 0.2.12 - 2016-06-13
  * Backport changes to avoid setting -XX:+HeapDumpOnOutOfMemoryError by default
 
