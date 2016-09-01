@@ -147,18 +147,22 @@ case "$1" in
     start)
         [ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
         do_start
-        case "$?" in
+        RETVAL="$?"
+        case "$RETVAL" in
             0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
             2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
         esac
+        exit "$RETVAL"
         ;;
     stop)
         [ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
         do_stop
-        case "$?" in
+        RETVAL="$?"
+        case "$RETVAL" in
             0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
             2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
         esac
+        exit "$RETVAL"
         ;;
     status)
         get_status
