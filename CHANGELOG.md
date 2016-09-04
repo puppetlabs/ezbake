@@ -1,3 +1,7 @@
+## 0.5.0 - 2016-08-31
+* Add `:logrotate-enabled` setting to allow disabling of logrotate.
+  Enabled by default
+
 ## 0.4.4 - 2016-08-22
 * Update FOSS build templates to work on SLES
 * Update branching strategy to point to wiki
