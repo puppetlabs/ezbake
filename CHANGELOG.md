@@ -1,3 +1,13 @@
+## 1.0.0 - 2016-09-29
+  * (EZ-56) Add service 'reload' to init scripts
+  * (EZ-68) Add 'restart-file' ezbake option and reload app subcommand
+  * (EZ-70) Modify service 'start' to use new 'start' app subcommand
+  * (EZ-88) Support per-project additional build dependencies and adding
+  the full contents of the project data directory into packaging
+  * (EZ-90) Add 'start' app subcommand
+  * (EZ-99) Add 'stop' app subcommand and modify service 'stop' command to use it
+  * (EZ-100) Add timeout EzBake and defaults config settings for 'reload' and 'stop'
+  
 ## 0.5.1 - 2016-09-13
 * Update to use the new Puppet GPG key for package signing
 
