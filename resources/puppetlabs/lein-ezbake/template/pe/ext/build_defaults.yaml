@@ -5,7 +5,7 @@ default_cow: 'base-trusty-amd64.cow'
 cows: 'base-precise-amd64.cow base-trusty-amd64.cow base-xenial-amd64.cow'
 pbuild_conf: '/etc/pbuilderrc'
 packager: 'puppet'
-gpg_key: '4BD6EC30'
+gpg_key: '7F438280EF8D349F'
 sign_tar: FALSE
 # a space separated list of mock configs
 final_mocks: 'pupent-el6-x86_64 pupent-el7-x86_64 pupent-sles11-x86_64 pupent-sles12-x86_64'
