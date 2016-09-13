@@ -1,3 +1,6 @@
+## 0.5.1 - 2016-09-13
+* Update to use the new Puppet GPG key for package signing
+
 ## 0.5.0 - 2016-08-31
 * Add `:logrotate-enabled` setting to allow disabling of logrotate.
   Enabled by default
