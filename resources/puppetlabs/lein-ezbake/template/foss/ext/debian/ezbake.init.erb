@@ -178,7 +178,9 @@ case "$1" in
     force-reload|reload)
         [ "$VERBOSE" != no ] && log_daemon_msg "Reloading $DESC" "$NAME"
         do_reload
-        log_end_msg $?
+        RETVAL="$?"
+        [ "$VERBOSE" != no ] && log_end_msg $RETVAL
+        exit "$RETVAL"
         ;;
     *)
         echo "Usage: $SCRIPTNAME {start|stop|status|condrestart|try-restart|restart|force-reload|reload}" >&2
