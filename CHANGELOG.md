@@ -197,6 +197,9 @@ This release contains bug fixes and AIO path changes.
  * (SERVER-369) Update ezbake to use new AIO directories (2eb3628)
  * (SERVER-387) Update to AIO server confdir layout (ee0a593)
 
+## 0.2.14 - 2016-09-13
+ * Packaging: Use new key for package signing
+
 ## 0.2.13 - 2016-08-31
  * Feature: Add `:logrotate-enabled` setting to allow disabling of logrotate.
    Enabled by default.
