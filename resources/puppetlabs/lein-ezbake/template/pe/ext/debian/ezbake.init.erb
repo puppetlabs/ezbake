@@ -149,8 +149,8 @@ case "$1" in
         do_start
         RETVAL="$?"
         case "$RETVAL" in
-            0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-            2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+            0) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+            1|2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
         esac
         exit "$RETVAL"
         ;;
