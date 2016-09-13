@@ -7,6 +7,8 @@ dir=$(dirname "$restartfile")
 realname="<%= EZBake::Config[:real_name] %>"
 PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 
+rm -f "$PIDFILE"
+
 if [ ! -e "$restartfile" ]; then
     mkdir -p "$dir"
     echo -n "0" > "$restartfile"
