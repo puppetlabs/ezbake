@@ -5,10 +5,12 @@ restartfile=<%= EZBake::Config[:restart_file] %>
 timeout=<%= EZBake::Config[:start_timeout] %>
 
 if [ -r "$restartfile" ];  then
-    kill -HUP $(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
+    pid=$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
+    kill -HUP $pid
     cur=$(head -n 1 "$restartfile")
     initial=$cur
     while [ "$cur" == "$initial" ] ;do
+        kill -0 $pid 2>/dev/null
         sleep 0.1
         cur=$(head -n 1 "$restartfile")
 
