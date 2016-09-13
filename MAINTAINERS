@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "file_format": "This MAINTAINERS file format is described at https://github.com/puppetlabs/maintainers",
+  "issues": "https://tickets.puppetlabs.com/browse/EZ/",
+  "people": [
+    {
+      "github": "shrug",
+      "email": "bradejr@puppet.com",
+      "name": "Rob Braden"
+    },
+    {
+      "github": "underscorgan",
+      "email": "morgan@puppet.com",
+      "name": "Morgan Rhodes"
+    },
+    {
+      "github": "haus",
+      "email": "haus@puppet.com",
+      "name": "Matthaus Owens"
+    },
+    {
+      "github": "cprice404",
+      "email": "chris@puppet.com",
+      "name": "Chris Price"
+    },
+    {
+      "github": "mckern",
+      "email": "ryan.mckern@puppet.com",
+      "name": "Ryan McKern"
+    },
+    {
+      "github": "melissa",
+      "email": "melissa@puppet.com",
+      "name": "Melissa Stone"
+    },
+    {
+      "github": "heathseals",
+      "email": "heath@puppet.com",
+      "name": "Heath Seals"
+    }
+  ]
+}

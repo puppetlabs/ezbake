@@ -278,8 +278,4 @@ tool of discerning developers.
 
 ## Maintainers
 
-Release Engineering at Puppet Labs.
-
-Maintainer: Michael Stahnke <stahnma@puppetlabs.com>
-
-Tickets: https://tickets.puppetlabs.com/browse/EZ/
+See MAINTAINERS file
