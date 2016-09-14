@@ -1,11 +1,56 @@
 #!/usr/bin/env bash
+pid=$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
+
 set -e
 
 restartfile=<%= EZBake::Config[:restart_file] %>
-timeout=<%= EZBake::Config[:start_timeout] %>
+start_timeout=<%= EZBake::Config[:start_timeout] %>
+stop_timeout=60
 dir=$(dirname "$restartfile")
 realname="<%= EZBake::Config[:real_name] %>"
 PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
+
+write_pid_file() {
+    if [ ! -d "/var/run/puppetlabs/${realname}" ]; then
+        mkdir -p /var/run/puppetlabs/${realname}
+        chown -R $USER:$GROUP /var/run/puppetlabs/${realname}
+    fi
+    echo $1 > $PIDFILE
+}
+
+terminate_java_process() {
+    set +e
+
+    echo "Startup script was terminated before completion" 1>&2
+    kill -TERM $pid >/dev/null 2>&1
+    sleep 0.1
+
+    timeout=$stop_timeout
+    kill -0 $pid >/dev/null 2>&1
+    while [ $? == 0 ] && [ "$timeout" != 0 ]; do
+        sleep 1
+        ((timeout--))
+        kill -0 $pid >/dev/null 2>&1
+    done
+
+    if [ "$timeout" = 0 ]; then
+        echo "Java process $pid not terminated gracefully after $stop_timeout seconds" 1>&2
+        kill -KILL $pid >/dev/null 2>&1
+        sleep 1
+        if [ $? = 0 ]; then
+            echo "Java process $pid not killed after SIGKILL" 1>&2
+        fi
+    fi
+
+    rm -f "$PIDFILE"
+    set -e
+    exit 1
+}
+
+if [ ! -z $pid ]; then
+    write_pid_file $pid
+    exit 0
+fi
 
 rm -f "$PIDFILE"
 
@@ -20,25 +65,32 @@ fi
 ${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> clojure.main -m <%= EZBake::Config[:main_namespace] %> --config "${CONFIG}" -b "${BOOTSTRAP_CONFIG}" &
 
 pid=$!
+trap terminate_java_process SIGHUP SIGINT SIGTERM
+write_pid_file $pid
+
 cur=$(head -n 1 "$restartfile")
 initial=$cur
 
+timeout=$start_timeout
+set +e
 while [ "$cur" == "$initial" ] ;do
-    kill -0 $pid 2>/dev/null
+    kill -0 $pid >/dev/null 2>&1
+    if [ $? != 0 ]; then
+      rm -f "$PIDFILE"
+      echo "Background process $pid exited before start had completed" 1>&2
+      exit 1
+    fi
+
     sleep 1
     cur=$(head -n 1 "$restartfile")
 
     ((timeout--))
     if [ "$timeout" = 0 ]; then
-        echo "Startup timed out after <%= EZBake::Config[:start_timeout] %> seconds" 1>&2
+        echo "Startup timed out after $start_timeout seconds" 1>&2
         exit 1
     fi
 done
+set -e
 
-if [ ! -d  "/var/run/puppetlabs/${realname}" ] ; then
-    mkdir -p /var/run/puppetlabs/${realname}
-    chown -R $USER:$GROUP /var/run/puppetlabs/${realname}
-fi
-echo $pid > $PIDFILE
-
+write_pid_file $pid
 exit 0
