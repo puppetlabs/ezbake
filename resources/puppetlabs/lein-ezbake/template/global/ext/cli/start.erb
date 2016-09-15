@@ -61,6 +61,7 @@ fi
 
 ${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> clojure.main -m <%= EZBake::Config[:main_namespace] %> --config "${CONFIG}" -b "${BOOTSTRAP_CONFIG}" &
 
+# $! is the process id of the last backgrounded process, the Java process above.
 pid=$!
 trap terminate_java_process SIGHUP SIGINT SIGTERM
 write_pid_file $pid
