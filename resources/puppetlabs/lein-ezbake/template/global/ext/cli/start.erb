@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-pid=$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
+set +e
 
-set -e
+pid=$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
 
 restartfile=<%= EZBake::Config[:restart_file] %>
 start_timeout=<%= EZBake::Config[:start_timeout] %>
@@ -19,8 +19,6 @@ write_pid_file() {
 }
 
 terminate_java_process() {
-    set +e
-
     echo "Startup script was terminated before completion" 1>&2
     kill -TERM $pid >/dev/null 2>&1
     sleep 0.1
@@ -43,7 +41,6 @@ terminate_java_process() {
     fi
 
     rm -f "$PIDFILE"
-    set -e
     exit 1
 }
 
@@ -72,7 +69,6 @@ cur=$(head -n 1 "$restartfile")
 initial=$cur
 
 timeout=$start_timeout
-set +e
 while [ "$cur" == "$initial" ] ;do
     kill -0 $pid >/dev/null 2>&1
     if [ $? != 0 ]; then
@@ -90,7 +86,6 @@ while [ "$cur" == "$initial" ] ;do
         exit 1
     fi
 done
-set -e
 
 write_pid_file $pid
 exit 0
