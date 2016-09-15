@@ -98,6 +98,7 @@ Requires(postun): systemd
 %{?systemd_requires}
 %endif
 
+BuildRequires:    pe-java
 Requires:         pe-java
 Requires:         pe-puppet-enterprise-release
 # net-tools is required for netstat usage in service unit file

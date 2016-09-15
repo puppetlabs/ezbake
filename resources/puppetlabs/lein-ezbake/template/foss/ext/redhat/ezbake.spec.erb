@@ -100,6 +100,7 @@ Requires(postun): systemd
 %{?systemd_requires}
 %endif
 
+BuildRequires:    %{open_jdk}
 Requires:         %{open_jdk}
 # net-tools is required for netstat usage in service unit file
 # See: https://tickets.puppetlabs.com/browse/SERVER-338
