@@ -269,7 +269,7 @@ fi
 %{_sym_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
 %{_ux_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
 <% end -%>
-%dir %attr(0770, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_data}
+%attr(-, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_data}
 %dir %attr(0755, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_rundir}
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
