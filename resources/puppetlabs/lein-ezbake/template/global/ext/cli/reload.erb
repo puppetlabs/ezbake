@@ -23,7 +23,7 @@ if [ -r "$restartfile" ];  then
         cur=$(head -n 1 "$restartfile")
 
         ((timeout--))
-        if [ "$timeout" = 0 ]; then
+        if [ $timeout -eq 0 ]; then
             echo "Reload timed out after <%= EZBake::Config[:start_timeout].to_i / 10 %> seconds"
             exit 1
         fi

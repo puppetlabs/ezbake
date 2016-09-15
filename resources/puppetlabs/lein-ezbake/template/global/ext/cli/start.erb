@@ -25,17 +25,17 @@ terminate_java_process() {
 
     timeout=$stop_timeout
     kill -0 $pid >/dev/null 2>&1
-    while [ $? == 0 ] && [ "$timeout" != 0 ]; do
+    while [ $? -eq 0 ] && [ $timeout -ne 0 ]; do
         sleep 1
         ((timeout--))
         kill -0 $pid >/dev/null 2>&1
     done
 
-    if [ "$timeout" = 0 ]; then
+    if [ $timeout -eq 0 ]; then
         echo "Java process $pid not terminated gracefully after $stop_timeout seconds" 1>&2
         kill -KILL $pid >/dev/null 2>&1
         sleep 1
-        if [ $? = 0 ]; then
+        if [ $? -eq 0 ]; then
             echo "Java process $pid not killed after SIGKILL" 1>&2
         fi
     fi
@@ -71,7 +71,7 @@ initial=$cur
 timeout=$start_timeout
 while [ "$cur" == "$initial" ] ;do
     kill -0 $pid >/dev/null 2>&1
-    if [ $? != 0 ]; then
+    if [ $? -ne 0 ]; then
       rm -f "$PIDFILE"
       echo "Background process $pid exited before start had completed" 1>&2
       exit 1
@@ -81,7 +81,7 @@ while [ "$cur" == "$initial" ] ;do
     cur=$(head -n 1 "$restartfile")
 
     ((timeout--))
-    if [ "$timeout" = 0 ]; then
+    if [ $timeout -eq 0 ]; then
         echo "Startup timed out after $start_timeout seconds" 1>&2
         exit 1
     fi
