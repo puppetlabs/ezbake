@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set +e
+
+pid=$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
+realname="<%= EZBake::Config[:real_name] %>"
+PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
+
+[ -e "${INSTALL_DIR}/ezbake-functions.sh" ] && . "${INSTALL_DIR}/ezbake-functions.sh"
+
+if [ -z $pid ]; then
+    rm -f "$PIDFILE"
+    exit 0
+else
+    kill_pid $pid $PIDFILE $SERVICE_STOP_RETRIES
+fi
