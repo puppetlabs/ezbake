@@ -35,6 +35,7 @@ terminate_java_process() {
         echo "Java process $pid not terminated gracefully after $stop_timeout seconds" 1>&2
         kill -KILL $pid >/dev/null 2>&1
         sleep 1
+        kill -0 $pid >/dev/null 2>&1
         if [ $? -eq 0 ]; then
             echo "Java process $pid not killed after SIGKILL" 1>&2
         fi
