@@ -2,7 +2,8 @@
 set +e
 
 restartfile=<%= EZBake::Config[:restart_file] %>
-timeout=<%= EZBake::Config[:start_timeout] %>
+reload_timeout=${RELOAD_TIMEOUT:-<%= EZBake::Config[:reload_timeout] %>}
+timeout=$reload_timeout
 realname="<%= EZBake::Config[:real_name] %>"
 PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 
@@ -13,6 +14,7 @@ if [ -r "$restartfile" ];  then
         echo "Service not running so cannot be reloaded" 1>&2
         exit 1
     fi
+    sleep 0.1
     cur=$(head -n 1 "$restartfile")
     initial=$cur
     while [ "$cur" == "$initial" ] ;do
@@ -22,12 +24,12 @@ if [ -r "$restartfile" ];  then
             rm -f "$PIDFILE"
             exit 1
         fi
-        sleep 0.1
+        sleep 1
         cur=$(head -n 1 "$restartfile")
 
         ((timeout--))
         if [ $timeout -eq 0 ]; then
-            echo "Reload timed out after <%= EZBake::Config[:start_timeout].to_i / 10 %> seconds"
+            echo "Reload timed out after $reload_timeout seconds"
             exit 1
         fi
     done

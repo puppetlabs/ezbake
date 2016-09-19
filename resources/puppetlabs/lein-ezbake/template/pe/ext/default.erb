@@ -34,3 +34,7 @@ SERVICE_STOP_RETRIES=60
 # will have no effect in systemd.
 OPEN_FILE_LIMIT=<%= EZBake::Config[:open_file_limit] %>
 <% end -%>
+
+# Maximum number of seconds that can expire for a service reload attempt before
+# the result of the attempt is interpreted as a failure.
+RELOAD_TIMEOUT=<%= EZBake::Config[:reload_timeout] %>
