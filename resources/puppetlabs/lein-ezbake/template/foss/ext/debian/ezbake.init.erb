@@ -148,8 +148,8 @@ case "$1" in
         do_start
         RETVAL="$?"
         case "$RETVAL" in
-            0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-            2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+            0) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+            1|2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
         esac
         exit "$RETVAL"
         ;;
@@ -178,7 +178,9 @@ case "$1" in
     force-reload|reload)
         [ "$VERBOSE" != no ] && log_daemon_msg "Reloading $DESC" "$NAME"
         do_reload
-        log_end_msg $?
+        RETVAL="$?"
+        [ "$VERBOSE" != no ] && log_end_msg $RETVAL
+        exit "$RETVAL"
         ;;
     *)
         echo "Usage: $SCRIPTNAME {start|stop|status|condrestart|try-restart|restart|force-reload|reload}" >&2

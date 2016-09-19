@@ -1,19 +1,29 @@
 #!/usr/bin/env bash
-set -e
+set +e
 
 restartfile=<%= EZBake::Config[:restart_file] %>
 timeout=<%= EZBake::Config[:start_timeout] %>
 
 if [ -r "$restartfile" ];  then
-    kill -HUP $(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
+    pid=$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
+    kill -HUP $pid >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "Service not running so cannot be reloaded" 1>&2
+        exit 1
+    fi
     cur=$(head -n 1 "$restartfile")
     initial=$cur
     while [ "$cur" == "$initial" ] ;do
+        kill -0 $pid >/dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            echo "Process $pid exited before reload had completed" 1>&2
+            exit 1
+        fi
         sleep 0.1
         cur=$(head -n 1 "$restartfile")
 
         ((timeout--))
-        if [ "$timeout" = 0 ]; then
+        if [ $timeout -eq 0 ]; then
             echo "Reload timed out after <%= EZBake::Config[:start_timeout].to_i / 10 %> seconds"
             exit 1
         fi
