@@ -100,6 +100,7 @@ Requires(postun): systemd
 %{?systemd_requires}
 %endif
 
+BuildRequires:    %{open_jdk}
 Requires:         %{open_jdk}
 # net-tools is required for netstat usage in service unit file
 # See: https://tickets.puppetlabs.com/browse/SERVER-338
@@ -262,7 +263,7 @@ fi
 %{_sym_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
 %{_ux_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
 <% end -%>
-%dir %attr(0770, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_data}
+%attr(-, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_data}
 %dir %attr(0755, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_rundir}
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
