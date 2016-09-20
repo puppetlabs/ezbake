@@ -3,6 +3,8 @@ set +e
 
 restartfile=<%= EZBake::Config[:restart_file] %>
 timeout=<%= EZBake::Config[:start_timeout] %>
+realname="<%= EZBake::Config[:real_name] %>"
+PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 
 if [ -r "$restartfile" ];  then
     pid=$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
@@ -17,6 +19,7 @@ if [ -r "$restartfile" ];  then
         kill -0 $pid >/dev/null 2>&1
         if [ $? -ne 0 ]; then
             echo "Process $pid exited before reload had completed" 1>&2
+            rm -f "$PIDFILE"
             exit 1
         fi
         sleep 0.1
