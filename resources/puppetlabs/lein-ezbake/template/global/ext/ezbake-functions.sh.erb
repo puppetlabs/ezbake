@@ -79,7 +79,7 @@ kill_pid()
 {
     local pid=${1:?}
     local pidfile=$2
-    local stop_timeout=${3:-60}
+    local stop_timeout=${3:-<%= EZBake::Config[:stop_timeout] %>}
 
     kill -TERM $pid >/dev/null 2>&1
     sleep 0.1

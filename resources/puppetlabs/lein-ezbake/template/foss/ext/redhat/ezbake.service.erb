@@ -7,7 +7,7 @@ Type=forking
 EnvironmentFile=/etc/sysconfig/<%= EZBake::Config[:project] %>
 User=<%= EZBake::Config[:user] %>
 TimeoutStartSec=<%= EZBake::Config[:start_timeout] %>
-TimeoutStopSec=60
+TimeoutStopSec=<%= EZBake::Config[:stop_timeout] %>
 Restart=on-failure
 StartLimitBurst=5
 PIDFile=/var/run/puppetlabs/<%= EZBake::Config[:real_name] %>/<%= EZBake::Config[:real_name] %>.pid
