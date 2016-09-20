@@ -9,10 +9,10 @@
             [leiningen.core.main :as lein-main]
             [leiningen.uberjar :as uberjar]
             [schema.core :as schema]
-            [schema.utils :as schema-utils]
             [puppetlabs.ezbake.dependency-utils :as deputils]
             [puppetlabs.ezbake.exec :as exec]
-            [puppetlabs.config.typesafe :as ts]))
+            [puppetlabs.config.typesafe :as ts]
+            [puppetlabs.trapperkeeper.config :as tk]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Vars
@@ -35,18 +35,36 @@
 (def terminus-prefix "puppet/")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Schemas / Validation
+;;; Schemas
 
 (def BootstrapSource
   (schema/enum :bootstrap-cfg :services-d))
 
-(defn validate-bootstrap-source
-  [bootstrap-source]
-  "Throws IllegalArgumentException if it can't be validated"
-  (when-let [error (schema/check BootstrapSource bootstrap-source)]
-    (throw (IllegalArgumentException. (str "Invalid value for setting ':bootstrap-source': "
-                                           (schema-utils/validation-error-explain error)))))
-  bootstrap-source)
+(def ReplacesPkgs
+  [{:package schema/Str
+    :version schema/Str}])
+
+(def LocalProjectVars
+  {(schema/optional-key :user) schema/Str
+   (schema/optional-key :group) schema/Str
+   (schema/optional-key :bootstrap-source) BootstrapSource
+   (schema/optional-key :create-dirs) [schema/Str]
+   (schema/optional-key :build-type) schema/Str
+   (schema/optional-key :repo-target) schema/Str
+   (schema/optional-key :replaces-pkgs) ReplacesPkgs
+   (schema/optional-key :start-after) [schema/Str]
+   (schema/optional-key :start-timeout) schema/Int
+   (schema/optional-key :open-file-limit) schema/Int
+   (schema/optional-key :main-namespace) schema/Str
+   (schema/optional-key :java-args) schema/Str
+   (schema/optional-key :logrotate-enabled) schema/Bool
+   :restart-file schema/Str})
+
+(def TrapperkeeperConfig
+  {:global
+   {:restart-file schema/Str
+    schema/Keyword schema/Any}
+   schema/Any schema/Any})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Shell / Filesystem Helpers
@@ -432,10 +450,9 @@ Dependency tree:
      :java-args                 (get-local-ezbake-var lein-project :java-args
                                                       "-Xmx192m")
      ; Convert to string so ruby doesn't barf on the hyphens
-     :bootstrap-source          (name (validate-bootstrap-source
-                                       (get-local-ezbake-var lein-project
-                                                             :bootstrap-source
-                                                             :bootstrap-cfg)))
+     :bootstrap-source          (name (get-local-ezbake-var lein-project
+                                                            :bootstrap-source
+                                                            :bootstrap-cfg))
      :logrotate-enabled         (get-local-ezbake-var lein-project :logrotate-enabled
                                                       true)}))
 
@@ -487,6 +504,32 @@ Dependency tree:
        :uberjar-name  (:uberjar-name lein-project)
        :is-pe-build   (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))
        :repo-name     (format "%s" (get-local-ezbake-var lein-project :repo-target ""))})))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Validation
+
+(defn validate-local-project-vars!
+  "Throws IllegalArgumentException if lein ezbake project vars cannot be validated"
+  [lein-project]
+  (let [vars (get-in lein-project [:lein-ezbake :vars])]
+    (when-let [error (schema/check LocalProjectVars vars)]
+      (throw (IllegalArgumentException.
+              (str "Invalid lein ezbake project vars for service, schema errors: "
+                   error))))))
+
+(defn validate-tk-config!
+  "Throws IllegalArgumentException if Trapperkeeper configuration cannot be validated"
+  [lein-project]
+  (let [tk-config-dir (fs/file (get-project-config-dir lein-project) "conf.d")
+        tk-config (tk/load-config (str tk-config-dir))]
+    (when-let [error (schema/check TrapperkeeperConfig tk-config)]
+      (throw (IllegalArgumentException.
+              (str "Invalid Trapperkeeper configuration for service, "
+                   "schema errors: "
+                   error))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Public
 
 (defmulti action
   (fn [action & args] action))
@@ -544,3 +587,8 @@ Dependency tree:
   (fs/mkdirs staging-dir)
   (fs/copy+ "./project.clj"
             (format "%s/%s" staging-dir "project.clj")))
+
+(defn validate!
+  [lein-project]
+  (validate-local-project-vars! lein-project)
+  (validate-tk-config! lein-project))

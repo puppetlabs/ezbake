@@ -26,6 +26,7 @@ Actions:
                   ezbake-core/resource-path)]
         (lein-ezbake-core/prepare-resource-dir project)
         (try
+          (ezbake-core/validate! project)
           (ezbake-core/init!)
           (ezbake-core/action action project build-target)
           (finally
