@@ -70,6 +70,8 @@ while [ "$cur" == "$initial" ] ;do
     ((timeout--))
     if [ $timeout -eq 0 ]; then
         echo "Startup timed out after $start_timeout seconds" 1>&2
+        terminate_java_process
+        rm -f "$PIDFILE"
         exit 1
     fi
 done
