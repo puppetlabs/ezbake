@@ -4,7 +4,7 @@ set +e
 pid=$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
 
 restartfile=<%= EZBake::Config[:restart_file] %>
-start_timeout=<%= EZBake::Config[:start_timeout] %>
+start_timeout=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 dir=$(dirname "$restartfile")
 realname="<%= EZBake::Config[:real_name] %>"
 PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
