@@ -105,7 +105,7 @@ kill_pid()
         fi
     fi
 
-    if [ ! -z $pidfile ]; then
+    if [ -n "$pidfile" ]; then
         rm -f "$pidfile"
     fi
 

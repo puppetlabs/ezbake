@@ -76,7 +76,7 @@ start() {
     # to access the present working directory.
     cd "${INSTALL_DIR}"
     startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -w -- "${INSTALL_DIR}/bin/${realname}" start >/dev/null 2>&1
-    [ ! -z $(pgrep -f <%= EZBake::Config[:uberjar_name] %>) ]
+    [ -n "$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)" ]
     rc_status -v
 
     retval=$?

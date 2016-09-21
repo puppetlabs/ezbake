@@ -12,7 +12,7 @@ fi
 
 . "${INSTALL_DIR}/ezbake-functions.sh"
 
-if [ -z $pid ]; then
+if [ -z "$pid" ]; then
     rm -f "$PIDFILE"
     exit 0
 else

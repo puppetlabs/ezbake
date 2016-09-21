@@ -30,7 +30,7 @@ terminate_java_process() {
     exit 1
 }
 
-if [ ! -z $pid ]; then
+if [ -n "$pid" ]; then
     write_pid_file $pid
     exit 0
 fi
