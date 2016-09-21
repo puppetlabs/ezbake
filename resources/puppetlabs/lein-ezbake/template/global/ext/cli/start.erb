@@ -9,7 +9,12 @@ dir=$(dirname "$restartfile")
 realname="<%= EZBake::Config[:real_name] %>"
 PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 
-[ -e "${INSTALL_DIR}/ezbake-functions.sh" ] && . "${INSTALL_DIR}/ezbake-functions.sh"
+if [ ! -e "${INSTALL_DIR}/ezbake-functions.sh" ]; then
+    echo "Unable to find ${INSTALL_DIR}/ezbake-functions.sh script, failing start." 1>&2
+    exit 1
+fi
+
+. "${INSTALL_DIR}/ezbake-functions.sh"
 
 write_pid_file() {
     if [ ! -d "/var/run/puppetlabs/${realname}" ]; then

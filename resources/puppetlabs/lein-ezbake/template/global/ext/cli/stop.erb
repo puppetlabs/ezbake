@@ -5,7 +5,12 @@ pid=$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
 realname="<%= EZBake::Config[:real_name] %>"
 PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 
-[ -e "${INSTALL_DIR}/ezbake-functions.sh" ] && . "${INSTALL_DIR}/ezbake-functions.sh"
+if [ ! -e "${INSTALL_DIR}/ezbake-functions.sh" ]; then
+    echo "Unable to find ${INSTALL_DIR}/ezbake-functions.sh script, failing stop." 1>&2
+    exit 1
+fi
+
+. "${INSTALL_DIR}/ezbake-functions.sh"
 
 if [ -z $pid ]; then
     rm -f "$PIDFILE"
