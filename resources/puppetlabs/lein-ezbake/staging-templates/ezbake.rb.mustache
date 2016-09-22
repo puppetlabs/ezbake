@@ -23,6 +23,7 @@ module EZBake
                           },
       :debian         => {
                           :additional_dependencies => [{{{debian-deps}}}],
+                          :additional_build_dependencies => [{{{debian-build-deps}}}],
                           :additional_preinst => [{{{debian-preinst}}}],
                           :additional_postinst => [{{{debian-postinst}}}],
                           :additional_install => [{{{debian-install}}}],
@@ -31,6 +32,7 @@ module EZBake
                           },
       :redhat         => {
                           :additional_dependencies => [{{{redhat-deps}}}],
+                          :additional_build_dependencies => [{{{redhat-build-deps}}}],
                           :additional_preinst => [{{{redhat-preinst}}}],
                           :additional_postinst => [{{{redhat-postinst}}}],
                           :additional_install => [{{{redhat-install}}}],

@@ -409,6 +409,7 @@ Dependency tree:
      :create-dirs               (quoted-list (get-local-ezbake-var lein-project
                                                                    :create-dirs []))
      :debian-deps               (get-quoted-ezbake-values :debian :dependencies)
+     :debian-build-deps         (get-quoted-ezbake-values :debian :build-dependencies)
      :debian-preinst            (get-quoted-ezbake-values :debian :preinst)
      :debian-prerm              (get-quoted-ezbake-values :debian :prerm)
      :debian-postinst           (get-quoted-ezbake-values :debian :postinst)
@@ -416,6 +417,7 @@ Dependency tree:
      :debian-pre-start-action   (get-quoted-ezbake-values :debian :pre-start-action)
      :debian-post-start-action  (get-quoted-ezbake-values :debian :post-start-action)
      :redhat-deps               (get-quoted-ezbake-values :redhat :dependencies)
+     :redhat-build-deps         (get-quoted-ezbake-values :redhat :build-dependencies)
      :redhat-preinst            (get-quoted-ezbake-values :redhat :preinst)
      :redhat-postinst           (get-quoted-ezbake-values :redhat :postinst)
      :redhat-install            (get-quoted-ezbake-values :redhat :install)

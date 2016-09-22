@@ -2,7 +2,10 @@ Source: <%= EZBake::Config[:project] %>
 Section: utils
 Priority: optional
 Maintainer: Puppet Labs <info@puppetlabs.com>
-Build-Depends: debhelper (>= 7.0.0~), cdbs, bc, mawk, lsb-release, puppet-agent
+Build-Depends: debhelper (>= 7.0.0~), cdbs, bc, mawk, lsb-release, puppet-agent<%=
+    if !EZBake::Config[:debian][:additional_build_dependencies].empty?
+      ", " + EZBake::Config[:debian][:additional_build_dependencies].join(", ")
+    end %>
 Standards-Version: 3.9.1
 Homepage: http://puppetlabs.com
 
