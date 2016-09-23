@@ -3,7 +3,7 @@ set +e
 
 pid="$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)"
 
-restartfile="<%= EZBake::Config[:restart_file] %>"
+restartfile="/opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>/restartcounter"
 start_timeout="${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}"
 
 realname="<%= EZBake::Config[:real_name] %>"
@@ -39,7 +39,7 @@ rm -f "$PIDFILE"
 
 init_restart_file "$restartfile" || exit $?
 
-${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> clojure.main -m <%= EZBake::Config[:main_namespace] %> --config "${CONFIG}" -b "${BOOTSTRAP_CONFIG}" &
+${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> clojure.main -m <%= EZBake::Config[:main_namespace] %> --config "${CONFIG}" -b "${BOOTSTRAP_CONFIG}" -r "${restartfile}" &
 
 # $! is the process id of the last backgrounded process, the Java process above.
 pid=$!

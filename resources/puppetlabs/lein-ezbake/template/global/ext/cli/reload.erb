@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set +e
 
-restartfile="<%= EZBake::Config[:restart_file] %>"
+restartfile="/opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>/restartcounter"
 reload_timeout="${RELOAD_TIMEOUT:-<%= EZBake::Config[:reload_timeout] %>}"
 timeout="$reload_timeout"
 realname="<%= EZBake::Config[:real_name] %>"
@@ -16,8 +16,7 @@ fi
 
 init_restart_file "$restartfile" || exit $?
 
-cur="$(head -n 1 "$restartfile")"
-initial="$cur"
+initial="$(head -n 1 "$restartfile")"
 pid="$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)"
 kill -HUP $pid >/dev/null 2>&1
 if [ $? -ne 0 ]; then
@@ -25,6 +24,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 sleep 0.1
+cur="$(head -n 1 "$restartfile")"
 while [ "$cur" == "$initial" ] ;do
     kill -0 $pid >/dev/null 2>&1
     if [ $? -ne 0 ]; then
