@@ -5,7 +5,7 @@ pid="$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)"
 
 restartfile="<%= EZBake::Config[:restart_file] %>"
 start_timeout="${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}"
-dir="$(dirname "$restartfile")"
+
 realname="<%= EZBake::Config[:real_name] %>"
 PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 
@@ -37,13 +37,7 @@ fi
 
 rm -f "$PIDFILE"
 
-if [ ! -e "$restartfile" ]; then
-    mkdir -p "$dir"
-    echo -n "0" > "$restartfile"
-elif [ ! -r "$restartfile" ] || [ ! -w "$restartfile" ]; then
-    echo "The restart-file at <%= EZBake::Config[:restart_file] %> is not readable and/or writeable." 1>&2
-    exit 1
-fi
+init_restart_file "$restartfile" || exit $?
 
 ${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> clojure.main -m <%= EZBake::Config[:main_namespace] %> --config "${CONFIG}" -b "${BOOTSTRAP_CONFIG}" &
 
@@ -59,9 +53,9 @@ timeout="$start_timeout"
 while [ "$cur" == "$initial" ] ;do
     kill -0 $pid >/dev/null 2>&1
     if [ $? -ne 0 ]; then
-      rm -f "$PIDFILE"
-      echo "Background process $pid exited before start had completed" 1>&2
-      exit 1
+        rm -f "$PIDFILE"
+        echo "Background process $pid exited before start had completed" 1>&2
+        exit 1
     fi
 
     sleep 1
