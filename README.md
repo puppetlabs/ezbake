@@ -10,6 +10,15 @@ packaging.
 The branching strategy is now covered in the
 [Branching Strategy page on the EZBake wiki](https://github.com/puppetlabs/ezbake/wiki/Branching-Strategy).
 
+## Minimum Trapperkeeper version dependencies
+
+EZBake 1.0 and later utilize the `restart-file` feature in Trapperkeeper to
+monitor service start and reload status.  For this reason, the application
+being packaged must include Trapperkeeper 1.5.1 or later.  If an earlier
+version is used instead, the service will fail to be started properly due to
+the lack of support for the `-r | --restart-file` command line option in the
+earlier Trapperkeeper versions.
+
 ## Using
 
 To get started using EZBake, please add it to the `:plugins` key in your
