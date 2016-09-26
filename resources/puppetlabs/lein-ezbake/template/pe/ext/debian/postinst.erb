@@ -4,12 +4,7 @@
 
 # On upgrade, we should restart the service if it's running
 if [ $1 = 'configure' -a -n $2 ] ; then
-  if [ -e "/lib/systemd/system/<%= EZBake::Config[:project] -%>.service" ] ; then
-    # Using systemd
-    if [ -e '/etc/init.d/<%= EZBake::Config[:project] %>' ] ; then
-      # We need to clean up the old sysv files if they still exist
-      rm '/etc/init.d/<%= EZBake::Config[:project] %>'
-    fi
+  if [ -d /run/systemd/system ]; then
     systemctl daemon-reload >/dev/null 2>&1 || :
     systemctl try-restart <%= EZBake::Config[:project] %>.service ||:
   else
