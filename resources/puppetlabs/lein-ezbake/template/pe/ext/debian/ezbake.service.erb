@@ -26,6 +26,7 @@ ExecStartPre=<%= action %>
 
 ExecReload=/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin/<%= EZBake::Config[:real_name] %> reload
 ExecStart=/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin/<%= EZBake::Config[:real_name] %> start
+ExecStop=/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin/<%= EZBake::Config[:real_name] %> stop
 
 KillMode=process
 

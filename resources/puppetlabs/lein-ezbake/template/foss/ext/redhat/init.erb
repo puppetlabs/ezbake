@@ -72,7 +72,7 @@ start() {
     <% end -%>
 
     pushd "${INSTALL_DIR}" &> /dev/null
-    daemon --user $USER --pidfile $PIDFILE "/opt/puppetlabs/server/apps/${realname}/bin/${realname} start >> /var/log/puppetlabs/${realname}/${realname}-daemon.log 2>&1"
+    daemon --user $USER --pidfile $PIDFILE "${INSTALL_DIR}/bin/${realname} start >> /var/log/puppetlabs/${realname}/${realname}-daemon.log 2>&1"
     retval=$?
     popd &> /dev/null
     [ -s $PIDFILE ] && success $"$base startup" || failure $"$base startup"
@@ -92,13 +92,7 @@ start() {
 
 stop() {
     echo -n $"Stopping $prog: "
-    find_my_pid
-
-    if [ ! -s "$PIDFILE" ] ; then
-        echo $pid > $PIDFILE
-    fi
-
-    killproc -p $PIDFILE -d ${SERVICE_STOP_RETRIES}s $prog
+    "${INSTALL_DIR}/bin/${realname}" stop
     retval=$?
 
     [ $retval -eq 0 ] && success $"$base stopped" || failure $"$base stopped"
@@ -123,7 +117,7 @@ rh_status_q() {
 
 reload() {
     echo -n $"Reloading $prog: "
-    /opt/puppetlabs/server/apps/${realname}/bin/${realname} reload
+    "${INSTALL_DIR}/bin/${realname}" reload
     RETVAL=$?
 
     [ $RETVAL -eq 0 ] && success $"$base reloaded" || failure $"$base reloaded"

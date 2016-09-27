@@ -104,6 +104,8 @@ Requires:         %{open_jdk}
 # net-tools is required for netstat usage in service unit file
 # See: https://tickets.puppetlabs.com/browse/SERVER-338
 Requires:         net-tools
+# procps is required for pgrep, used in several of the init scripts
+Requires:         procps
 <% EZBake::Config[:redhat][:additional_build_dependencies].each do |dep| %>
 BuildRequires:    <%= dep %>
 <% end %>

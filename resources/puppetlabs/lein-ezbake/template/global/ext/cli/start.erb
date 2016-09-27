@@ -5,10 +5,16 @@ pid=$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
 
 restartfile=<%= EZBake::Config[:restart_file] %>
 start_timeout=<%= EZBake::Config[:start_timeout] %>
-stop_timeout=60
 dir=$(dirname "$restartfile")
 realname="<%= EZBake::Config[:real_name] %>"
 PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
+
+if [ ! -e "${INSTALL_DIR}/ezbake-functions.sh" ]; then
+    echo "Unable to find ${INSTALL_DIR}/ezbake-functions.sh script, failing start." 1>&2
+    exit 1
+fi
+
+. "${INSTALL_DIR}/ezbake-functions.sh"
 
 write_pid_file() {
     if [ ! -d "/var/run/puppetlabs/${realname}" ]; then
@@ -20,32 +26,11 @@ write_pid_file() {
 
 terminate_java_process() {
     echo "Startup script was terminated before completion" 1>&2
-    kill -TERM $pid >/dev/null 2>&1
-    sleep 0.1
-
-    timeout=$stop_timeout
-    kill -0 $pid >/dev/null 2>&1
-    while [ $? -eq 0 ] && [ $timeout -ne 0 ]; do
-        sleep 1
-        ((timeout--))
-        kill -0 $pid >/dev/null 2>&1
-    done
-
-    if [ $timeout -eq 0 ]; then
-        echo "Java process $pid not terminated gracefully after $stop_timeout seconds" 1>&2
-        kill -KILL $pid >/dev/null 2>&1
-        sleep 1
-        kill -0 $pid >/dev/null 2>&1
-        if [ $? -eq 0 ]; then
-            echo "Java process $pid not killed after SIGKILL" 1>&2
-        fi
-    fi
-
-    rm -f "$PIDFILE"
+    kill_pid $pid $PIDFILE $SERVICE_STOP_RETRIES
     exit 1
 }
 
-if [ ! -z $pid ]; then
+if [ -n "$pid" ]; then
     write_pid_file $pid
     exit 0
 fi
