@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set +e
 
-pid=$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
+pid="$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)"
 
-restartfile=<%= EZBake::Config[:restart_file] %>
-start_timeout=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
-dir=$(dirname "$restartfile")
+restartfile="<%= EZBake::Config[:restart_file] %>"
+start_timeout="${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}"
+dir="$(dirname "$restartfile")"
 realname="<%= EZBake::Config[:real_name] %>"
 PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 
@@ -26,7 +26,7 @@ write_pid_file() {
 
 terminate_java_process() {
     echo "Startup script was terminated before completion" 1>&2
-    kill_pid $pid $PIDFILE $SERVICE_STOP_RETRIES
+    kill_pid "$pid" "$PIDFILE" "$SERVICE_STOP_RETRIES"
     exit 1
 }
 
@@ -52,10 +52,10 @@ pid=$!
 trap terminate_java_process SIGHUP SIGINT SIGTERM
 write_pid_file $pid
 
-cur=$(head -n 1 "$restartfile")
-initial=$cur
+cur="$(head -n 1 "$restartfile")"
+initial="$cur"
 
-timeout=$start_timeout
+timeout="$start_timeout"
 while [ "$cur" == "$initial" ] ;do
     kill -0 $pid >/dev/null 2>&1
     if [ $? -ne 0 ]; then
@@ -65,7 +65,7 @@ while [ "$cur" == "$initial" ] ;do
     fi
 
     sleep 1
-    cur=$(head -n 1 "$restartfile")
+    cur="$(head -n 1 "$restartfile")"
 
     ((timeout--))
     if [ $timeout -eq 0 ]; then
