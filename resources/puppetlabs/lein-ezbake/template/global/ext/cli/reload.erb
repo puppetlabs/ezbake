@@ -8,6 +8,8 @@ realname="<%= EZBake::Config[:real_name] %>"
 PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 
 if [ -r "$restartfile" ];  then
+    cur=$(head -n 1 "$restartfile")
+    initial=$cur
     pid=$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
     kill -HUP $pid >/dev/null 2>&1
     if [ $? -ne 0 ]; then
@@ -15,8 +17,6 @@ if [ -r "$restartfile" ];  then
         exit 1
     fi
     sleep 0.1
-    cur=$(head -n 1 "$restartfile")
-    initial=$cur
     while [ "$cur" == "$initial" ] ;do
         kill -0 $pid >/dev/null 2>&1
         if [ $? -ne 0 ]; then
