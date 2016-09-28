@@ -426,7 +426,9 @@ Dependency tree:
      :terminus-map              termini
      :replaces-pkgs             (get-local-ezbake-var lein-project :replaces-pkgs [])
      :start-after               (quoted-list (get-local-ezbake-var lein-project :start-after []))
+     :reload-timeout            (get-local-ezbake-var lein-project :reload-timeout "120")
      :start-timeout             (get-local-ezbake-var lein-project :start-timeout "300")
+     :stop-timeout              (get-local-ezbake-var lein-project :stop-timeout "60")
      :open-file-limit           (get-local-ezbake-var lein-project :open-file-limit "nil")
      :main-namespace            (get-local-ezbake-var lein-project
                                                       :main-namespace

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set +e
 
-pid=$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)
+pid="$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)"
 realname="<%= EZBake::Config[:real_name] %>"
 PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 
@@ -16,5 +16,5 @@ if [ -z "$pid" ]; then
     rm -f "$PIDFILE"
     exit 0
 else
-    kill_pid $pid $PIDFILE $SERVICE_STOP_RETRIES
+    kill_pid "$pid" "$PIDFILE" "$SERVICE_STOP_RETRIES"
 fi
