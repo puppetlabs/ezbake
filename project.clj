@@ -4,11 +4,26 @@
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
-  :dependencies [[me.raynes/fs "1.4.6" :exclusions [org.clojure/clojure]]
+  :dependencies [;; begin version conflict resolution dependencies
+                 [org.clojure/tools.reader "1.0.0-beta1"]
+                 ;; end version conflict resolution dependencies
+
+                 [me.raynes/fs "1.4.6" :exclusions [org.clojure/clojure]]
                  [me.raynes/conch "0.8.0"]
                  [clj-time "0.6.0"]
                  [prismatic/schema "1.0.4"]
-                 [puppetlabs/typesafe-config "0.1.3" :exclusions [org.clojure/clojure]]]
+
+                 [puppetlabs/typesafe-config "0.1.5" :exclusions [org.clojure/clojure]]
+
+                 ;; trapperkeeper pulls in core.cache via core.async.  Since
+                 ;; lein pulls in its own (older) version of core.cache,
+                 ;; running ezbake as a plugin to another project via lein
+                 ;; produces a "Could not locate clojure/data/priority_map__init.class"
+                 ;; error.  Seems related to
+                 ;; https://github.com/technomancy/leiningen/issues/1563.  Excluding
+                 ;; core.cache here appears to avoid the conflict without requiring
+                 ;; consuming projects to do the same.
+                 [puppetlabs/trapperkeeper "1.5.0" :exclusions [org.clojure/core.cache]]]
 
   :repositories [["releases" "http://nexus.delivery.puppetlabs.net/content/repositories/releases/"]
                  ["snapshots" "http://nexus.delivery.puppetlabs.net/content/repositories/snapshots/"]]
