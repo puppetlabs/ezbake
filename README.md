@@ -12,12 +12,21 @@ The branching strategy is now covered in the
 
 ## Minimum Trapperkeeper version dependencies
 
-EZBake 1.0 and later utilize the `restart-file` feature in Trapperkeeper to
-monitor service start and reload status.  For this reason, the application
-being packaged must include Trapperkeeper 1.5.1 or later.  If an earlier
-version is used instead, the service will fail to be started properly due to
-the lack of support for the `-r | --restart-file` command line option in the
-earlier Trapperkeeper versions.
+EZBake 1.0 and later utilize the
+![restart-file](https://github.com/puppetlabs/trapperkeeper/blob/1.5.1/documentation/Restart-File.md)
+feature in Trapperkeeper to monitor service start and reload status.  For this
+reason, the application being packaged must include Trapperkeeper 1.5.1 or
+later.  If an earlier version is used instead, the service will fail to be
+started properly due to the lack of support for the `-r | --restart-file`
+command line option in the earlier Trapperkeeper versions.
+
+The failure message would be written to the
+`/var/log/puppetlabs/<app>/<app>-daemon.log` file -- for sysvinit / upstart --
+or journal -- for systemd -- with text which looks like this:
+
+```
+Error(s) occurred while parsing command-line arguments: Unknown option: "--restart-file"
+```
 
 ## Using
 
