@@ -128,7 +128,7 @@ init_restart_file()
             fi
             chown $user:$group "$restart_file_base_dir"
             if [ $? -ne 0 ]; then
-                echo "Unable to create set permissions for restart file at ${restart_file_base_dir}" 1>&2
+                echo "Unable to set permissions for base directory of restart file at ${restart_file_base_dir}" 1>&2
                 return 1
             fi
         fi
