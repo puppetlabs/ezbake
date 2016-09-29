@@ -39,7 +39,13 @@ rm -f "$PIDFILE"
 
 init_restart_file "$restartfile" || exit $?
 
-${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> clojure.main -m <%= EZBake::Config[:main_namespace] %> --config "${CONFIG}" -b "${BOOTSTRAP_CONFIG}" -r "${restartfile}" &
+${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom \
+  -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> \
+  clojure.main \
+  -m <%= EZBake::Config[:main_namespace] %> \
+  --config "${CONFIG}" \
+  --bootstrap-config "${BOOTSTRAP_CONFIG}" \
+  --restart-file "${restartfile}" &
 
 # $! is the process id of the last backgrounded process, the Java process above.
 pid=$!
