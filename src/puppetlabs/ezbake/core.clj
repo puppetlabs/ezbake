@@ -399,8 +399,6 @@ Dependency tree:
                                                       (:name lein-project))
      :group                     (get-local-ezbake-var lein-project :group
                                                       (:name lein-project))
-     :restart-file              (get-local-ezbake-var lein-project :restart-file
-                                                      (:restart-file lein-project))
      :uberjar-name              (:uberjar-name lein-project)
      :config-files              (quoted-list (map remove-erb-extension config-files))
      :system-config-files       (quoted-list (map remove-erb-extension system-config-files))
