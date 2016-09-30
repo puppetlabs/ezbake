@@ -495,6 +495,10 @@ Dependency tree:
 
 (defmethod action "stage"
   [_ lein-project build-target]
+  (lein-main/info "Running 'lein install' to pick up local changes.")
+  (let [result (exec/exec "lein" "install")]
+    (lein-main/info (:out result))
+    (lein-main/info (:err result)))
   (let [template-dir (get-template-file build-target)
         uberjar-name (:uberjar-name lein-project)]
     (uberjar/uberjar lein-project)
