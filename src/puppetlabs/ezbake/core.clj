@@ -35,18 +35,31 @@
 (def terminus-prefix "puppet/")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Schemas / Validation
+;;; Schemas
 
 (def BootstrapSource
   (schema/enum :bootstrap-cfg :services-d))
 
-(defn validate-bootstrap-source
-  [bootstrap-source]
-  "Throws IllegalArgumentException if it can't be validated"
-  (when-let [error (schema/check BootstrapSource bootstrap-source)]
-    (throw (IllegalArgumentException. (str "Invalid value for setting ':bootstrap-source': "
-                                           (schema-utils/validation-error-explain error)))))
-  bootstrap-source)
+(def ReplacesPkgs
+  [{:package schema/Str
+    :version schema/Str}])
+
+(def LocalProjectVars
+  {(schema/optional-key :user) schema/Str
+   (schema/optional-key :group) schema/Str
+   (schema/optional-key :bootstrap-source) BootstrapSource
+   (schema/optional-key :create-dirs) [schema/Str]
+   (schema/optional-key :build-type) schema/Str
+   (schema/optional-key :reload-timeout) schema/Int
+   (schema/optional-key :repo-target) schema/Str
+   (schema/optional-key :replaces-pkgs) ReplacesPkgs
+   (schema/optional-key :start-after) [schema/Str]
+   (schema/optional-key :start-timeout) schema/Int
+   (schema/optional-key :stop-timeout) schema/Int
+   (schema/optional-key :open-file-limit) schema/Int
+   (schema/optional-key :main-namespace) schema/Str
+   (schema/optional-key :java-args) schema/Str
+   (schema/optional-key :logrotate-enabled) schema/Bool})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Shell / Filesystem Helpers
@@ -434,10 +447,9 @@ Dependency tree:
      :java-args                 (get-local-ezbake-var lein-project :java-args
                                                       "-Xmx192m")
      ; Convert to string so ruby doesn't barf on the hyphens
-     :bootstrap-source          (name (validate-bootstrap-source
-                                       (get-local-ezbake-var lein-project
-                                                             :bootstrap-source
-                                                             :bootstrap-cfg)))
+     :bootstrap-source          (name (get-local-ezbake-var lein-project
+                                                            :bootstrap-source
+                                                            :bootstrap-cfg))
      :logrotate-enabled         (get-local-ezbake-var lein-project :logrotate-enabled
                                                       true)}))
 
@@ -550,3 +562,19 @@ Dependency tree:
   (fs/mkdirs staging-dir)
   (fs/copy+ "./project.clj"
             (format "%s/%s" staging-dir "project.clj")))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Validation
+
+(defn validate-local-project-vars!
+  "Throws IllegalArgumentException if lein ezbake project vars cannot be validated"
+  [lein-project]
+  (let [vars (get-in lein-project [:lein-ezbake :vars])]
+    (when-let [error (schema/check LocalProjectVars vars)]
+      (throw (IllegalArgumentException.
+              (str "Invalid lein ezbake project vars for service, schema errors: "
+                   error))))))
+
+(defn validate!
+  [lein-project]
+  (validate-local-project-vars! lein-project))
