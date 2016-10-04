@@ -32,6 +32,7 @@
 (def system-config-dir "ext/system-config/")
 (def shared-cli-apps-prefix "ext/cli/")
 (def docs-prefix "ext/docs/")
+(def build-scripts-prefix "ext/build-scripts/")
 (def terminus-prefix "puppet/")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -207,6 +208,10 @@ Dependency tree:
 (defn- get-config-files-in
   [jar]
   (deputils/find-files-in-dir-in-jar jar shared-config-prefix))
+
+(defn- get-build-scripts-files-in
+  [jar]
+  (deputils/find-files-in-dir-in-jar jar build-scripts-prefix))
 
 (defn cp-shared-files
   [dependencies files-fn]
@@ -529,6 +534,7 @@ Dependency tree:
         bin-files       (cp-shared-files dependencies get-bin-files-in)
         terminus-files  (cp-terminus-files dependencies build-target)
         upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)]
+    (cp-shared-files dependencies get-build-scripts-files-in)
     (if cli-app-files
       (cp-cli-wrapper-scripts (:name lein-project)))
     (cp-doc-files lein-project)
