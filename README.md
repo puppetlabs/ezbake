@@ -287,6 +287,144 @@ For example, with the default lein-ezbake settings, your directories might look 
         └── really_important_services.cfg
 ```
 
+### Subcommands
+
+EZBake packages can install "subcommands" which can be run by the user via a
+command-line interface (CLI).  The
+![cli-app.erb](./resources/puppetlabs/lein-ezbake/staging-templates/cli-app.erb)
+template defines the wrapper CLI "application" through which the subcommands are
+run.  The `cli-app.erb` template is converted into a shell script which resides
+at `/opt/puppetlabs/server/bin/<package-name>` after package install.
+Subcommands are also implemented as erb templates, residing in separate files
+under the
+![cli resources](./resources/puppetlabs/lein-ezbake/template/global/ext/cli)
+namespace.  The subcommand erb templates are converted into shell scripts which
+reside at `/opt/puppetlabs/server/apps/<package-name>/cli/apps` after package
+install.
+
+A user can invoke a CLI subcommand by passing the name of the subcommand as the
+first argument to the wrapper CLI "application".  For example, a user could
+type the following to execute the `foreground` subcommand:
+
+```shell
+/opt/puppetlabs/server/bin/<package-name> foreground
+```
+
+A Clojure project which uses `lein-ezbake` as a plugin can provide its own
+custom subcommands as erb templates under the project's `./resources/ext/cli`
+directory.  The erb templates are converted into shell scripts at package
+build time.
+
+EZBake includes the following subcommands in every package which is built:
+
+#### Foreground
+
+This starts up the Trapperkeeper application under Java - similar to what the
+service framework would do when `service <app> start` is run, only with the
+application being run in the shell foreground rather than as a daemon.  stdout
+and stderr output from the application will appear in the shell foreground,
+as opposed to the daemon log or journal (which would happen when the application
+is run as a daemon instead).
+
+Any additional arguments given to the subcommand are passed along as
+command-line options to the Java command line for the Trapperkeeper application.
+For example, the following command line would run the application in
+foreground in "debug" mode, using Trapperkeeper's
+['--debug'](https://github.com/puppetlabs/trapperkeeper/blob/master/documentation/Command-Line-Arguments.md#command-line-arguments)
+CLI argument:
+
+```shell
+/opt/puppetlabs/server/bin/<package-name> foreground --debug
+```
+
+When the `--debug` flag is given to the `foreground` subcommand, all
+application log output is printed both to the standard log locations configured
+in the application's global log configuration and to stdout for the shell
+in which foreground is being run.
+
+The Java application is run under the same user as the service framework would
+use, set via the `user` setting in the project's EZBake configuration.
+
+#### Start
+
+This starts up the Trapperkeeper application as a background process.  This is
+the same script which is invoked when the service is started via the service
+framework.  Note that when the service is started is run via sourcing the 'start'
+subcommand directly, though, that it will not be fully daemonized and runs as
+whatever user the CLI subcommand is started with - not necessarily the same as
+what is set for the `user` setting in the project's EZBake configuration.
+
+Example:
+
+```shell
+/opt/puppetlabs/server/bin/<package-name> start
+```
+
+The script returns an exit code of 0 if the service is successfully started or
+if the service had already been started before the script was run.  Note that
+the 'start' subcommand does not start a second instance of the application if
+one is already running.
+
+The script returns an exit code of 1 if the service fails to start.  The script
+waits for the server to start for up to the number of seconds specified by the
+START_TIMEOUT environment variable, if specified, or the value of the
+`start-timeout` setting in the project's EZBake configuration.  If this time
+limit is exceeded, the script attempts to kill the service before exiting.
+
+#### Stop
+
+This stops any currently running instance of the Trapperkeeper application.
+This is the same script which is invoked when the service is stopped via the
+service framework.
+
+Example:
+
+```shell
+/opt/puppetlabs/server/bin/<package-name> stop
+```
+
+The script returns an exit code of 0 if the service is successfully stopped or
+if the service was already not running at the time the script is run.
+
+The script returns an exit code of 1 if the service fails to stop.  The script
+waits for the server to stop for up to the number of seconds specified by the
+SERVICE_STOP_RETRIES environment variable, if specified, or the value of the
+`stop-timeout` setting in the project's EZBake configuration.
+
+#### Reload
+
+This reloads any currently running instance of the Trapperkeeper application.
+This is the same script which is invoked when the service is reloaded via the
+service framework.
+
+The reload is triggered by sending a SIGHUP signal to the Java process running
+the Trapperkeeper service.  Trapperkeeper handles the SIGHUP by calling `stop`
+on the application, followed by calling `start` on the application.  When the
+`start` call has finished, Trapperkeeper increments a start counter in a
+`restart-file` on disk.  The reload script polls in a loop for the contents of
+the `restart-file`.  When the contents have changed, the reload script
+determines that the reload is successful and the script returns.  For more
+information on the `restart-file` feature in Trapperkeeper, see 
+![this page](https://github.com/puppetlabs/trapperkeeper/blob/1.5.1/documentation/Restart-File.md)
+in the Trapperkeeper documentation.
+
+Example:
+
+```shell
+/opt/puppetlabs/server/bin/<package-name> reload
+```
+
+The script returns an exit code of 0 if the service is successfully reloaded.
+
+The script returns an exit code of 1 if the service fails to reload.  If the
+service is stopped at the time the script is run, the script will return an
+exit code of 1 without attempting to start the service.  If the service is
+running and the SIGHUP signal can successfully be sent, the script waits for the
+server to reload for up to the number of seconds specified by the RELOAD_TIMEOUT
+environment variable, if specified, or the value of the `reload-timeout` setting
+in the project's EZBake configuration.  The script returns an exit code of 1 if
+the timeout is reached or if the process dies during the reload attempt.
+
 ### Testing
 
 After building packages it is often necessary to install those packages in live
