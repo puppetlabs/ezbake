@@ -1,3 +1,19 @@
+## 1.1.0 - 2016-09-29
+
+This is a minor feature release, with some maintenance work included.
+
+Feature:
+
+  * (SERVER-1412) Add support for `build-scripts` directory in projects; contents
+    will be included in the build tarball for use in packaging tasks, but will not
+    be included in final package.
+
+Maintenance:
+
+  * Improvements to validation of ezbake config during staging
+  * Run `lein install` before stage, to ensure that we pick up local changes
+  * Set umask to 027 in CLI scripts
+
 ## 1.0.0 - 2016-09-29
   * (EZ-56) Add service 'reload' to init scripts
   * (EZ-68) Add 'restart-file' ezbake option and reload app subcommand
