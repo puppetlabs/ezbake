@@ -4,7 +4,8 @@
   (:require [cemerick.pomegranate.aether :as aether]
             [me.raynes.fs :as fs]
             [clojure.string :as str]
-            [leiningen.core.main :as lein-main]))
+            [leiningen.core.main :as lein-main]
+            [leiningen.core.classpath :as classpath]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Internal, non-API functions
@@ -25,7 +26,9 @@
 
 (defn get-relevant-deps
   [lein-project]
-  (filter include-dep? (:dependencies lein-project)))
+  (-> (filter include-dep? (:dependencies lein-project))
+      (classpath/merge-versions-from-managed-coords
+       (:managed-dependencies lein-project))))
 
 (defn find-maven-jar-file
   [coords lein-project]
@@ -194,6 +197,7 @@
           (:dependencies lein-project)
           (aether/resolve-dependencies
             :coordinates (:dependencies lein-project)
+            :managed-coordinates (:managed-dependencies lein-project)
             :repositories (:repositories lein-project)
             :local-repo (:local-repo lein-project)
             :mirrors (:mirrors lein-project)))
