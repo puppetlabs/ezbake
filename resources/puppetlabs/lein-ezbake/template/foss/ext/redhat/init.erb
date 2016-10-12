@@ -48,10 +48,7 @@ START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 find_my_pid() {
     pid=`pgrep -f "${JARFILE}"`
-    if [ ! -d  "/var/run/puppetlabs/${realname}" ] ; then
-        mkdir -p /var/run/puppetlabs/${realname}
-        chown -R $USER:$GROUP /var/run/puppetlabs/${realname}
-    fi
+    /usr/bin/install --directory --owner=${GROUP} --group=${GROUP} --mode=775 /var/run/puppetlabs/${realname}
     [ -n "$pid" ] && echo $pid > $PIDFILE
 }
 

@@ -173,7 +173,7 @@ function task_install {
     ln -s "../apps/${real_name}/bin/<%= basename %>" "${DESTDIR}${symbindir}/<%= basename %>"
     ln -s "../server/apps/${real_name}/bin/<%= basename %>" "${DESTDIR}${uxbindir}/<%= basename %>"
 <% end -%>
-    install -d -m 0755 "${DESTDIR}${rundir}"
+    install -d -m 0755 -o <%= EZBake::Config[:user] %> -g <%= EZBake::Config[:group] %> "${DESTDIR}${rundir}"
     install -d -m 700 "${DESTDIR}${app_logdir}"
 <% EZBake::Config[:create_dirs].each do |dir| -%>
     install -d -m 700 "${DESTDIR}<%= dir %>"
@@ -249,7 +249,7 @@ function task_sysv_init_deb {
     task defaults_deb
     install -d -m 0755 "${DESTDIR}${initdir}"
     install -m 0755 ext/debian/<%= EZBake::Config[:project] %>.init_script "${DESTDIR}${initdir}/<%= EZBake::Config[:project] %>"
-    install -d -m 0755 "${DESTDIR}${rundir}"
+    install -d -m 0755 -o <%= EZBake::Config[:user] %> -g <%= EZBake::Config[:group] %> "${DESTDIR}${rundir}"
 }
 
 # Install the systemd and defaults configuration for Debian.
