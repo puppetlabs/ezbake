@@ -72,6 +72,7 @@ start() {
 
     export HOME="$(getent passwd ${USER} | cut -d':' -f6)"
 
+    /usr/bin/install --directory --owner=$USER --group=$GROUP --mode=755 "/var/run/puppetlabs/${realname}"
     # startproc will change users, so make sure that user has permission
     # to access the present working directory.
     cd "${INSTALL_DIR}"

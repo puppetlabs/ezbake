@@ -323,6 +323,8 @@ function task_postinst_permissions {
     chmod 770 $app_data
     chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> $projconfdir
     chmod 750 $projconfdir
+    chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> $rundir
+    chmod 0755 $rundir
 <% EZBake::Config[:create_dirs].each do |dir| -%>
     chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> <%= dir %>
     chmod 700 <%= dir %>
