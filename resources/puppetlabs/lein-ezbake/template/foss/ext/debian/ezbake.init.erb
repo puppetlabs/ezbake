@@ -32,6 +32,8 @@ fi
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 NAME=<%= EZBake::Config[:project] %>
 REALNAME=<%= EZBake::Config[:real_name] %>
+USER=<%= EZBake::Config[:user] %>
+GROUP=<%= EZBake::Config[:group] %>
 DESC="<%= EZBake::Config[:project] %> Puppet Labs version-checking backend"
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 PIDFILE=/var/run/puppetlabs/${REALNAME}/${REALNAME}.pid
@@ -62,6 +64,7 @@ do_start()
     <%= action %>
     <% end -%>
 
+    /usr/bin/install --directory --owner=${USER} --group=${GROUP} --mode=755 "/var/run/puppetlabs/${REALNAME}"
     start-stop-daemon --start --quiet --chuid $USER --oknodo --pidfile $PIDFILE --chdir $INSTALL_DIR \
       --startas "${INSTALL_DIR}/bin/${REALNAME}" -- start >> /var/log/puppetlabs/${REALNAME}/${REALNAME}-daemon.log 2>&1
     retval=$?

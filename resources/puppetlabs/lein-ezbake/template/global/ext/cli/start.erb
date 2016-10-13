@@ -7,21 +7,29 @@ restartfile="/opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>/resta
 start_timeout="${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}"
 
 realname="<%= EZBake::Config[:real_name] %>"
-PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
+rundir="/var/run/puppetlabs/${realname}"
+PIDFILE="${rundir}/${realname}.pid"
 
 if [ ! -e "${INSTALL_DIR}/ezbake-functions.sh" ]; then
     echo "Unable to find ${INSTALL_DIR}/ezbake-functions.sh script, failing start." 1>&2
     exit 1
 fi
 
+/usr/bin/install --directory --owner=$USER --group=$GROUP --mode=755 "$rundir"
+if [ $? -ne 0 ]; then
+    echo "Unable to create/set permissions for rundir: ${rundir}" 1>&2
+    exit 1
+fi
+
 . "${INSTALL_DIR}/ezbake-functions.sh"
 
 write_pid_file() {
-    if [ ! -d "/var/run/puppetlabs/${realname}" ]; then
-        mkdir -p /var/run/puppetlabs/${realname}
-        chown -R $USER:$GROUP /var/run/puppetlabs/${realname}
+    echo "$pid" > "$PIDFILE"
+    if [ $? -ne 0 ]; then
+        echo "Unable to write pid file: ${PIDFILE}" 1>&2
+        terminate_java_process
+        exit 1
     fi
-    echo $1 > $PIDFILE
 }
 
 terminate_java_process() {
@@ -31,7 +39,7 @@ terminate_java_process() {
 }
 
 if [ -n "$pid" ]; then
-    write_pid_file $pid
+    write_pid_file
     exit 0
 fi
 
@@ -50,7 +58,7 @@ ${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom \
 # $! is the process id of the last backgrounded process, the Java process above.
 pid=$!
 trap terminate_java_process SIGHUP SIGINT SIGTERM
-write_pid_file $pid
+write_pid_file
 
 cur="$(head -n 1 "$restartfile")"
 initial="$cur"
@@ -76,5 +84,5 @@ while [ "$cur" == "$initial" ] ;do
     fi
 done
 
-write_pid_file $pid
+write_pid_file
 exit 0
