@@ -48,6 +48,7 @@ rm -f "$PIDFILE"
 init_restart_file "$restartfile" || exit $?
 
 ${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom \
+  -XX:OnOutOfMemoryError="kill -9 %p" \
   -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> \
   clojure.main \
   -m <%= EZBake::Config[:main_namespace] %> \
