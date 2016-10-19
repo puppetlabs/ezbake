@@ -1,3 +1,6 @@
+## 1.1.3 - 2016-10-19
+  * (EZ-104) Re-add the XXOutOfMemoryError java arg
+
 ## 1.1.2 - 2016-10-13
   * (EZ-103) Create rundir with correct permissions
 
