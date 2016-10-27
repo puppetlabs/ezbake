@@ -1,3 +1,6 @@
+## 0.2.15 - 2016-10-27
+ * Packaging: Do not build Fedora 21 packages
+
 ## 0.2.14 - 2016-09-13
  * Packaging: Use new key for package signing
 
