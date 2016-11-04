@@ -78,7 +78,12 @@ function task_service {
     elif [ "$OSFAMILY" = "Debian" ]; then
         unitdir=${unitdir_debian}
         defaultsdir=${defaultsdir_debian}
-        task install_source_deb
+        sysv_codenames=("squeeze" "wheezy" "lucid" "precise" "trusty" "jessie")
+        if $(echo ${sysv_codenames[@]} | grep -q $CODENAME) ; then
+            task install_source_deb_sysv
+        else
+            task install_source_deb_systemd
+        fi
     else
         echo "Unsupported platform, exiting ..."
         exit 1
@@ -105,12 +110,19 @@ function task_install_source_rpm_systemd {
     task postinst_permissions
 }
 
-# Source based install for Debian based setups
-function task_install_source_deb {
+# Source based install for Debian based + sysv setups
+function task_install_source_deb_sysv {
     task preinst_deb
     task install_deb
-    task defaults_deb
     task sysv_init_deb
+    task logrotate
+    task postinst_deb
+}
+
+# Source based install for Debian based + systemd setups
+function task_install_source_deb_systemd {
+    task preinst_deb
+    task install_deb
     task systemd_deb
     task logrotate
     task postinst_deb
@@ -232,15 +244,17 @@ function task_systemd_redhat {
     install -m 0644 ext/<%= EZBake::Config[:project] %>.tmpfiles.conf "${DESTDIR}${tmpfilesdir}/<%= EZBake::Config[:project] %>.conf"
 }
 
-# Install the sysv init scripts for Debian.
+# Install the sysv and defaults configuration for Debian.
 function task_sysv_init_deb {
+    task defaults_deb
     install -d -m 0755 "${DESTDIR}${initdir}"
     install -m 0755 ext/debian/<%= EZBake::Config[:project] %>.init_script "${DESTDIR}${initdir}/<%= EZBake::Config[:project] %>"
     install -d -m 0755 "${DESTDIR}${rundir}"
 }
 
-# Install the systemd configuration for Debian.
+# Install the systemd/sysv and defaults configuration for Debian.
 function task_systemd_deb {
+    task sysv_init_deb
     install -d -m 0755 "${DESTDIR}${unitdir_debian}"
     install -m 0644 ext/debian/<%= EZBake::Config[:project] %>.service_file "${DESTDIR}${unitdir_debian}/<%= EZBake::Config[:project] %>.service"
     install -d -m 0755 "${DESTDIR}${tmpfilesdir}"
