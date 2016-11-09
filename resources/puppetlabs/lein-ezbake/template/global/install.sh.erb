@@ -78,7 +78,7 @@ function task_service {
     elif [ "$OSFAMILY" = "Debian" ]; then
         unitdir=${unitdir_debian}
         defaultsdir=${defaultsdir_debian}
-        sysv_codenames=("squeeze" "wheezy" "lucid" "precise" "trusty" "jessie")
+        sysv_codenames=("squeeze" "wheezy" "lucid" "precise" "trusty")
         if $(echo ${sysv_codenames[@]} | grep -q $CODENAME) ; then
             task install_source_deb_sysv
         else

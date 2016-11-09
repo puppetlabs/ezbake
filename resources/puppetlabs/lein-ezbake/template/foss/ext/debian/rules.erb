@@ -8,7 +8,7 @@ export rubylibdir=/opt/puppetlabs/puppet/lib/ruby/vendor_ruby
 DIST := $(shell lsb_release -i | awk '{print tolower($$3)}')
 RELEASE := $(shell lsb_release -r | awk '{print $$2}')
 CODENAME := $(shell lsb_release -c | sed -n 's/^Codename:\s*\(.*\)$$/\1/p')
-SYSV_CODENAMES := squeeze wheezy lucid precise trusty jessie
+SYSV_CODENAMES := squeeze wheezy lucid precise trusty
 export DESTDIR=$(BUILD_ROOT)
 export prefix=/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>
 export bindir=/opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] %>/bin
