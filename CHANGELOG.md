@@ -1,3 +1,7 @@
+## 1.1.4 - 2016-11-11
+  * (EZ-102) Install SysV files in addition to SystemD files only on
+    debian-ish platforms
+
 ## 1.1.3 - 2016-10-19
   * (EZ-104) Re-add the XXOutOfMemoryError java arg
 
