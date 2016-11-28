@@ -81,6 +81,11 @@ Obsoletes:        <%=package-%> <= <%=version-%>-1
 Conflicts:        <%=package-%> <= <%=version-%>-1
 <% end %>
 
+# Don't run the automatic dependency generation, we should be explicitly
+# requiring what we need.
+AutoReq:          0
+AutoProv:         0
+
 BuildRequires:    ruby
 BuildRequires:    /usr/sbin/useradd
 %if %{_with_systemd}
@@ -101,6 +106,7 @@ Requires(postun): systemd
 %endif
 
 Requires:         %{open_jdk}
+Requires:         bash
 # net-tools is required for netstat usage in service unit file
 # See: https://tickets.puppetlabs.com/browse/SERVER-338
 Requires:         net-tools
