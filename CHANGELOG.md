@@ -1,5 +1,5 @@
 ## 1.1.6 - 2017-01-12
-  * (CPR-401) Require `which` for RPM-based systems.
+  * (CPR-400) Require `which` for RPM-based systems.
 
 ## 1.1.5 - 2016-11-29
   * Bugfix: (SERVER-1670) Stop autogenerating package dependencies in RPM
