@@ -22,7 +22,7 @@
             result (apply program (flatten [args options]))
             exit-code (get-in result [:exit-code])]
         (when-not (= 0 @exit-code)
-          (lein-main/warn
+          (lein-main/abort
             (format "Subprocess command failed with non-zero exit code\n %s"
                     (str/join " " p-args))))
         (:proc result)))))
