@@ -17,6 +17,7 @@ then
 fi
 
 COMMAND="${JAVA_BIN} ${JAVA_ARGS} ${LOG_APPENDER} \
+         -Djava.security.egd=/dev/urandom \
          -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> \
          clojure.main -m <%= EZBake::Config[:main_namespace] %> \
          --config ${CONFIG} --bootstrap-config ${BOOTSTRAP_CONFIG} \
