@@ -246,6 +246,25 @@ anything that might be found in the `:ezbake` profile. This is primarily useful
 for projects that need to build their PE and FOSS packages from the same
 repository.
 
+#### `manifest`
+
+```shell
+lein with-profile ezbake ezbake manifest
+```
+
+The manifest action is useful when comparing multiple ezbake builds without
+actually building an artifact.
+
+This generates a json file at `ext/build_metadata.json` which contains
+information about the project. This information has project dependencies and
+their versions, any dependencies of those dependencies, ezbake version, and the
+git sha of the project being built. Downstream packaging tools may decide to
+make use of this file to track what is in a build in a more programmatic manner
+with this artifact.
+
+Note: This step is automatically ran as part of the stage action and as a
+result also ran in the build action.
+
 ### Packaging Configuration Files
 
 By default, in the final packages produced by an ezbake build, there will be a "config" directory

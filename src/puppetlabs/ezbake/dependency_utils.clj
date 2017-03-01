@@ -250,17 +250,22 @@
                (get-relevant-deps lein-project))]
     (str/join "," (map get-manifest-string deps))))
 
+(defn generate-dependency-map
+  [lein-project]
+  (aether/dependency-hierarchy
+   (:dependencies lein-project)
+   (aether/resolve-dependencies
+    :coordinates (:dependencies lein-project)
+    :managed-coordinates (:managed-dependencies lein-project)
+    :repositories (:repositories lein-project)
+    :local-repo (:local-repo lein-project)
+    :mirrors (:mirrors lein-project))))
+
 (defn generate-dependency-tree-string
   [lein-project]
   (let [sb (StringBuilder.)]
-    (-> (aether/dependency-hierarchy
-          (:dependencies lein-project)
-          (aether/resolve-dependencies
-            :coordinates (:dependencies lein-project)
-            :managed-coordinates (:managed-dependencies lein-project)
-            :repositories (:repositories lein-project)
-            :local-repo (:local-repo lein-project)
-            :mirrors (:mirrors lein-project)))
+    (-> lein-project
+        generate-dependency-map
         (add-dep-hierarchy-to-string! sb 0))
     (.toString sb)))
 
