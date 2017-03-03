@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+set +e
+
+pid="$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)"
+
+restartfile="/opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>/restartcounter"
+start_timeout="${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}"
+
+realname="<%= EZBake::Config[:real_name] %>"
+rundir="/var/run/puppetlabs/${realname}"
+PIDFILE="${rundir}/${realname}.pid"
+
+if [ ! -e "${INSTALL_DIR}/ezbake-functions.sh" ]; then
+    echo "Unable to find ${INSTALL_DIR}/ezbake-functions.sh script, failing start." 1>&2
+    exit 1
+fi
+
+/usr/bin/install --directory --owner=$USER --group=$GROUP --mode=755 "$rundir"
+if [ $? -ne 0 ]; then
+    echo "Unable to create/set permissions for rundir: ${rundir}" 1>&2
+    exit 1
+fi
+
+. "${INSTALL_DIR}/ezbake-functions.sh"
+
+write_pid_file() {
+    echo "$pid" > "$PIDFILE"
+    if [ $? -ne 0 ]; then
+        echo "Unable to write pid file: ${PIDFILE}" 1>&2
+        terminate_java_process
+        exit 1
+    fi
+}
+
+terminate_java_process() {
+    echo "Startup script was terminated before completion" 1>&2
+    kill_pid "$pid" "$PIDFILE" "$SERVICE_STOP_RETRIES"
+    exit 1
+}
+
+if [ -n "$pid" ]; then
+    write_pid_file
+    exit 0
+fi
+
+rm -f "$PIDFILE"
+
+init_restart_file "$restartfile" || exit $?
+
+${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom \
+  -XX:OnOutOfMemoryError="kill -9 %p" \
+  -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> \
+  clojure.main \
+  -m <%= EZBake::Config[:main_namespace] %> \
+  --config "${CONFIG}" \
+  --bootstrap-config "${BOOTSTRAP_CONFIG}" \
+  --restart-file "${restartfile}" &
+
+# $! is the process id of the last backgrounded process, the Java process above.
+pid=$!
+trap terminate_java_process SIGHUP SIGINT SIGTERM
+write_pid_file
+
+cur="$(head -n 1 "$restartfile")"
+initial="$cur"
+
+timeout="$start_timeout"
+while [ "$cur" == "$initial" ] ;do
+    kill -0 $pid >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        rm -f "$PIDFILE"
+        echo "Background process $pid exited before start had completed" 1>&2
+        exit 1
+    fi
+
+    sleep 1
+    cur="$(head -n 1 "$restartfile")"
+
+    ((timeout--))
+    if [ $timeout -eq 0 ]; then
+        echo "Startup timed out after $start_timeout seconds" 1>&2
+        terminate_java_process
+        rm -f "$PIDFILE"
+        exit 1
+    fi
+done
+
+write_pid_file
+exit 0

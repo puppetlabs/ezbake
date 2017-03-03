@@ -1,3 +1,46 @@
+## 1.1.6 - 2017-01-12
+  * (CPR-400) Require `which` for RPM-based systems.
+
+## 1.1.5 - 2016-11-29
+  * Bugfix: (SERVER-1670) Stop autogenerating package dependencies in RPM
+     packages - sets "AutoReq: 0"
+
+## 1.1.4 - 2016-11-11
+  * (EZ-102) Install SysV files in addition to SystemD files only on
+    debian-ish platforms
+
+## 1.1.3 - 2016-10-19
+  * (EZ-104) Re-add the XXOutOfMemoryError java arg
+
+## 1.1.2 - 2016-10-13
+  * (EZ-103) Create rundir with correct permissions
+
+## 1.1.0 - 2016-09-29
+
+This is a minor feature release, with some maintenance work included.
+
+Feature:
+
+  * (SERVER-1412) Add support for `build-scripts` directory in projects; contents
+    will be included in the build tarball for use in packaging tasks, but will not
+    be included in final package.
+
+Maintenance:
+
+  * Improvements to validation of ezbake config during staging
+  * Run `lein install` before stage, to ensure that we pick up local changes
+  * Set umask to 027 in CLI scripts
+
+## 1.0.0 - 2016-09-29
+  * (EZ-56) Add service 'reload' to init scripts
+  * (EZ-68) Add 'restart-file' ezbake option and reload app subcommand
+  * (EZ-70) Modify service 'start' to use new 'start' app subcommand
+  * (EZ-88) Support per-project additional build dependencies and adding
+  the full contents of the project data directory into packaging
+  * (EZ-90) Add 'start' app subcommand
+  * (EZ-99) Add 'stop' app subcommand and modify service 'stop' command to use it
+  * (EZ-100) Add timeout EzBake and defaults config settings for 'reload' and 'stop'
+  
 ## 0.5.1 - 2016-09-13
 * Update to use the new Puppet GPG key for package signing
 

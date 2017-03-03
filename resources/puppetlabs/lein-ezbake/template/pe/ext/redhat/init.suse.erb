@@ -43,23 +43,13 @@ config=$CONFIG
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 JAVA_ARGS="${JAVA_ARGS} -cp ${INSTALL_DIR}/${JARFILE} clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b ${BOOTSTRAP_CONFIG}"
-EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile="/var/lock/subsys/${prog}"
 PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
-LOGFILE="/var/log/puppetlabs/${realname}/${realname}.log"
+LOGFILE="/var/log/puppetlabs/${realname}/${realname}-daemon.log"
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 # First reset status of this service
 rc_reset
-
-print_service_pid() {
-    local pid
-    if [ ! -d  "/var/run/puppetlabs/${realname}" ] ; then
-        install --owner "${USER}" --group "${USER}" --directory "/var/run/puppetlabs/${realname}"
-    fi
-    pid="$(pgrep -f "${JAVA_BIN}.*${JARFILE}")"
-    echo -n "${pid}"
-}
 
 start() {
     local service_pid
@@ -81,26 +71,19 @@ start() {
     chown $USER:$USER "${LOGFILE}"
 
     export HOME="$(getent passwd ${USER} | cut -d':' -f6)"
+
+    /usr/bin/install --directory --owner=$USER --group=$GROUP --mode=755 "/var/run/puppetlabs/${realname}"
     # startproc will change users, so make sure that user has permission
     # to access the present working directory.
     cd "${INSTALL_DIR}"
-    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\"" -Djava.security.egd=/dev/urandom ${JAVA_ARGS}
+    startproc -u "${USER}" -l "${LOGFILE}" -p "${PIDFILE}" -w -- "${INSTALL_DIR}/bin/${realname}" start >/dev/null 2>&1
+    [ -n "$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)" ]
     rc_status -v
+
     retval=$?
-
-    # NOTE: retval holds the return value of `startproc`, not the process
-    # started by `startproc`.
-
-    # If rc_status didn't succeed, bail out early without bothering to poll
-    # waiting for the application or doing work that assumes a launching state
-    if [ "$retval" != 0 ]; then
-        log_failure_msg $"${prog} startup"
-        echo
-        return $retval
+    if [ "$retval" -eq 0 ]; then
+        touch "${lockfile}"
     fi
-
-    service_pid="$(print_service_pid)"
-    echo -n "${service_pid}" > "${PIDFILE}"
 
     <% if not EZBake::Config[:redhat][:post_start_action].empty? -%>
     if [ "$retval" = 0 ]; then
@@ -110,46 +93,20 @@ start() {
     fi
     <% end -%>
 
-    # Wait for the application to become available
-    if ! wait_for_app "${service_pid}" "$START_TIMEOUT"; then
-        log_failure_msg $"${prog} startup"
-        echo
-        return 1
-    fi
-
-    # if the pid file exists, with the PID in it (non-zero size)
-    if [ -s "${PIDFILE}" ]; then
-        log_success_msg $"${prog} startup"
-        echo
-        touch "${lockfile}"
-        return 0
-    else
-        log_failure_msg $"${prog} startup"
-        echo
-        return 1
-    fi
+    return $retval
 }
 
 stop() {
     echo -n $"Stopping ${prog}: "
-    if [ ! -s "${PIDFILE}" ] ; then
-        print_service_pid > "${PIDFILE}"
-    fi
-
-    killproc -p "${PIDFILE}" -t"${SERVICE_STOP_RETRIES}"s -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\"" "${JAVA_ARGS}"
+    "${INSTALL_DIR}/bin/${realname}" stop
     rc_status -v
     retval=$?
 
-    if [ "$retval" = 0 ]; then
-        rm -f "${lockfile}" "${PIDFILE}"
-        log_success_msg $"${prog} stopped"
-        echo
-        return 0
-    else
-        log_failure_msg $"${prog} could not be stopped, check ${LOGFILE}"
-        echo
-        return 1
+    if [ "$retval" -eq 0 ]; then
+        rm -f "${lockfile}"
     fi
+
+    return $retval
 }
 
 restart() {
@@ -162,10 +119,23 @@ sl_status_q() {
 }
 
 sl_status() {
+    echo -n $"Checking for service ${prog}: "
     checkproc -p "${PIDFILE}" -- "${JAVA_BIN}" "-XX:OnOutOfMemoryError=\"kill -9 %p\"" "${JAVA_ARGS}"
     rc_status -v
 }
 
+reload() {
+    echo -n $"Reloading ${prog}: "
+    "${INSTALL_DIR}/bin/${realname}" reload
+    rc_status -v
+    retval=$?
+
+    if [ "$retval" -ne 0 ] && [ -z $(pgrep -f <%= EZBake::Config[:uberjar_name] %>) ]; then
+        rm -f "${lockfile}"
+    fi
+
+    return $retval
+}
 
 case "$1" in
     start)
@@ -183,11 +153,14 @@ case "$1" in
         sl_status_q || exit 0
         restart
         ;;
+    reload|force-reload)
+        reload
+        ;;
     status)
         sl_status
         ;;
     *)
-        echo $"Usage: ${0} {start|stop|restart|condrestart|try-restart|status}"
+        echo $"Usage: ${0} {start|stop|restart|condrestart|try-restart|reload|force-reload|status}"
         exit 2
 esac
 exit $?

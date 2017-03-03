@@ -78,7 +78,7 @@ function task_service {
     elif [ "$OSFAMILY" = "Debian" ]; then
         unitdir=${unitdir_debian}
         defaultsdir=${defaultsdir_debian}
-        sysv_codenames=("squeeze" "wheezy" "lucid" "precise" "trusty" "jessie")
+        sysv_codenames=("squeeze" "wheezy" "lucid" "precise" "trusty")
         if $(echo ${sysv_codenames[@]} | grep -q $CODENAME) ; then
             task install_source_deb_sysv
         else
@@ -110,7 +110,7 @@ function task_install_source_rpm_systemd {
     task postinst_permissions
 }
 
-# Source based install for Debian based setups
+# Source based install for Debian based + sysv setups
 function task_install_source_deb_sysv {
     task preinst_deb
     task install_deb
@@ -132,7 +132,7 @@ function task_install_source_deb_systemd {
 # Debian packaging during the 'install' phases.
 function task_install {
     install -d -m 0755 "${DESTDIR}${app_prefix}"
-    install -d -m 0755 "${DESTDIR}${app_data}"
+    install -d -m 0770 "${DESTDIR}${app_data}"
     install -m 0644 <%= EZBake::Config[:uberjar_name] %> "${DESTDIR}${app_prefix}"
     install -m 0755 ext/ezbake-functions.sh "${DESTDIR}${app_prefix}"
     install -m 0644 ext/ezbake.manifest "${DESTDIR}${app_prefix}"
@@ -252,9 +252,9 @@ function task_sysv_init_deb {
     install -d -m 0755 "${DESTDIR}${rundir}"
 }
 
-# Install the systemd and defaults configuration for Debian.
+# Install the systemd/sysv and defaults configuration for Debian.
 function task_systemd_deb {
-    task defaults_deb
+    task sysv_init_deb
     install -d -m 0755 "${DESTDIR}${unitdir_debian}"
     install -m 0644 ext/debian/<%= EZBake::Config[:project] %>.service_file "${DESTDIR}${unitdir_debian}/<%= EZBake::Config[:project] %>.service"
     install -d -m 0755 "${DESTDIR}${tmpfilesdir}"
@@ -323,6 +323,8 @@ function task_postinst_permissions {
     chmod 770 $app_data
     chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> $projconfdir
     chmod 750 $projconfdir
+    chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> $rundir
+    chmod 0755 $rundir
 <% EZBake::Config[:create_dirs].each do |dir| -%>
     chown <%= EZBake::Config[:user] %>:<%= EZBake::Config[:group] %> <%= dir %>
     chmod 700 <%= dir %>

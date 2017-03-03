@@ -32,15 +32,13 @@ fi
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 NAME=<%= EZBake::Config[:project] %>
 REALNAME=<%= EZBake::Config[:real_name] %>
+USER=<%= EZBake::Config[:user] %>
+GROUP=<%= EZBake::Config[:group] %>
 DESC="<%= EZBake::Config[:project] %> Puppet Labs version-checking backend"
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 PIDFILE=/var/run/puppetlabs/${REALNAME}/${REALNAME}.pid
 SCRIPTNAME=/etc/init.d/$NAME
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
-
-JAVA_ARGS="${JAVA_ARGS} -cp '${INSTALL_DIR}/${JARFILE}' clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b '${BOOTSTRAP_CONFIG}'"
-EXTRA_ARGS="--chuid $USER --background --make-pidfile"
-EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -Djava.security.egd=/dev/urandom $JAVA_ARGS"
 
 # Exit if the package is not installed
 [ -x "$JAVA_BIN" ] || exit 0
@@ -66,20 +64,10 @@ do_start()
     <%= action %>
     <% end -%>
 
-    if [ ! -d  "/var/run/puppetlabs/$REALNAME" ] ; then
-      mkdir -p /var/run/puppetlabs/$REALNAME
-      chown -R $USER:$GROUP /var/run/puppetlabs/$REALNAME
-    fi
-
-    start-stop-daemon --start $EXTRA_ARGS --quiet --oknodo --pidfile $PIDFILE --chdir $INSTALL_DIR --exec $JAVA_BIN \
-      --startas /bin/bash -- -c "exec $EXEC >> /var/log/puppetlabs/${REALNAME}/${REALNAME}-daemon.log 2>&1"
+    /usr/bin/install --directory --owner=$USER --group=$GROUP --mode=755 "/var/run/puppetlabs/${REALNAME}"
+    start-stop-daemon --start --quiet --chuid $USER --oknodo --pidfile $PIDFILE --chdir $INSTALL_DIR \
+      --startas "${INSTALL_DIR}/bin/${REALNAME}" -- start >> /var/log/puppetlabs/${REALNAME}/${REALNAME}-daemon.log 2>&1
     retval=$?
-
-    if [ "$retval" -ne 0 ] \
-        || ! wait_for_pidfile $PIDFILE 5 \
-        || ! wait_for_app $(cat $PIDFILE) $START_TIMEOUT ;then
-        retval=2
-    fi
 
     <% if not EZBake::Config[:debian][:post_start_action].empty? -%>
     if [ "$retval" -eq 0 ]; then
@@ -97,16 +85,7 @@ do_start()
 #
 do_stop()
 {
-    # Return
-    #   0 if daemon has been stopped or was already stopped
-    #   2 if daemon could not be stopped
-    #   other if a failure occurred
-    start-stop-daemon --stop --quiet --oknodo --retry=TERM/${SERVICE_STOP_RETRIES}/KILL/5 --pidfile $PIDFILE --exec $JAVA_BIN
-    RETVAL="$?"
-    [ "$RETVAL" = 2 ] && return 2
-    # Many daemons don't delete their pidfiles when they exit.
-    rm -f $PIDFILE
-    return "$RETVAL"
+    "${INSTALL_DIR}/bin/${REALNAME}" stop
 }
 
 #
@@ -134,38 +113,48 @@ get_status_q()
 do_restart()
 {
     do_stop
-    case "$?" in
-        0|1)
-            do_start
-            case "$?" in
-                0) log_end_msg 0 ;;
-                1) log_end_msg 1 ;; # Old process is still running
-                *) log_end_msg 1 ;; # Failed to start
-            esac
-            ;;
-        *)
-            # Failed to stop
-            log_end_msg 1
-            ;;
-    esac
+    if [ "$?" -eq 0 ]; then
+      do_start
+      case "$?" in
+          0) log_end_msg 0 ;;
+          1) log_end_msg 1 ;; # Old process is still running
+          *) log_end_msg 1 ;; # Failed to start
+      esac
+    else
+      # Failed to stop
+      log_end_msg 1
+    fi
+}
+
+#
+# Function that sends a SIGHUP to the daemon/service
+#
+do_reload() {
+    "${INSTALL_DIR}/bin/${REALNAME}" reload
+    return $?
 }
 
 case "$1" in
     start)
         [ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
         do_start
-        case "$?" in
-            0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-            2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+        RETVAL="$?"
+        case "$RETVAL" in
+            0) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+            1|2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
         esac
+        exit "$RETVAL"
         ;;
     stop)
         [ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
         do_stop
-        case "$?" in
-            0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-            2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
-        esac
+        RETVAL="$?"
+        if [ "$RETVAL" -eq 0 ]; then
+            [ "$VERBOSE" != no ] && log_end_msg 0
+        else
+            [ "$VERBOSE" != no ] && log_end_msg 1
+        fi
+        exit "$RETVAL"
         ;;
     status)
         get_status
@@ -175,18 +164,21 @@ case "$1" in
         get_status_q || exit 0
         do_restart
         ;;
-    restart|force-reload)
-        #
-        # If the "reload" option is implemented then remove the
-        # 'force-reload' alias
-        #
+    restart)
         [ "$VERBOSE" != no ] && log_daemon_msg "Restarting $DESC" "$NAME"
         do_restart
         ;;
+    force-reload|reload)
+        [ "$VERBOSE" != no ] && log_daemon_msg "Reloading $DESC" "$NAME"
+        do_reload
+        RETVAL="$?"
+        [ "$VERBOSE" != no ] && log_end_msg $RETVAL
+        exit "$RETVAL"
+        ;;
     *)
-        echo "Usage: $SCRIPTNAME {start|stop|status|condrestart|try-restart|restart|force-reload}" >&2
+        echo "Usage: $SCRIPTNAME {start|stop|status|condrestart|try-restart|restart|force-reload|reload}" >&2
         exit 3
         ;;
 esac
 
-:
+exit $?

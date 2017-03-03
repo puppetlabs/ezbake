@@ -42,19 +42,13 @@ config=$CONFIG
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
-JAVA_ARGS="${JAVA_ARGS} -cp '${INSTALL_DIR}/${JARFILE}' clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b '${BOOTSTRAP_CONFIG}'"
-EXTRA_ARGS="--chuid $USER --background --make-pidfile"
 lockfile=/var/lock/subsys/$prog
-EXEC="$JAVA_BIN -XX:OnOutOfMemoryError=\"kill -9 %p\" -Djava.security.egd=/dev/urandom $JAVA_ARGS"
-PIDFILE="/var/run/puppetlabs/${realname}/${realname}"
+PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 find_my_pid() {
     pid=`pgrep -f "${JARFILE}"`
-    if [ ! -d  "/var/run/puppetlabs/${realname}" ] ; then
-        mkdir -p /var/run/puppetlabs/${realname}
-        chown -R $USER:$GROUP /var/run/puppetlabs/${realname}
-    fi
+    /usr/bin/install --directory --owner=${USER} --group=${GROUP} --mode=755 "/var/run/puppetlabs/${realname}"
     [ -n "$pid" ] && echo $pid > $PIDFILE
 }
 
@@ -75,19 +69,12 @@ start() {
     <% end -%>
 
     pushd "${INSTALL_DIR}" &> /dev/null
-    daemon --user $USER --pidfile $PIDFILE "$EXEC >> /var/log/puppetlabs/<%= EZBake::Config[:real_name] %>/<%= EZBake::Config[:real_name] %>-daemon.log 2>&1 &"
+    daemon --user $USER --pidfile $PIDFILE "${INSTALL_DIR}/bin/${realname} start >> /var/log/puppetlabs/${realname}/${realname}-daemon.log 2>&1"
     retval=$?
-    sleep 1
     popd &> /dev/null
-    find_my_pid
     [ -s $PIDFILE ] && success $"$base startup" || failure $"$base startup"
     echo
     [ -s $PIDFILE ] && touch $lockfile
-
-    if [ "$retval" -ne 0 ] \
-        || ! wait_for_app $(cat $PIDFILE) $START_TIMEOUT ;then
-        failure $"$base startup"
-    fi
 
     <% if not EZBake::Config[:redhat][:post_start_action].empty? -%>
     if [ "$retval" -eq 0 ]; then
@@ -102,13 +89,7 @@ start() {
 
 stop() {
     echo -n $"Stopping $prog: "
-    find_my_pid
-
-    if [ ! -s "$PIDFILE" ] ; then
-        echo $pid > $PIDFILE
-    fi
-
-    killproc -p $PIDFILE -d ${SERVICE_STOP_RETRIES}s $prog
+    "${INSTALL_DIR}/bin/${realname}" stop
     retval=$?
 
     [ $retval -eq 0 ] && success $"$base stopped" || failure $"$base stopped"
@@ -131,6 +112,15 @@ rh_status_q() {
     rh_status >/dev/null 2>&1
 }
 
+reload() {
+    echo -n $"Reloading $prog: "
+    "${INSTALL_DIR}/bin/${realname}" reload
+    RETVAL=$?
+
+    [ $RETVAL -eq 0 ] && success $"$base reloaded" || failure $"$base reloaded"
+    echo
+    return $RETVAL
+}
 
 case "$1" in
     start)
@@ -148,11 +138,14 @@ case "$1" in
         rh_status_q || exit 0
         restart
         ;;
+    reload)
+        $1
+        ;;
     status)
         rh_status
         ;;
     *)
-        echo $"Usage: $0 {start|stop|restart|condrestart|try-restart|status}"
+        echo $"Usage: $0 {start|stop|restart|condrestart|try-restart|reload|status}"
         exit 2
 esac
 exit $?

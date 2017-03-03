@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#set default privileges to -rw-r-----
+umask 027
+
 set -a
 if [ -r "/etc/default/<%= EZBake::Config[:project] -%>" ] ; then
     . /etc/default/<%= EZBake::Config[:project] %>
