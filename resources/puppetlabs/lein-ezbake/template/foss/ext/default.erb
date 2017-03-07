@@ -21,13 +21,16 @@ BOOTSTRAP_CONFIG="/etc/puppetlabs/<%= EZBake::Config[:real_name] %>/services.d/,
 BOOTSTRAP_CONFIG="/etc/puppetlabs/<%= EZBake::Config[:real_name] %>/bootstrap.cfg"
 <% end -%>
 
-SERVICE_STOP_RETRIES=60
+# SERVICE_STOP_RETRIES can be set here to alter the default stop timeout in
+# seconds.  For systemd, the shorter of this setting or 'TimeoutStopSec' in
+# the systemd.service definition will effectively be the timeout which is used.
+SERVICE_STOP_RETRIES=<%= EZBake::Config[:stop_timeout] %>
 
 # START_TIMEOUT can be set here to alter the default startup timeout in
-# seconds.  This is used in System-V style init scripts only, and will have no
-# effect in systemd.
-# START_TIMEOUT=<%= EZBake::Config[:start_timeout] %>
-
+# seconds.  For systemd, the shorter of this setting or 'TimeoutStartSec'
+# in the service's systemd.service configuration file will effectively be the
+# timeout which is used.
+START_TIMEOUT=<%= EZBake::Config[:start_timeout] %>
 
 <% if EZBake::Config[:open_file_limit] -%>
 # OPEN_FILE_LIMIT can be set here to alter the number of open file descriptors
@@ -35,3 +38,7 @@ SERVICE_STOP_RETRIES=60
 # will have no effect in systemd.
 OPEN_FILE_LIMIT=<%= EZBake::Config[:open_file_limit] %>
 <% end -%>
+
+# Maximum number of seconds that can expire for a service reload attempt before
+# the result of the attempt is interpreted as a failure.
+RELOAD_TIMEOUT=<%= EZBake::Config[:reload_timeout] %>

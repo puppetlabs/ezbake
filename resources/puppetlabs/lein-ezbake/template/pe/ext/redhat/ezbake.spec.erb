@@ -76,6 +76,11 @@ Obsoletes:        <%=package-%> <= <%=version-%>-1
 Conflicts:        <%=package-%> <= <%=version-%>-1
 <% end %>
 
+# Don't run the automatic dependency generation, we should be explicitly
+# requiring what we need.
+AutoReq:          0
+AutoProv:         0
+
 BuildRequires:    puppet-agent
 BuildRequires:    /usr/sbin/useradd
 %if %{_with_systemd}
@@ -100,10 +105,17 @@ Requires(postun): systemd
 
 Requires:         pe-java
 Requires:         pe-puppet-enterprise-release
+Requires:         bash
 # net-tools is required for netstat usage in service unit file
 # See: https://tickets.puppetlabs.com/browse/SERVER-338
 Requires:         net-tools
 Requires:         /usr/bin/which
+
+# procps is required for pgrep, used in several of the init scripts
+Requires:         procps
+<% EZBake::Config[:redhat][:additional_build_dependencies].each do |dep| %>
+BuildRequires:    <%= dep %>
+<% end %>
 <% EZBake::Config[:redhat][:additional_dependencies].each do |dep| %>
 Requires:         <%= dep %>
 <% end %>
@@ -270,7 +282,7 @@ fi
 %{_sym_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
 %{_ux_bindir}/<%= bin_file.sub(%r{^ext/bin/}, "") %>
 <% end -%>
-%dir %attr(0770, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_data}
+%attr(-, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_data}
 %dir %attr(0755, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) %{_app_rundir}
 
 <% unless EZBake::Config[:terminus_info].empty? -%>

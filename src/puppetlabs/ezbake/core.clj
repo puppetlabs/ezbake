@@ -32,21 +32,35 @@
 (def system-config-dir "ext/system-config/")
 (def shared-cli-apps-prefix "ext/cli/")
 (def docs-prefix "ext/docs/")
+(def build-scripts-prefix "ext/build-scripts/")
 (def terminus-prefix "puppet/")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Schemas / Validation
+;;; Schemas
 
 (def BootstrapSource
   (schema/enum :bootstrap-cfg :services-d))
 
-(defn validate-bootstrap-source
-  [bootstrap-source]
-  "Throws IllegalArgumentException if it can't be validated"
-  (when-let [error (schema/check BootstrapSource bootstrap-source)]
-    (throw (IllegalArgumentException. (str "Invalid value for setting ':bootstrap-source': "
-                                           (schema-utils/validation-error-explain error)))))
-  bootstrap-source)
+(def ReplacesPkgs
+  [{:package schema/Str
+    :version schema/Str}])
+
+(def LocalProjectVars
+  {(schema/optional-key :user) schema/Str
+   (schema/optional-key :group) schema/Str
+   (schema/optional-key :bootstrap-source) BootstrapSource
+   (schema/optional-key :create-dirs) [schema/Str]
+   (schema/optional-key :build-type) schema/Str
+   (schema/optional-key :reload-timeout) schema/Int
+   (schema/optional-key :repo-target) schema/Str
+   (schema/optional-key :replaces-pkgs) ReplacesPkgs
+   (schema/optional-key :start-after) [schema/Str]
+   (schema/optional-key :start-timeout) schema/Int
+   (schema/optional-key :stop-timeout) schema/Int
+   (schema/optional-key :open-file-limit) schema/Int
+   (schema/optional-key :main-namespace) schema/Str
+   (schema/optional-key :java-args) schema/Str
+   (schema/optional-key :logrotate-enabled) schema/Bool})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Shell / Filesystem Helpers
@@ -194,6 +208,10 @@ Dependency tree:
 (defn- get-config-files-in
   [jar]
   (deputils/find-files-in-dir-in-jar jar shared-config-prefix))
+
+(defn- get-build-scripts-files-in
+  [jar]
+  (deputils/find-files-in-dir-in-jar jar build-scripts-prefix))
 
 (defn cp-shared-files
   [dependencies files-fn]
@@ -407,6 +425,7 @@ Dependency tree:
      :create-dirs               (quoted-list (get-local-ezbake-var lein-project
                                                                    :create-dirs []))
      :debian-deps               (get-quoted-ezbake-values :debian :dependencies)
+     :debian-build-deps         (get-quoted-ezbake-values :debian :build-dependencies)
      :debian-preinst            (get-quoted-ezbake-values :debian :preinst)
      :debian-prerm              (get-quoted-ezbake-values :debian :prerm)
      :debian-postinst           (get-quoted-ezbake-values :debian :postinst)
@@ -414,6 +433,7 @@ Dependency tree:
      :debian-pre-start-action   (get-quoted-ezbake-values :debian :pre-start-action)
      :debian-post-start-action  (get-quoted-ezbake-values :debian :post-start-action)
      :redhat-deps               (get-quoted-ezbake-values :redhat :dependencies)
+     :redhat-build-deps         (get-quoted-ezbake-values :redhat :build-dependencies)
      :redhat-preinst            (get-quoted-ezbake-values :redhat :preinst)
      :redhat-postinst           (get-quoted-ezbake-values :redhat :postinst)
      :redhat-install            (get-quoted-ezbake-values :redhat :install)
@@ -422,7 +442,9 @@ Dependency tree:
      :terminus-map              termini
      :replaces-pkgs             (get-local-ezbake-var lein-project :replaces-pkgs [])
      :start-after               (quoted-list (get-local-ezbake-var lein-project :start-after []))
+     :reload-timeout            (get-local-ezbake-var lein-project :reload-timeout "120")
      :start-timeout             (get-local-ezbake-var lein-project :start-timeout "300")
+     :stop-timeout              (get-local-ezbake-var lein-project :stop-timeout "60")
      :open-file-limit           (get-local-ezbake-var lein-project :open-file-limit "nil")
      :main-namespace            (get-local-ezbake-var lein-project
                                                       :main-namespace
@@ -430,10 +452,9 @@ Dependency tree:
      :java-args                 (get-local-ezbake-var lein-project :java-args
                                                       "-Xmx192m")
      ; Convert to string so ruby doesn't barf on the hyphens
-     :bootstrap-source          (name (validate-bootstrap-source
-                                       (get-local-ezbake-var lein-project
-                                                             :bootstrap-source
-                                                             :bootstrap-cfg)))
+     :bootstrap-source          (name (get-local-ezbake-var lein-project
+                                                            :bootstrap-source
+                                                            :bootstrap-cfg))
      :logrotate-enabled         (get-local-ezbake-var lein-project :logrotate-enabled
                                                       true)}))
 
@@ -491,6 +512,10 @@ Dependency tree:
 
 (defmethod action "stage"
   [_ lein-project build-target]
+  (lein-main/info "Running 'lein install' to pick up local changes.")
+  (let [result (exec/exec "lein" "install")]
+    (lein-main/info (:out result))
+    (lein-main/info (:err result)))
   (let [template-dir (get-template-file build-target)
         uberjar-name (:uberjar-name lein-project)]
     (uberjar/uberjar lein-project)
@@ -509,6 +534,7 @@ Dependency tree:
         bin-files       (cp-shared-files dependencies get-bin-files-in)
         terminus-files  (cp-terminus-files dependencies build-target)
         upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)]
+    (cp-shared-files dependencies get-build-scripts-files-in)
     (if cli-app-files
       (cp-cli-wrapper-scripts (:name lein-project)))
     (cp-doc-files lein-project)
@@ -542,3 +568,19 @@ Dependency tree:
   (fs/mkdirs staging-dir)
   (fs/copy+ "./project.clj"
             (format "%s/%s" staging-dir "project.clj")))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Validation
+
+(defn validate-local-project-vars!
+  "Throws IllegalArgumentException if lein ezbake project vars cannot be validated"
+  [lein-project]
+  (let [vars (get-in lein-project [:lein-ezbake :vars])]
+    (when-let [error (schema/check LocalProjectVars vars)]
+      (throw (IllegalArgumentException.
+              (str "Invalid lein ezbake project vars for service, schema errors: "
+                   error))))))
+
+(defn validate!
+  [lein-project]
+  (validate-local-project-vars! lein-project))
