@@ -46,13 +46,9 @@
 %global _old_el        1
 %endif
 
-# java 1.8.0 is available starting in fedora 20 and el 6
-# SLES 12 still only has java 1.7.0
-%if 0%{?fedora} >= 20 || 0%{?rhel} >= 6
+# java 1.8.0 is available starting in fedora 20, el 6 and sles-12sp1
 %global open_jdk          java-1.8.0-openjdk-headless
-%else
-%global open_jdk          java-1.7.0-openjdk
-%endif
+
 
 # Use the alternate locations for things.
 %global _sysconfdir      /etc
