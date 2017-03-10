@@ -99,8 +99,7 @@ stop() {
 }
 
 restart() {
-    stop
-    start
+    stop && start
 }
 
 rh_status() {
