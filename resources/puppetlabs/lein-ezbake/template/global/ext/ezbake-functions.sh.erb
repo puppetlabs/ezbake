@@ -97,6 +97,12 @@ kill_pid()
         kill -KILL $pid >/dev/null 2>&1
         sleep 1
         kill -0 $pid >/dev/null 2>&1
+        timeout=$stop_timeout
+        while [ $? -eq 0 ] && [ $timeout -ne 0 ]; do
+            sleep 1
+            ((timeout--))
+            kill -0 $pid >/dev/null 2>&1
+        done
         if [ $? -eq 0 ]; then
             echo "Process $pid not killed after SIGKILL" 1>&2
             return 1
