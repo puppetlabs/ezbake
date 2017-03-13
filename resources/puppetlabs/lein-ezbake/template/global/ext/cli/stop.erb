@@ -17,4 +17,5 @@ if [ -z "$pid" ]; then
     exit 0
 else
     kill_pid "$pid" "$PIDFILE" "$SERVICE_STOP_RETRIES"
+    exit $?
 fi
