@@ -1,3 +1,7 @@
+## 1.1.7 - 2017-3-13
+  * (SERVER-1472) The init scripts should now handle stop and restart operations
+     better when the timeout value is exceeded.
+
 ## 1.1.6 - 2017-01-12
   * (CPR-400) Require `which` for RPM-based systems.
 
