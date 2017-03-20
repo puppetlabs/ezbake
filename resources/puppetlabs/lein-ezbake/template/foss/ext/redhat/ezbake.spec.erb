@@ -27,6 +27,7 @@
 %global _systemd_sles  0
 %global _old_el        0
 %global _sles          0
+%global _certs_package  ca-certificates
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
 %global _with_systemd 1
@@ -35,10 +36,11 @@
 
 # We do not support any sles version less than 12, as there is not a sufficient
 # version of OpenJDK available to test against.
-%if 0%{?suse_version} >= 1210
-%global _with_systemd 1
-%global _systemd_sles 1
-%global _sles         1
+%if 0%{?suse_version}   >= 1210
+%global _with_systemd   1
+%global _systemd_sles   1
+%global _sles           1
+%global _certs_package  ca-certificates-mozilla
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} < 7
@@ -94,6 +96,9 @@ BuildRequires:    systemd
 %if %{_old_el}
 Requires:         chkconfig
 %endif
+
+# Required to get trustanchors for java
+BuildRequires: %{_certs_package}
 
 %if %{_systemd_el}
 Requires(post):   systemd
