@@ -1,3 +1,6 @@
+## 1.1.8 - 2017-3-22
+  * (SERVER-1763) Adds ca-certificates as a build dependency
+
 ## 1.1.7 - 2017-3-13
   * (SERVER-1472) The init scripts should now handle stop and restart operations
      better when the timeout value is exceeded.
