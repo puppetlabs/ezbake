@@ -214,3 +214,7 @@
                     out-dir-fn
                     lein-project)
            deps))))
+
+(defn snapshot-version?
+  [version]
+  (boolean (re-find #"-SNAPSHOT$" version)))
