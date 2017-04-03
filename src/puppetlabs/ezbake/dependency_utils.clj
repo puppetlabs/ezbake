@@ -138,7 +138,7 @@
 
 (defn get-manifest-string
   [dep]
-  (format "%s %s" (name (first dep)) (second dep)))
+  (format "%s %s" (str (first dep)) (second dep)))
 
 (defn add-dep-hierarchy-to-string!
   [deps-map sb depth]
