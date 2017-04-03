@@ -228,7 +228,9 @@
 
 (defn generate-manifest-string
   [lein-project]
-  (let [deps (get-relevant-deps lein-project)]
+  (let [deps (concat [[(symbol (:group lein-project) (:name lein-project))
+                       (:version lein-project)]]
+               (get-relevant-deps lein-project))]
     (str/join "," (map get-manifest-string deps))))
 
 (defn generate-dependency-tree-string
