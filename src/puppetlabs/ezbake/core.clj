@@ -523,10 +523,14 @@ Dependency tree:
   (fn [action & args] action))
 
 (defmethod action "stage"
+  ;; note that the `lein-project` arg gets shadowed a few lines down to add full
+  ;; snapshot versions of dependencies
   [_ lein-project build-target]
   (let [deployed-version (if (deputils/snapshot-version? (:version lein-project))
                            (deploy-snapshot lein-project)
-                           (:version lein-project))]
+                           (:version lein-project))
+        lein-project (update lein-project :dependencies (partial deputils/expand-snapshot-versions
+                                                                 lein-project))]
     (let [template-dir (get-template-file build-target)
           uberjar-name (:uberjar-name lein-project)]
       (uberjar/uberjar lein-project)
