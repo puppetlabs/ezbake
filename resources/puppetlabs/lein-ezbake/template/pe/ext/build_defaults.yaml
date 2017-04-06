@@ -17,3 +17,18 @@ build_ips: FALSE
 apt_host: 'apt.puppetlabs.com'
 apt_repo_url: 'http://apt.puppetlabs.com'
 apt_repo_path: '/opt/repository/incoming'
+platform_repos:
+  - name: el-6-x86_64
+    repo_location: repos/el/6/**/x86_64
+  - name: el-7-x86_64
+    repo_location: repos/el/7/**/x86_64
+  - name: sles-11-x86_64
+    repo_location: repos/sles/11/**/x86_64
+  - name: sles-12-x86_64
+    repo_location: repos/sles/12/**/x86_64
+  - name: ubuntu-12.04-amd64
+    repo_location: repos/apt/precise
+  - name: ubuntu-14.04-amd64
+    repo_location: repos/apt/trusty
+  - name: ubuntu-16.04-amd64
+    repo_location: repos/apt/xenial
