@@ -30,6 +30,47 @@
       (classpath/merge-versions-from-managed-coords
        (:managed-dependencies lein-project))))
 
+(defn snapshot-version?
+  [version]
+  ;; dependencies managed by lein-parent have nil versions so guard against that
+  (boolean (and version (re-find #"-SNAPSHOT$" version))))
+
+(defn get-full-snapshot-version
+  [lein-project coords]
+  (let [full-version (-> (aether/resolve-artifacts
+                           :coordinates [coords]
+                           :repositories (:repositories lein-project)
+                           :mirrors (:mirrors lein-project)
+                           :local-repo (:local-repo lein-project))
+                       first
+                       meta
+                       :result
+                       .getArtifact
+                       .getVersion)]
+    (if-not (re-find #"-SNAPSHOT$" full-version)
+      full-version
+      (throw
+        (IllegalStateException.
+          (format
+            (str "Could not find a deployed artifact for %s. Undeployed snapshot"
+                 " dependencies cannot be used, since that leads to"
+                 " unreproducible builds. Please deploy a snapshot artifact"
+                 " matching %s to the snapshots repository.")
+            (pr-str coords) (second coords)))))))
+
+(defn expand-snapshot-version
+  [lein-project [dependency version :as coords]]
+  [dependency (get-full-snapshot-version lein-project coords)])
+
+(defn expand-snapshot-versions
+  [lein-project dependencies]
+  (let [expand-if-snapshot (fn [[_ version :as coords]]
+                             (if (snapshot-version? version)
+                               (expand-snapshot-version lein-project coords)
+                               coords))]
+    ;; throw artifact resolution errors ASAP
+    (doall (map expand-if-snapshot dependencies))))
+
 (defn find-maven-jar-file
   [coords lein-project]
   {:post [(instance? JarFile %)]}
@@ -97,7 +138,7 @@
 
 (defn get-manifest-string
   [dep]
-  (format "%s %s" (name (first dep)) (second dep)))
+  (format "%s %s" (str (first dep)) (second dep)))
 
 (defn add-dep-hierarchy-to-string!
   [deps-map sb depth]
@@ -187,7 +228,9 @@
 
 (defn generate-manifest-string
   [lein-project]
-  (let [deps (get-relevant-deps lein-project)]
+  (let [deps (concat [[(symbol (:group lein-project) (:name lein-project))
+                       (:version lein-project)]]
+               (get-relevant-deps lein-project))]
     (str/join "," (map get-manifest-string deps))))
 
 (defn generate-dependency-tree-string

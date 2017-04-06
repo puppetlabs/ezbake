@@ -7,6 +7,7 @@
             [clj-time.local :as local-time]
             [stencil.core :as stencil]
             [leiningen.core.main :as lein-main]
+            [leiningen.deploy :as deploy]
             [leiningen.uberjar :as uberjar]
             [schema.core :as schema]
             [schema.utils :as schema-utils]
@@ -286,6 +287,17 @@ Dependency tree:
         (deputils/cp-files-of-type lein-project "doc"
                                    docs-prefix get-out-dir-for-doc-file)))
 
+(defn deploy-snapshot
+  "Given a project map with a snapshot version, deploy to the configured
+  snapshots repository and return the version of the deployed artifact. If given
+  a map with a non-snapshot version, does nothing and returns nil."
+  [lein-project]
+  (when (deputils/snapshot-version? (:version lein-project))
+    (-> (deploy/deploy lein-project)
+      .getArtifacts
+      (nth 0)
+      .getVersion)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Upstream EZBake config handling
 
@@ -511,44 +523,48 @@ Dependency tree:
   (fn [action & args] action))
 
 (defmethod action "stage"
+  ;; note that the `lein-project` arg gets shadowed a few lines down to add full
+  ;; snapshot versions of dependencies
   [_ lein-project build-target]
-  (lein-main/info "Running 'lein install' to pick up local changes.")
-  (let [result (exec/exec "lein" "install")]
-    (lein-main/info (:out result))
-    (lein-main/info (:err result)))
-  (let [template-dir (get-template-file build-target)
-        uberjar-name (:uberjar-name lein-project)]
-    (uberjar/uberjar lein-project)
-    (fs/copy+ (format "%s/%s" "target" uberjar-name)
-              (format "%s/%s" staging-dir uberjar-name))
-    (cp-template-files template-dir)
-    (cp-template-files (get-template-file "global")))
-  (let [dependencies    (deputils/get-dependencies-with-jars lein-project)
-        config-files    (cp-shared-files dependencies get-config-files-in)
-        config-files    (concat config-files  (cp-project-config-files lein-project))
-        system-config-files (cp-system-config-files lein-project)
-        _               (cp-shared-files dependencies get-cli-app-files-in)
-        cli-app-files   (->> (str/join "/" [staging-dir "ext" "cli"])
-                             fs/list-dir
-                             (map #(relativize staging-dir %)))
-        bin-files       (cp-shared-files dependencies get-bin-files-in)
-        terminus-files  (cp-terminus-files dependencies build-target)
-        upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)]
-    (cp-shared-files dependencies get-build-scripts-files-in)
-    (if cli-app-files
-      (cp-cli-wrapper-scripts (:name lein-project)))
-    (cp-doc-files lein-project)
-    (generate-ezbake-config-file! lein-project
-                                  build-target
-                                  config-files
-                                  system-config-files
-                                  cli-app-files
-                                  bin-files
-                                  terminus-files
-                                  upstream-ezbake-configs)
-    (generate-project-data-yaml lein-project build-target)
-    (generate-manifest-file lein-project)
-    (create-git-repo lein-project)))
+  (let [deployed-version (if (deputils/snapshot-version? (:version lein-project))
+                           (deploy-snapshot lein-project)
+                           (:version lein-project))
+        lein-project (update lein-project :dependencies (partial deputils/expand-snapshot-versions
+                                                                 lein-project))]
+    (let [template-dir (get-template-file build-target)
+          uberjar-name (:uberjar-name lein-project)]
+      (uberjar/uberjar lein-project)
+      (fs/copy+ (format "%s/%s" "target" uberjar-name)
+                (format "%s/%s" staging-dir uberjar-name))
+      (cp-template-files template-dir)
+      (cp-template-files (get-template-file "global")))
+    (let [dependencies    (deputils/get-dependencies-with-jars lein-project)
+          config-files    (cp-shared-files dependencies get-config-files-in)
+          config-files    (concat config-files  (cp-project-config-files lein-project))
+          system-config-files (cp-system-config-files lein-project)
+          _               (cp-shared-files dependencies get-cli-app-files-in)
+          cli-app-files   (->> (str/join "/" [staging-dir "ext" "cli"])
+                            fs/list-dir
+                            (map #(relativize staging-dir %)))
+          bin-files       (cp-shared-files dependencies get-bin-files-in)
+          terminus-files  (cp-terminus-files dependencies build-target)
+          upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)]
+      (cp-shared-files dependencies get-build-scripts-files-in)
+      (if cli-app-files
+        (cp-cli-wrapper-scripts (:name lein-project)))
+      (cp-doc-files lein-project)
+      (generate-ezbake-config-file! lein-project
+                                    build-target
+                                    config-files
+                                    system-config-files
+                                    cli-app-files
+                                    bin-files
+                                    terminus-files
+                                    upstream-ezbake-configs)
+      (let [project-w-deployed-version (assoc lein-project :version deployed-version)]
+        (generate-project-data-yaml project-w-deployed-version build-target)
+        (generate-manifest-file project-w-deployed-version))
+      (create-git-repo lein-project))))
 
 (defmethod action "build"
   [_ lein-project build-target]
