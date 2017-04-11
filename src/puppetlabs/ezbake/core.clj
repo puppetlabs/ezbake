@@ -526,7 +526,8 @@ Dependency tree:
   ;; note that the `lein-project` arg gets shadowed a few lines down to add full
   ;; snapshot versions of dependencies
   [_ lein-project build-target]
-  (let [deployed-version (if (deputils/snapshot-version? (:version lein-project))
+  (let [deployed-version (if (and (deputils/snapshot-version? (:version lein-project))
+                                  (not (System/getenv "EZBAKE_NODEPLOY")))
                            (deploy-snapshot lein-project)
                            (:version lein-project))
         lein-project (update lein-project :dependencies (partial deputils/expand-snapshot-versions
