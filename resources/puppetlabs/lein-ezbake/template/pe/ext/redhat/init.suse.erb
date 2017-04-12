@@ -110,8 +110,7 @@ stop() {
 }
 
 restart() {
-    stop
-    start
+    stop && start
 }
 
 sl_status_q() {
