@@ -1,5 +1,20 @@
 ## 1.2.0 - 2017-4-12
+This release removes Java7 support and changes the way that snapshots are deployed
+
+Feature:
   * Remove Java 7 compatibility. Builds now assume Java (openjdk) 8
+  * Change EZBake's stage command to:
+      * Deploy an artifact to the configured snapshots repository when staging a project with
+        a snapshot version.
+      * List the deployed snapshot artifact's version as the project's version number in the
+        ezbake.manifest & project_data.yaml files.
+      * Resolve all dependencies with 'SNAPSHOT' versions to get a deployed snapshot artifact
+        from the repository and list that artifact's version number in the ezbake.manifest &
+        project_data.yaml. If no deployed snapshot artifacts can be found for the listed
+        snapshot version, then an error is thrown and staging is aborted, to prevent
+        unreproducible builds.
+      * List each dependency's group as well as its name in the ezbake.manifest &
+        project_data.yaml
 
 ## 1.1.8 - 2017-3-22
   * (SERVER-1763) Adds ca-certificates as a build dependency
