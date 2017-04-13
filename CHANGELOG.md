@@ -1,3 +1,6 @@
+## 1.2.0 - 2017-4-12
+  * Remove Java 7 compatibility. Builds now assume Java (openjdk) 8
+
 ## 1.1.8 - 2017-3-22
   * (SERVER-1763) Adds ca-certificates as a build dependency
 
