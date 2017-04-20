@@ -1,3 +1,6 @@
+## 1.2.1 - 2017-4-20
+  * (SERVER-1782) Fix for the openjdk8 package name in SLES-12
+
 ## 1.2.0 - 2017-4-12
 This release removes Java7 support and changes the way that snapshots are deployed
 

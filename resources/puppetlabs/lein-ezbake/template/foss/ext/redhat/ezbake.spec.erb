@@ -49,8 +49,11 @@
 %endif
 
 # java 1.8.0 is available starting in fedora 20, el 6 and sles-12sp1
+%if 0%{?suse_version}   >= 1210
+%global open_jdk          java-1_8_0-openjdk-headless
+%else
 %global open_jdk          java-1.8.0-openjdk-headless
-
+%endif
 
 # Use the alternate locations for things.
 %global _sysconfdir      /etc
