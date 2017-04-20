@@ -158,6 +158,21 @@ lein with-profile ezbake ezbake stage
 This will create an ephemeral git repository at `./target/staging` with staged
 templates ready for consumption by the build step.
 
+If the project being staged has a SNAPSHOT version, then a snapshot build will
+be deployed to the project's configured snapshots repository (typically our
+internal nexus repository server at `nexus.delivery.puppetlabs.net`), in order
+to ensure our builds are reproducible. This can be avoided by setting the
+`EZBAKE_NODEPLOY` environment variable to any value.
+
+If the project or any of its dependencies have a SNAPSHOT version, but
+a deployed snapshot artifact matching that version cannot be found in the
+configured repositories (for example, because they have only been installed
+locally), then EZBake will throw an error to prevent an unreproducible build. If
+you're testing local changes, you can avoid this check by setting the
+`EZBAKE_ALLOW_UNREPRODUCIBLE_BUILDS` environment variable to any value. (If you
+set this in a build pipeline, bad things will happen, possible to a future
+version of yourself.)
+
 #### `build`
 
 ```shell
@@ -404,7 +419,7 @@ on the application, followed by calling `start` on the application.  When the
 `restart-file` on disk.  The reload script polls in a loop for the contents of
 the `restart-file`.  When the contents have changed, the reload script
 determines that the reload is successful and the script returns.  For more
-information on the `restart-file` feature in Trapperkeeper, see 
+information on the `restart-file` feature in Trapperkeeper, see
 ![this page](https://github.com/puppetlabs/trapperkeeper/blob/1.5.1/documentation/Restart-File.md)
 in the Trapperkeeper documentation.
 
