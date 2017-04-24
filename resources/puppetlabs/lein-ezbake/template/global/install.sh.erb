@@ -138,6 +138,12 @@ function task_install {
     install -m 0644 ext/ezbake.manifest "${DESTDIR}${app_prefix}"
     install -d -m 0755 "${DESTDIR}${projconfdir}/conf.d"
 
+<% if EZBake::Config[:additional_uberjars]  -%>
+  <% EZBake::Config[:additional_uberjars].each do |jar| -%>
+    install -m 0644 <%= jar %> "${DESTDIR}${app_prefix}"
+  <% end -%>
+<% end -%>
+
 <% if EZBake::Config[:bootstrap_source] == 'services-d' -%>
     install -d -m 0755 "${DESTDIR}${system_config_dir}/services.d"
     install -d -m 0755 "${DESTDIR}${projconfdir}/services.d"
