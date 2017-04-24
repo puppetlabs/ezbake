@@ -36,40 +36,45 @@
   (boolean (and version (re-find #"-SNAPSHOT$" version))))
 
 (defn get-full-snapshot-version
-  [lein-project coords]
-  (let [full-version (-> (aether/resolve-artifacts
-                           :coordinates [coords]
-                           :repositories (:repositories lein-project)
-                           :mirrors (:mirrors lein-project)
-                           :local-repo (:local-repo lein-project))
-                       first
-                       meta
-                       :result
-                       .getArtifact
-                       .getVersion)]
-    (if-not (re-find #"-SNAPSHOT$" full-version)
-      full-version
-      (throw
-        (IllegalStateException.
-          (format
-            (str "Could not find a deployed artifact for %s. Undeployed snapshot"
-                 " dependencies cannot be used, since that leads to"
-                 " unreproducible builds. Please deploy a snapshot artifact"
-                 " matching %s to the snapshots repository.")
-            (pr-str coords) (second coords)))))))
+  ([lein-project coords] (get-full-snapshot-version lein-project coords {}))
+  ([lein-project coords options]
+   (let [reproducible? (get options :reproducible? true)
+         full-version (-> (aether/resolve-artifacts
+                            :coordinates [coords]
+                            :repositories (:repositories lein-project)
+                            :mirrors (:mirrors lein-project)
+                            :local-repo (:local-repo lein-project))
+                        first
+                        meta
+                        :result
+                        .getArtifact
+                        .getVersion)
+         deployed-snapshot? (not (re-find #"-SNAPSHOT$" full-version))]
+     (if (or (not reproducible?) deployed-snapshot?)
+       full-version
+       (throw
+         (IllegalStateException.
+           (format
+             (str "Could not find a deployed artifact for %s. Undeployed snapshot"
+                  " dependencies cannot be used, since that leads to"
+                  " unreproducible builds. Please deploy a snapshot artifact"
+                  " matching %s to the snapshots repository.")
+             (pr-str coords) (second coords))))))))
 
 (defn expand-snapshot-version
-  [lein-project [dependency version :as coords]]
-  [dependency (get-full-snapshot-version lein-project coords)])
+  ([lein-project coords] (expand-snapshot-version lein-project coords {}))
+  ([lein-project [dependency version :as coords] options]
+   [dependency (get-full-snapshot-version lein-project coords options)]))
 
 (defn expand-snapshot-versions
-  [lein-project dependencies]
-  (let [expand-if-snapshot (fn [[_ version :as coords]]
-                             (if (snapshot-version? version)
-                               (expand-snapshot-version lein-project coords)
-                               coords))]
-    ;; throw artifact resolution errors ASAP
-    (doall (map expand-if-snapshot dependencies))))
+  ([lein-project dependencies] (expand-snapshot-versions lein-project dependencies {}))
+  ([lein-project dependencies options]
+   (let [expand-if-snapshot (fn [[_ version :as coords]]
+                              (if (snapshot-version? version)
+                                (expand-snapshot-version lein-project coords options)
+                                coords))]
+     ;; throw artifact resolution errors ASAP
+     (doall (map expand-if-snapshot dependencies)))))
 
 (defn find-maven-jar-file
   [coords lein-project]

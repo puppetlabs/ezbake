@@ -530,8 +530,10 @@ Dependency tree:
                                   (not (System/getenv "EZBAKE_NODEPLOY")))
                            (deploy-snapshot lein-project)
                            (:version lein-project))
-        lein-project (update lein-project :dependencies (partial deputils/expand-snapshot-versions
-                                                                 lein-project))]
+        reproducible? (not (System/getenv "EZBAKE_ALLOW_UNREPRODUCIBLE_BUILDS"))
+        lein-project (update lein-project :dependencies
+                             #(deputils/expand-snapshot-versions
+                                lein-project % {:reproducible? reproducible?}))]
     (let [template-dir (get-template-file build-target)
           uberjar-name (:uberjar-name lein-project)]
       (uberjar/uberjar lein-project)
