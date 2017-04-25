@@ -1,3 +1,9 @@
+## 1.1.9 - 2017-4-24
+  * (maint) Resolve SNAPSHOT dependencies to a deployed snapshot artifact
+  * (maint) Deploy the project to the snapshots repo when it has a SNAPSHOT version
+  * (maint) List deployed SNAPSHOT artifact versions in the ezbake.manifest and project_data.yaml
+  * (EZBAKE-108) Environment vars to turn off snapshot deployment & resolution.
+
 ## 1.1.8 - 2017-3-22
   * (SERVER-1763) Adds ca-certificates as a build dependency
 
@@ -47,7 +53,7 @@ Maintenance:
   * (EZ-90) Add 'start' app subcommand
   * (EZ-99) Add 'stop' app subcommand and modify service 'stop' command to use it
   * (EZ-100) Add timeout EzBake and defaults config settings for 'reload' and 'stop'
-  
+
 ## 0.5.1 - 2016-09-13
 * Update to use the new Puppet GPG key for package signing
 
