@@ -22,7 +22,9 @@ BOOTSTRAP_CONFIG="/etc/puppetlabs/<%= EZBake::Config[:real_name] %>/bootstrap.cf
 <% end -%>
 
 # SERVICE_STOP_RETRIES can be set here to alter the default stop timeout in
-# seconds.  For systemd, the shorter of this setting or 'TimeoutStopSec' in
+# seconds. Systems with very large heap settings may want to increase this value
+# if you're exceeding the timeout as GC operations can take a while.
+# For systemd, the shorter of this setting or 'TimeoutStopSec' in
 # the systemd.service definition will effectively be the timeout which is used.
 SERVICE_STOP_RETRIES=<%= EZBake::Config[:stop_timeout] %>
 
