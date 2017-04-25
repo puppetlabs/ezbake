@@ -173,6 +173,11 @@ function task_install {
 <% EZBake::Config[:cli_app_files].each do |cli_app_file| -%>
     install -m 0755 <%= cli_app_file %> "${DESTDIR}${app_prefix}/cli/apps/<%= cli_app_file.sub(/^ext\/cli\//, "") %>"
 <% end -%>
+
+if [ -e "<%= EZBake::Config[:cli_defaults_file] %>" ]; then
+    install -m 0755 <%= EZBake::Config[:cli_defaults_file] %> "${DESTDIR}${app_prefix}/cli/apps/<%= EZBake::Config[:cli_defaults_file] %>"
+fi
+
 <% EZBake::Config[:bin_files].each do |bin_file| -%>
     install -m 0755 <%= bin_file %> "${DESTDIR}${bindir}"
     <% basename = File.basename(bin_file) -%>

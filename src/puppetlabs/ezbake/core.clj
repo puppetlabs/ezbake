@@ -39,6 +39,7 @@
 (def build-scripts-prefix "ext/build-scripts/")
 (def terminus-prefix "puppet/")
 (def additional-uberjar-checkouts-dir "target/uberjars")
+(def cli-defaults-filename "cli-defaults.sh.erb")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Schemas
@@ -417,7 +418,7 @@ Dependency tree:
 
 (defn make-template-map
   "Construct the map of variables to pass on to the ezbake.rb template"
-  [lein-project build-target config-files system-config-files cli-app-files bin-files terminus-files upstream-ezbake-configs additional-uberjars]
+  [lein-project build-target config-files system-config-files cli-app-files cli-defaults-file bin-files terminus-files upstream-ezbake-configs additional-uberjars]
   (let [termini (for [[name version files] terminus-files]
                   {:name name
                    :version version
@@ -439,6 +440,7 @@ Dependency tree:
      :config-files              (quoted-list (map remove-erb-extension config-files))
      :system-config-files       (quoted-list (map remove-erb-extension system-config-files))
      :cli-app-files             (quoted-list (map remove-erb-extension cli-app-files))
+     :cli-defaults-file         cli-defaults-file
      :bin-files                 (quoted-list bin-files)
      :create-dirs               (quoted-list (get-local-ezbake-var lein-project
                                                                    :create-dirs []))
@@ -475,7 +477,7 @@ Dependency tree:
                                                             :bootstrap-cfg))
      :logrotate-enabled         (get-local-ezbake-var lein-project :logrotate-enabled
                                                       true)
-     :additional-uberjars       additional-uberjars}))
+     :additional-uberjars       (quoted-list additional-uberjars)}))
 
 ;; TODO: this is wonky; we're basically doing some templating here and it
 ;; might make more sense to use an actual template for it.  However, I'm a bit
@@ -493,6 +495,7 @@ Dependency tree:
    config-files
    system-config-files
    cli-app-files
+   cli-defaults-file
    bin-files
    terminus-files
    upstream-ezbake-configs
@@ -507,26 +510,28 @@ Dependency tree:
                        config-files
                        system-config-files
                        cli-app-files
+                       cli-defaults-file
                        bin-files
                        terminus-files
                        upstream-ezbake-configs
                        additional-uberjars))))
 
 (defn generate-project-data-yaml
-  [lein-project build-target]
+  [lein-project build-target additional-uberjars]
   (lein-main/info "generating project_data.yaml file")
   (spit
     (fs/file staging-dir "ext" "project_data.yaml")
     (stencil/render-string
       (slurp (get-staging-template-file "project_data.yaml.mustache"))
-      {:project       (:name lein-project)
-       :summary       (:description lein-project)
-       :description   (format "%s (%s)"
-                              (:description lein-project)
-                              (deputils/generate-manifest-string lein-project))
-       :uberjar-name  (:uberjar-name lein-project)
-       :is-pe-build   (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))
-       :repo-name     (format "%s" (get-local-ezbake-var lein-project :repo-target ""))})))
+      {:project (:name lein-project)
+       :summary (:description lein-project)
+       :description (format "%s (%s)"
+                            (:description lein-project)
+                            (deputils/generate-manifest-string lein-project))
+       :uberjar-name (:uberjar-name lein-project)
+       :additional-uberjars (mapv (fn [filename] {:uberjar filename}) additional-uberjars)
+       :is-pe-build (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))
+       :repo-name (format "%s" (get-local-ezbake-var lein-project :repo-target ""))})))
 
 (schema/defn get-additional-uberjars
   [lein-project]
@@ -621,6 +626,7 @@ Dependency tree:
           cli-app-files   (->> (str/join "/" [staging-dir "ext" "cli"])
                             fs/list-dir
                             (map #(relativize staging-dir %)))
+          cli-defaults-file (str/join "/" [staging-dir "ext" "cli" cli-defaults-filename])
           bin-files       (cp-shared-files dependencies get-bin-files-in)
           terminus-files  (cp-terminus-files dependencies build-target)
           upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)
@@ -636,12 +642,13 @@ Dependency tree:
                                     config-files
                                     system-config-files
                                     cli-app-files
+                                    cli-defaults-file
                                     bin-files
                                     terminus-files
                                     upstream-ezbake-configs
                                     (map fs/base-name additional-uberjars))
       (let [project-w-deployed-version (assoc lein-project :version deployed-version)]
-        (generate-project-data-yaml project-w-deployed-version build-target)
+        (generate-project-data-yaml project-w-deployed-version build-target (map fs/base-name additional-uberjars))
         (generate-manifest-file project-w-deployed-version))
       (create-git-repo lein-project))))
 

@@ -47,9 +47,19 @@ rm -f "$PIDFILE"
 
 init_restart_file "$restartfile" || exit $?
 
+CLASSPATH=${INSTALL_DIR}/puppet-server-release.jar
+
+if [ -e "${INSTALL_DIR}/cli/apps/cli-defaults.sh" ]; then
+  . ${INSTALL_DIR}/cli/apps/cli-defaults.sh
+  if [ $? -ne 0 ]; then
+    echo "Unable to initialize cli defaults, failing start." 1>&2
+    exit 1
+  fi
+fi
+
 ${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom \
   -XX:OnOutOfMemoryError="kill -9 %p" \
-  -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> \
+  -cp ${CLASSPATH} \
   clojure.main \
   -m <%= EZBake::Config[:main_namespace] %> \
   --config "${CONFIG}" \
