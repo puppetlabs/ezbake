@@ -542,7 +542,8 @@ Dependency tree:
   "Resolves a single dependency and returns a File pointing to it's jar"
   [[project-symbol version :as dependency-coordinates]]
   (lein-main/info "Resolving dependency for " dependency-coordinates)
-  (let [project {:dependencies [dependency-coordinates]}
+  (let [project {:dependencies [dependency-coordinates]
+                 :repositories [["releases" {:url "https://clojars.org/repo"}]]}
         ; resolved-dependencies will be a list of jars, one for each dependency
         ; in the project, including the jar for this project
         resolved-dependencies (lein-classpath/resolve-managed-dependencies :dependencies nil project)
