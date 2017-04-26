@@ -10,6 +10,8 @@ realname="<%= EZBake::Config[:real_name] %>"
 rundir="/var/run/puppetlabs/${realname}"
 PIDFILE="${rundir}/${realname}.pid"
 
+cli_defaults=${INSTALL_DIR}/cli/apps/cli-defaults.sh
+
 if [ ! -e "${INSTALL_DIR}/ezbake-functions.sh" ]; then
     echo "Unable to find ${INSTALL_DIR}/ezbake-functions.sh script, failing start." 1>&2
     exit 1
@@ -47,10 +49,10 @@ rm -f "$PIDFILE"
 
 init_restart_file "$restartfile" || exit $?
 
-CLASSPATH=${INSTALL_DIR}/puppet-server-release.jar
+CLASSPATH=${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %>
 
-if [ -e "${INSTALL_DIR}/cli/apps/cli-defaults.sh" ]; then
-  . ${INSTALL_DIR}/cli/apps/cli-defaults.sh
+if [ -e "$cli_defaults" ]; then
+  . $cli_defaults
   if [ $? -ne 0 ]; then
     echo "Unable to initialize cli defaults, failing start." 1>&2
     exit 1
@@ -59,7 +61,7 @@ fi
 
 ${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom \
   -XX:OnOutOfMemoryError="kill -9 %p" \
-  -cp ${CLASSPATH} \
+  -cp "${CLASSPATH}" \
   clojure.main \
   -m <%= EZBake::Config[:main_namespace] %> \
   --config "${CONFIG}" \
