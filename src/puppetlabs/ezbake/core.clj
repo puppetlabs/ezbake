@@ -8,7 +8,6 @@
             [stencil.core :as stencil]
             [leiningen.core.main :as lein-main]
             [leiningen.deploy :as deploy]
-            [leiningen.core.project :as lein-project]
             [leiningen.core.classpath :as lein-classpath]
             [leiningen.uberjar :as uberjar]
             [schema.core :as schema]
@@ -540,10 +539,11 @@ Dependency tree:
 
 (schema/defn resolve-dependency! :- File
   "Resolves a single dependency and returns a File pointing to it's jar"
-  [[project-symbol version :as dependency-coordinates]]
+  [[project-symbol version :as dependency-coordinates]
+   repositories]
   (lein-main/info "Resolving dependency for " dependency-coordinates)
   (let [project {:dependencies [dependency-coordinates]
-                 :repositories [["releases" {:url "https://clojars.org/repo"}]]}
+                 :repositories repositories}
         ; resolved-dependencies will be a list of jars, one for each dependency
         ; in the project, including the jar for this project
         resolved-dependencies (lein-classpath/resolve-managed-dependencies :dependencies nil project)
@@ -569,8 +569,9 @@ Dependency tree:
 
 (schema/defn build-uberjar-from-coordinates! :- File
   "Build an uberjar from maven coordinates and return a file pointing to the built uberjar"
-  [[project-symbol version :as dependency-coordinates]]
-  (let [dependency-jar (resolve-dependency! dependency-coordinates)
+  [repositories
+   [project-symbol version :as dependency-coordinates]]
+  (let [dependency-jar (resolve-dependency! dependency-coordinates repositories)
         destination-dir (format "%s/%s-%s"
                                 additional-uberjar-checkouts-dir
                                 (name project-symbol)
@@ -586,9 +587,10 @@ Dependency tree:
   "Builds uberjars from projects specified in the :additional-uberjars section
   of the ezbake config and returns a list of paths to the built uberjars"
   [lein-project]
-  (let [dependencies (get-additional-uberjars lein-project)]
+  (let [dependencies (get-additional-uberjars lein-project)
+        build-fn (partial build-uberjar-from-coordinates! (:repositories lein-project))]
     ; mapv for side effects
-    (mapv build-uberjar-from-coordinates! dependencies)))
+    (mapv build-fn dependencies)))
 
 (schema/defn copy-additional-uberjars!
   [uberjar-paths :- [schema/Str]]
