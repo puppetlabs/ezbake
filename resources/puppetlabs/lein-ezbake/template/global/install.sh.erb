@@ -175,7 +175,7 @@ function task_install {
 <% end -%>
 
 if [ -e "<%= EZBake::Config[:cli_defaults_file] %>" ]; then
-    install -m 0755 <%= EZBake::Config[:cli_defaults_file] %> "${DESTDIR}${app_prefix}/cli/apps/<%= EZBake::Config[:cli_defaults_file] %>"
+    install -m 0755 <%= EZBake::Config[:cli_defaults_file] %> "${DESTDIR}${app_prefix}/cli/"
 fi
 
 <% EZBake::Config[:bin_files].each do |bin_file| -%>

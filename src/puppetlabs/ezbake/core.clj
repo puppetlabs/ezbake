@@ -34,11 +34,12 @@
 (def config-dir "ext/config/")
 (def system-config-dir "ext/system-config/")
 (def shared-cli-apps-prefix "ext/cli/")
+(def shared-cli-defaults-prefix "ext/cli_defaults/")
 (def docs-prefix "ext/docs/")
 (def build-scripts-prefix "ext/build-scripts/")
 (def terminus-prefix "puppet/")
 (def additional-uberjar-checkouts-dir "target/uberjars")
-(def cli-defaults-filename "cli-defaults.sh.erb")
+(def cli-defaults-filename "ext/cli_defaults/cli-defaults.sh.erb")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Schemas
@@ -203,6 +204,10 @@ Dependency tree:
 (defn- get-cli-app-files-in
   [jar]
   (deputils/find-files-in-dir-in-jar jar shared-cli-apps-prefix))
+
+(defn- get-cli-defaults-files-in
+  [jar]
+  (deputils/find-files-in-dir-in-jar jar shared-cli-defaults-prefix))
 
 (defn- get-terminus-files-in
   [jar]
@@ -417,7 +422,7 @@ Dependency tree:
 
 (defn make-template-map
   "Construct the map of variables to pass on to the ezbake.rb template"
-  [lein-project build-target config-files system-config-files cli-app-files cli-defaults-file bin-files terminus-files upstream-ezbake-configs additional-uberjars]
+  [lein-project build-target config-files system-config-files cli-app-files bin-files terminus-files upstream-ezbake-configs additional-uberjars]
   (let [termini (for [[name version files] terminus-files]
                   {:name name
                    :version version
@@ -439,7 +444,7 @@ Dependency tree:
      :config-files              (quoted-list (map remove-erb-extension config-files))
      :system-config-files       (quoted-list (map remove-erb-extension system-config-files))
      :cli-app-files             (quoted-list (map remove-erb-extension cli-app-files))
-     :cli-defaults-file         cli-defaults-file
+     :cli-defaults-file         (remove-erb-extension cli-defaults-filename)
      :bin-files                 (quoted-list bin-files)
      :create-dirs               (quoted-list (get-local-ezbake-var lein-project
                                                                    :create-dirs []))
@@ -494,7 +499,6 @@ Dependency tree:
    config-files
    system-config-files
    cli-app-files
-   cli-defaults-file
    bin-files
    terminus-files
    upstream-ezbake-configs
@@ -509,7 +513,6 @@ Dependency tree:
                        config-files
                        system-config-files
                        cli-app-files
-                       cli-defaults-file
                        bin-files
                        terminus-files
                        upstream-ezbake-configs
@@ -533,12 +536,16 @@ Dependency tree:
        :repo-name (format "%s" (get-local-ezbake-var lein-project :repo-target ""))})))
 
 (schema/defn get-additional-uberjars
+  "Returns the list of additional uberjar dependencies from the given lein project"
   [lein-project]
   (when-let [dependencies-vector (get-in lein-project [:lein-ezbake :additional-uberjars])]
     dependencies-vector))
 
 (schema/defn resolve-dependency! :- File
-  "Resolves a single dependency and returns a File pointing to it's jar"
+  "Resolves a single dependency and returns a File pointing to it's jar.
+
+  This has the side effect of fetching the whole dependency tree for the given
+  dependency, but we only care about the one jar"
   [[project-symbol version :as dependency-coordinates]
    repositories]
   (lein-main/info "Resolving dependency for " dependency-coordinates)
@@ -577,15 +584,27 @@ Dependency tree:
                                 (name project-symbol)
                                 version)
         project-file (extract-project-from-jar! dependency-jar destination-dir)
+        ; This isn't very intuitive, but here we add the dependency back into its own
+        ; lein project. Since we've only extracted the project.clj file from the jar,
+        ; if we were to build an uberjar from that, it would include the compiled code
+        ; for all of its dependencies, but not its own code. By adding itself as a
+        ; dependency, we ensure its own code will be in the final uberjar as well.
         project-map (-> project-file
                         project/read
                         (update :dependencies conj dependency-coordinates))]
     (lein-main/info "Building uberjar for " dependency-coordinates)
+    ; When the project.clj file is read by project/read above, it includes the
+    ; file's location in the project map that it produces. This is how the
+    ; uberjar/uberjar function knows where to create the new uberjar
     (uberjar/uberjar project-map)))
 
 (schema/defn build-additional-uberjars! :- [schema/Str]
   "Builds uberjars from projects specified in the :additional-uberjars section
-  of the ezbake config and returns a list of paths to the built uberjars"
+  of the ezbake config and returns a list of paths to the built uberjars.
+
+  For dependency resolution, we use the same list of repositories (under the
+  :repositories key in project.clj) as the lein project that ezbake is running
+  inside of"
   [lein-project]
   (let [dependencies (get-additional-uberjars lein-project)
         build-fn (partial build-uberjar-from-coordinates! (:repositories lein-project))]
@@ -629,11 +648,11 @@ Dependency tree:
           cli-app-files   (->> (str/join "/" [staging-dir "ext" "cli"])
                             fs/list-dir
                             (map #(relativize staging-dir %)))
-          cli-defaults-file (str/join "/" [staging-dir "ext" "cli" cli-defaults-filename])
           bin-files       (cp-shared-files dependencies get-bin-files-in)
           terminus-files  (cp-terminus-files dependencies build-target)
           upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)
           additional-uberjars (build-additional-uberjars! lein-project)]
+      (cp-shared-files dependencies get-cli-defaults-files-in)
       (cp-shared-files dependencies get-build-scripts-files-in)
       (if cli-app-files
         (cp-cli-wrapper-scripts (:name lein-project)))
@@ -645,7 +664,6 @@ Dependency tree:
                                     config-files
                                     system-config-files
                                     cli-app-files
-                                    cli-defaults-file
                                     bin-files
                                     terminus-files
                                     upstream-ezbake-configs

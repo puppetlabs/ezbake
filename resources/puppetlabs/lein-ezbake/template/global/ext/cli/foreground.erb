@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 restartfile="/opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>/restartcounter"
-cli_defaults=${INSTALL_DIR}/cli/apps/cli-defaults.sh
+cli_defaults=${INSTALL_DIR}/cli/cli-defaults.sh
 
 if [ ! -e "${INSTALL_DIR}/ezbake-functions.sh" ]; then
     echo "Unable to find ${INSTALL_DIR}/ezbake-functions.sh script, failing start." 1>&2
