@@ -618,7 +618,7 @@ Additional uberjar dependencies:
         ; for all of its dependencies, but not its own code. By adding itself as a
         ; dependency, we ensure its own code will be in the final uberjar as well.
         project-map (-> project-file
-                        project/read
+                        (project/read [:uberjar])
                         (update :dependencies conj dependency-coordinates))]
     (lein-main/info "Building uberjar for " dependency-coordinates)
     ; When the project.clj file is read by project/read above, it includes the
