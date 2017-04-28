@@ -39,7 +39,7 @@
 (def build-scripts-prefix "ext/build-scripts/")
 (def terminus-prefix "puppet/")
 (def additional-uberjar-checkouts-dir "target/uberjars")
-(def cli-defaults-filename "ext/cli_defaults/cli-defaults.sh.erb")
+(def cli-defaults-filename (str shared-cli-defaults-prefix "cli-defaults.sh.erb"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Schemas
