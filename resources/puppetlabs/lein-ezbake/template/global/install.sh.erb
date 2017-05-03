@@ -28,6 +28,7 @@ uxbindir=${uxbindir:=/opt/puppetlabs/bin}
 # symlinks of server binaries
 symbindir=${symbindir:=/opt/puppetlabs/server/bin}
 app_prefix=${app_prefix:=/opt/puppetlabs/server/apps/${real_name}}
+dest_apps_dir="${DESTDIR}${app_prefix}"
 app_data=${app_data:=/opt/puppetlabs/server/data/${real_name}}
 app_logdir=${app_logdir:=/var/log/puppetlabs/${real_name}}
 system_config_dir=${system_config_dir:=${app_prefix}/config}
@@ -131,16 +132,16 @@ function task_install_source_deb_systemd {
 # Install the ezbake package software. This step is used during RPM &
 # Debian packaging during the 'install' phases.
 function task_install {
-    install -d -m 0755 "${DESTDIR}${app_prefix}"
+    install -d -m 0755 "${dest_apps_dir}"
     install -d -m 0770 "${DESTDIR}${app_data}"
-    install -m 0644 <%= EZBake::Config[:uberjar_name] %> "${DESTDIR}${app_prefix}"
-    install -m 0755 ext/ezbake-functions.sh "${DESTDIR}${app_prefix}"
-    install -m 0644 ext/ezbake.manifest "${DESTDIR}${app_prefix}"
+    install -m 0644 <%= EZBake::Config[:uberjar_name] %> "${dest_apps_dir}"
+    install -m 0755 ext/ezbake-functions.sh "${dest_apps_dir}"
+    install -m 0644 ext/ezbake.manifest "${dest_apps_dir}"
     install -d -m 0755 "${DESTDIR}${projconfdir}/conf.d"
 
 <% if EZBake::Config[:additional_uberjars]  -%>
   <% EZBake::Config[:additional_uberjars].each do |jar| -%>
-    install -m 0644 <%= jar %> "${DESTDIR}${app_prefix}"
+    install -m 0644 <%= jar %> "${dest_apps_dir}"
   <% end -%>
 <% end -%>
 
@@ -157,12 +158,12 @@ function task_install {
     install -m 0644 <%= config_file %> "${DESTDIR}${projconfdir}/<%= config_file.sub(/^ext\/config\//, "") %>"
 <% end -%>
 
-    install -d -m 0755 "${DESTDIR}${app_prefix}/scripts"
-    install -m 0755 install.sh "${DESTDIR}${app_prefix}/scripts"
+    install -d -m 0755 "${dest_apps_dir}/scripts"
+    install -m 0755 install.sh "${dest_apps_dir}/scripts"
 
 <% if ! EZBake::Config[:cli_app_files].empty? -%>
-    install -d -m 0755 "${DESTDIR}${app_prefix}/cli"
-    install -d -m 0755 "${DESTDIR}${app_prefix}/cli/apps"
+    install -d -m 0755 "${dest_apps_dir}/cli"
+    install -d -m 0755 "${dest_apps_dir}/cli/apps"
     install -d -m 0755 "${DESTDIR}${bindir}"
     install -m 0755 "ext/bin/${real_name}" "${DESTDIR}${bindir}/${real_name}"
     install -d -m 0755 "${DESTDIR}${symbindir}"
@@ -171,11 +172,11 @@ function task_install {
     ln -s "../server/apps/${real_name}/bin/${real_name}" "${DESTDIR}${uxbindir}/${real_name}"
 <% end -%>
 <% EZBake::Config[:cli_app_files].each do |cli_app_file| -%>
-    install -m 0755 <%= cli_app_file %> "${DESTDIR}${app_prefix}/cli/apps/<%= cli_app_file.sub(/^ext\/cli\//, "") %>"
+    install -m 0755 <%= cli_app_file %> "${dest_apps_dir}/cli/apps/<%= cli_app_file.sub(/^ext\/cli\//, "") %>"
 <% end -%>
 
 if [ -e "<%= EZBake::Config[:cli_defaults_file] %>" ]; then
-    install -m 0755 <%= EZBake::Config[:cli_defaults_file] %> "${DESTDIR}${app_prefix}/cli/"
+    install -m 0755 <%= EZBake::Config[:cli_defaults_file] %> "${dest_apps_dir}/cli/"
 fi
 
 <% EZBake::Config[:bin_files].each do |bin_file| -%>
