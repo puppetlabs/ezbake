@@ -7,15 +7,14 @@
             [clj-time.local :as local-time]
             [stencil.core :as stencil]
             [leiningen.core.main :as lein-main]
-            [leiningen.deploy :as deploy]
+            [leiningen.core.project :as project]
             [leiningen.core.classpath :as lein-classpath]
+            [leiningen.deploy :as deploy]
             [leiningen.uberjar :as uberjar]
             [schema.core :as schema]
-            [schema.utils :as schema-utils]
             [puppetlabs.ezbake.dependency-utils :as deputils]
             [puppetlabs.ezbake.exec :as exec]
-            [puppetlabs.config.typesafe :as ts]
-            [leiningen.core.project :as project]))
+            [puppetlabs.config.typesafe :as ts]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Vars
@@ -196,7 +195,7 @@
          :manifest-string (deputils/generate-manifest-string lein-project)
          :dependency-tree (deputils/generate-dependency-tree-string lein-project)
          :additional-uberjar-info uberjar-info
-         :has-additional-uberjars (not (empty? additional-uberjars-info))}]
+         :has-additional-uberjars (not-empty additional-uberjars-info)}]
     (spit
      (fs/file staging-dir "ext" "ezbake.manifest")
      (stencil/render-string "
@@ -564,11 +563,10 @@ Additional uberjar dependencies:
 (schema/defn get-additional-uberjars
   "Returns the list of additional uberjar dependencies from the given lein project"
   [lein-project]
-  (when-let [dependencies-vector (get-in lein-project [:lein-ezbake :additional-uberjars])]
-    dependencies-vector))
+  (get-in lein-project [:lein-ezbake :additional-uberjars]))
 
 (schema/defn resolve-dependency! :- File
-  "Resolves a single dependency and returns a File pointing to it's jar.
+  "Resolves a single dependency and returns a File pointing to its jar.
 
   This has the side effect of fetching the whole dependency tree for the given
   dependency, but we only care about the one jar"
