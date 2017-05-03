@@ -133,7 +133,7 @@ Note that the symble `:ezbake` is not strictly necessary here.
 
 #### Composite
 
-Composite ezbake projects usually do not define their own services but rather
+Composite EZBake projects usually do not define their own services but rather
 provide a list of dependencies which themselves define TK services.  Because of
 this it is not strictly necessary to define a profile such as `:ezbake` shown
 above; although it is conceivable that such a composite project may define its
@@ -142,7 +142,7 @@ in architectural diagrams. Just look at the Leaning Tower of Pisa.
 
 #### Additional Uberjars
 
-Some projects might have a use case for automatically fetching an versioned
+Some projects might have a use case for automatically fetching a versioned
 jar from an external repository that needs to be placed into the package and be
 available after installation.
 
@@ -161,12 +161,12 @@ same directory as your project's own uberjar after installation.
 The filename of the built uberjar is determined by what value `:uberjar-name`
 is set to in its `project.clj`
 
-ezbake will attempt to resolve the coordinates of these external uberjars using
+EZBake will attempt to resolve the coordinates of these external uberjars using
 the repositories specified in the `:repositories` key of your project.clj
 
 #### cli-defaults.sh
 `cli-defaults.sh` is intended to be a file from which default shell script
-variables can be defined by a project, and be loaded by ezbake's `cli-app`
+variables can be defined by a project, and be loaded by EZBake's `cli-app`
 script. That is, the script which is run when commands like
 `service my-project start` are called.
 
