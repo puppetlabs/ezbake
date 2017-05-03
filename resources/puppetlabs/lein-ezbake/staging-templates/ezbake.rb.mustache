@@ -9,9 +9,11 @@ module EZBake
       :stop_timeout   => '{{{stop-timeout}}}',
       :open_file_limit => {{{open-file-limit}}},
       :uberjar_name   => '{{{uberjar-name}}}',
+      :additional_uberjars => [{{{additional-uberjars}}}],
       :config_files   => [{{{config-files}}}],
       :system_config_files   => [{{{system-config-files}}}],
       :cli_app_files  => [{{{cli-app-files}}}],
+      :cli_defaults_file => '{{{cli-defaults-file}}}',
       :bin_files      => [{{{bin-files}}}],
       :create_dirs    => [{{{create-dirs}}}],
       :terminus_info  => {

@@ -133,12 +133,50 @@ Note that the symble `:ezbake` is not strictly necessary here.
 
 #### Composite
 
-Composite ezbake projects usually do not define their own services but rather
+Composite EZBake projects usually do not define their own services but rather
 provide a list of dependencies which themselves define TK services.  Because of
 this it is not strictly necessary to define a profile such as `:ezbake` shown
 above; although it is conceivable that such a composite project may define its
 own services, it is unlikely and ill-advised because no one likes blurred lines
 in architectural diagrams. Just look at the Leaning Tower of Pisa.
+
+#### Additional Uberjars
+
+Some projects might have a use case for automatically fetching a versioned
+jar from an external repository that needs to be placed into the package and be
+available after installation.
+
+The `:additional-uberjars` setting can be set to a list of project coordinates
+that will be resolved and have uberjars built from them. For example:
+
+```clojure
+{:lein-ezbake {
+  :additional-uberjars [[puppetlabs/puppetserver "2.7.2"]]
+...}}
+```
+
+This would result in a puppetserver uberjar being built, and the jar being placed in the
+same directory as your project's own uberjar after installation.
+
+The filename of the built uberjar is determined by what value `:uberjar-name`
+is set to in its `project.clj`
+
+EZBake will attempt to resolve the coordinates of these external uberjars using
+the repositories specified in the `:repositories` key of your project.clj
+
+#### cli-defaults.sh
+`cli-defaults.sh` is intended to be a file from which default shell script
+variables can be defined by a project, and be loaded by EZBake's `cli-app`
+script. That is, the script which is run when commands like
+`service my-project start` are called.
+
+This differs from the `default` files, which also get loaded by `cli-app`, in
+that a project has no control over what goes into `default`. `cli-defaults.sh`
+is under the control of your project.
+
+For `cli-defaults.sh` to be used, it simply needs to exist at
+`resources/ext/cli_defaults/cli-defaults.sh.erb` in your project. Since it is
+an erb template, it will have access to the variables in `ezbake.rb`
 
 ### Running
 

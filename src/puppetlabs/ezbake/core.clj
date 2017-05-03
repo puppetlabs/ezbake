@@ -1,16 +1,17 @@
 (ns puppetlabs.ezbake.core
-  (:import (java.io File)
-           (java.util.jar JarEntry))
+  (:import (java.io File InputStream InputStreamReader)
+           (java.util.jar JarEntry JarFile))
   (:require [me.raynes.fs :as fs]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [clj-time.local :as local-time]
             [stencil.core :as stencil]
             [leiningen.core.main :as lein-main]
+            [leiningen.core.project :as project]
+            [leiningen.core.classpath :as lein-classpath]
             [leiningen.deploy :as deploy]
             [leiningen.uberjar :as uberjar]
             [schema.core :as schema]
-            [schema.utils :as schema-utils]
             [puppetlabs.ezbake.dependency-utils :as deputils]
             [puppetlabs.ezbake.exec :as exec]
             [puppetlabs.config.typesafe :as ts]))
@@ -32,9 +33,12 @@
 (def config-dir "ext/config/")
 (def system-config-dir "ext/system-config/")
 (def shared-cli-apps-prefix "ext/cli/")
+(def shared-cli-defaults-prefix "ext/cli_defaults/")
 (def docs-prefix "ext/docs/")
 (def build-scripts-prefix "ext/build-scripts/")
 (def terminus-prefix "puppet/")
+(def additional-uberjar-checkouts-dir "target/uberjars")
+(def cli-defaults-filename (str shared-cli-defaults-prefix "cli-defaults.sh.erb"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Schemas
@@ -62,6 +66,10 @@
    (schema/optional-key :main-namespace) schema/Str
    (schema/optional-key :java-args) schema/Str
    (schema/optional-key :logrotate-enabled) schema/Bool})
+
+(def UberjarInfo
+  {:uberjar File
+   :lein-project {schema/Any schema/Any}})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Shell / Filesystem Helpers
@@ -127,7 +135,9 @@
 (defn clean
   []
   (lein-main/info "deleting staging directory:" staging-dir)
-  (fs/delete-dir staging-dir))
+  (fs/delete-dir staging-dir)
+  (lein-main/info "deleting uberjar checkout directory:" additional-uberjar-checkouts-dir)
+  (fs/delete-dir additional-uberjar-checkouts-dir))
 
 (defn relativize
   "Convert an absolute File to a relative File"
@@ -173,30 +183,56 @@
     (fs/file config-dir)))
 
 (defn generate-manifest-file
-  [lein-project]
-  (spit
-    (fs/file staging-dir "ext" "ezbake.manifest")
-    (format "
+  [lein-project additional-uberjars-info]
+  (let [uberjar-info (for [uberjar-info additional-uberjars-info]
+                       {:uberjar (fs/base-name (:uberjar uberjar-info))
+                        :dependencies (deputils/generate-dependency-tree-string (:lein-project uberjar-info))})
+        template-map
+        {:ezbake-version (get-ezbake-version lein-project)
+         :package-group (:group lein-project)
+         :package-name (:name lein-project)
+         :package-version (:version lein-project)
+         :manifest-string (deputils/generate-manifest-string lein-project)
+         :dependency-tree (deputils/generate-dependency-tree-string lein-project)
+         :additional-uberjar-info uberjar-info
+         :has-additional-uberjars (not-empty additional-uberjars-info)}]
+    (spit
+     (fs/file staging-dir "ext" "ezbake.manifest")
+     (stencil/render-string "
 This package was built by the Puppet Labs packaging system.
 
-EZBake version: %s
-Release package: %s/%s (%s)
-Bundled packages: %s
+EZBake version: {{{ezbake-version}}}
+Release package: {{{package-group}}}/{{{package-name}}} ({{{package-version}}})
+Bundled packages: {{{manifest-string}}}
+{{#has-additional-uberjars}}
+Additional Uberjars:
+{{/has-additional-uberjars}}
+{{#additional-uberjar-info}}
+{{{uberjar}}}
+{{/additional-uberjar-info}}
 
 Dependency tree:
 
-%s
+{{{dependency-tree}}}
+{{#has-additional-uberjars}}
+Additional uberjar dependencies:
+
+{{/has-additional-uberjars}}
+{{#additional-uberjar-info}}
+{{{uberjar}}}:
+
+{{{dependencies}}}
+{{/additional-uberjar-info}}
 "
-            (get-ezbake-version lein-project)
-            (:group lein-project)
-            (:name lein-project)
-            (:version lein-project)
-            (deputils/generate-manifest-string lein-project)
-            (deputils/generate-dependency-tree-string lein-project))))
+                            template-map))))
 
 (defn- get-cli-app-files-in
   [jar]
   (deputils/find-files-in-dir-in-jar jar shared-cli-apps-prefix))
+
+(defn- get-cli-defaults-files-in
+  [jar]
+  (deputils/find-files-in-dir-in-jar jar shared-cli-defaults-prefix))
 
 (defn- get-terminus-files-in
   [jar]
@@ -411,7 +447,7 @@ Dependency tree:
 
 (defn make-template-map
   "Construct the map of variables to pass on to the ezbake.rb template"
-  [lein-project build-target config-files system-config-files cli-app-files bin-files terminus-files upstream-ezbake-configs]
+  [lein-project build-target config-files system-config-files cli-app-files bin-files terminus-files upstream-ezbake-configs additional-uberjars]
   (let [termini (for [[name version files] terminus-files]
                   {:name name
                    :version version
@@ -433,6 +469,7 @@ Dependency tree:
      :config-files              (quoted-list (map remove-erb-extension config-files))
      :system-config-files       (quoted-list (map remove-erb-extension system-config-files))
      :cli-app-files             (quoted-list (map remove-erb-extension cli-app-files))
+     :cli-defaults-file         (remove-erb-extension cli-defaults-filename)
      :bin-files                 (quoted-list bin-files)
      :create-dirs               (quoted-list (get-local-ezbake-var lein-project
                                                                    :create-dirs []))
@@ -468,7 +505,8 @@ Dependency tree:
                                                             :bootstrap-source
                                                             :bootstrap-cfg))
      :logrotate-enabled         (get-local-ezbake-var lein-project :logrotate-enabled
-                                                      true)}))
+                                                      true)
+     :additional-uberjars       (quoted-list additional-uberjars)}))
 
 ;; TODO: this is wonky; we're basically doing some templating here and it
 ;; might make more sense to use an actual template for it.  However, I'm a bit
@@ -488,7 +526,8 @@ Dependency tree:
    cli-app-files
    bin-files
    terminus-files
-   upstream-ezbake-configs]
+   upstream-ezbake-configs
+   additional-uberjars]
   (lein-main/info "generating ezbake config file")
   (spit
    (fs/file staging-dir "ezbake.rb")
@@ -501,23 +540,111 @@ Dependency tree:
                        cli-app-files
                        bin-files
                        terminus-files
-                       upstream-ezbake-configs))))
+                       upstream-ezbake-configs
+                       additional-uberjars))))
 
 (defn generate-project-data-yaml
-  [lein-project build-target]
+  [lein-project build-target additional-uberjars]
   (lein-main/info "generating project_data.yaml file")
   (spit
     (fs/file staging-dir "ext" "project_data.yaml")
     (stencil/render-string
       (slurp (get-staging-template-file "project_data.yaml.mustache"))
-      {:project       (:name lein-project)
-       :summary       (:description lein-project)
-       :description   (format "%s (%s)"
-                              (:description lein-project)
-                              (deputils/generate-manifest-string lein-project))
-       :uberjar-name  (:uberjar-name lein-project)
-       :is-pe-build   (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))
-       :repo-name     (format "%s" (get-local-ezbake-var lein-project :repo-target ""))})))
+      {:project (:name lein-project)
+       :summary (:description lein-project)
+       :description (format "%s (%s)"
+                            (:description lein-project)
+                            (deputils/generate-manifest-string lein-project))
+       :uberjar-name (:uberjar-name lein-project)
+       :additional-uberjars (mapv (fn [filename] {:uberjar filename}) additional-uberjars)
+       :is-pe-build (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))
+       :repo-name (format "%s" (get-local-ezbake-var lein-project :repo-target ""))})))
+
+(schema/defn get-additional-uberjars
+  "Returns the list of additional uberjar dependencies from the given lein project"
+  [lein-project]
+  (get-in lein-project [:lein-ezbake :additional-uberjars]))
+
+(schema/defn resolve-dependency! :- File
+  "Resolves a single dependency and returns a File pointing to its jar.
+
+  This has the side effect of fetching the whole dependency tree for the given
+  dependency, but we only care about the one jar"
+  [[project-symbol version :as dependency-coordinates]
+   repositories]
+  (lein-main/info "Resolving dependency for " dependency-coordinates)
+  (let [project {:dependencies [dependency-coordinates]
+                 :repositories repositories}
+        ; resolved-dependencies will be a list of jars, one for each dependency
+        ; in the project, including the jar for this project
+        resolved-dependencies (lein-classpath/resolve-managed-dependencies :dependencies nil project)
+        jar-regex (re-pattern (format "%s-%s.jar" (name project-symbol) version))
+        jar-file (first (filter #(re-find jar-regex (.getName %))
+                                resolved-dependencies))]
+    jar-file))
+
+(schema/defn extract-project-from-jar! :- schema/Str
+  "Extracts the project.clj file out of the given jar into the destination directory"
+  [jar :- File
+   destination-dir :- schema/Str]
+  (fs/mkdirs destination-dir)
+  (let [jar-file (JarFile. jar)
+        jar-entry (.getJarEntry jar-file "project.clj")
+        project-string (-> jar-file
+                           ; Get an input string for project.clj
+                           (.getInputStream jar-entry)
+                           slurp)
+        out-file-path (str destination-dir "/project.clj")]
+    (spit out-file-path project-string)
+    out-file-path))
+
+(schema/defn build-uberjar-from-coordinates! :- UberjarInfo
+  "Build an uberjar from maven coordinates and return a map containing a file
+   pointing to the built uberjar and the lein project map that was used to
+   create it"
+  [repositories
+   [project-symbol version :as dependency-coordinates]]
+  (let [dependency-jar (resolve-dependency! dependency-coordinates repositories)
+        destination-dir (format "%s/%s-%s"
+                                additional-uberjar-checkouts-dir
+                                (name project-symbol)
+                                version)
+        project-file (extract-project-from-jar! dependency-jar destination-dir)
+        ; This isn't very intuitive, but here we add the dependency back into its own
+        ; lein project. Since we've only extracted the project.clj file from the jar,
+        ; if we were to build an uberjar from that, it would include the compiled code
+        ; for all of its dependencies, but not its own code. By adding itself as a
+        ; dependency, we ensure its own code will be in the final uberjar as well.
+        project-map (-> project-file
+                        (project/read [:uberjar])
+                        (update :dependencies conj dependency-coordinates))]
+    (lein-main/info "Building uberjar for " dependency-coordinates)
+    ; When the project.clj file is read by project/read above, it includes the
+    ; file's location in the project map that it produces. This is how the
+    ; uberjar/uberjar function knows where to create the new uberjar
+    (let [uberjar-file (uberjar/uberjar project-map)]
+      {:uberjar uberjar-file
+       :lein-project project-map})))
+
+(schema/defn build-additional-uberjars! :- [UberjarInfo]
+  "Builds uberjars from projects specified in the :additional-uberjars section
+  of the ezbake config and returns a list of information about the built uberjars.
+
+  For dependency resolution, we use the same list of repositories (under the
+  :repositories key in project.clj) as the lein project that ezbake is running
+  inside of"
+  [lein-project]
+  (let [dependencies (get-additional-uberjars lein-project)
+        build-fn (partial build-uberjar-from-coordinates! (:repositories lein-project))]
+    ; mapv for side effects
+    (mapv build-fn dependencies)))
+
+(schema/defn copy-additional-uberjars!
+  [uberjar-info :- [UberjarInfo]]
+  (lein-main/info "Copying additional uberjars to staging directory")
+  (doseq [jar-file (map :uberjar uberjar-info)]
+    (let [destination-path (format "%s/%s" staging-dir (fs/base-name jar-file))]
+      (fs/copy jar-file destination-path))))
 
 (defmulti action
   (fn [action & args] action))
@@ -551,11 +678,16 @@ Dependency tree:
                             (map #(relativize staging-dir %)))
           bin-files       (cp-shared-files dependencies get-bin-files-in)
           terminus-files  (cp-terminus-files dependencies build-target)
-          upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)]
+          upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)
+          additional-uberjar-info (build-additional-uberjars! lein-project)
+          additional-uberjar-filenames (map #(fs/base-name (:uberjar %)) additional-uberjar-info)]
+      (cp-shared-files dependencies get-cli-defaults-files-in)
       (cp-shared-files dependencies get-build-scripts-files-in)
       (if cli-app-files
         (cp-cli-wrapper-scripts (:name lein-project)))
       (cp-doc-files lein-project)
+      (when additional-uberjar-info
+        (copy-additional-uberjars! additional-uberjar-info))
       (generate-ezbake-config-file! lein-project
                                     build-target
                                     config-files
@@ -563,10 +695,11 @@ Dependency tree:
                                     cli-app-files
                                     bin-files
                                     terminus-files
-                                    upstream-ezbake-configs)
+                                    upstream-ezbake-configs
+                                    additional-uberjar-filenames)
       (let [project-w-deployed-version (assoc lein-project :version deployed-version)]
-        (generate-project-data-yaml project-w-deployed-version build-target)
-        (generate-manifest-file project-w-deployed-version))
+        (generate-project-data-yaml project-w-deployed-version build-target additional-uberjar-filenames)
+        (generate-manifest-file project-w-deployed-version additional-uberjar-info))
       (create-git-repo lein-project))))
 
 (defmethod action "build"
@@ -585,6 +718,7 @@ Dependency tree:
   []
   (clean)
   (fs/mkdirs staging-dir)
+  (fs/mkdirs additional-uberjar-checkouts-dir)
   (fs/copy+ "./project.clj"
             (format "%s/%s" staging-dir "project.clj")))
 

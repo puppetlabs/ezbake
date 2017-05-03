@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 restartfile="/opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>/restartcounter"
+cli_defaults=${INSTALL_DIR}/cli/cli-defaults.sh
 
 if [ ! -e "${INSTALL_DIR}/ezbake-functions.sh" ]; then
     echo "Unable to find ${INSTALL_DIR}/ezbake-functions.sh script, failing start." 1>&2
@@ -16,9 +17,19 @@ then
     LOG_APPENDER="-Dlogappender=STDOUT"
 fi
 
+CLASSPATH="${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %>"
+
+if [ -e "$cli_defaults" ]; then
+  . $cli_defaults
+  if [ $? -ne 0 ]; then
+    echo "Unable to initialize cli defaults, failing start." 1>&2
+    exit 1
+  fi
+fi
+
 COMMAND="${JAVA_BIN} ${JAVA_ARGS} ${LOG_APPENDER} \
          -Djava.security.egd=/dev/urandom \
-         -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> \
+         -cp "$CLASSPATH" \
          clojure.main -m <%= EZBake::Config[:main_namespace] %> \
          --config ${CONFIG} --bootstrap-config ${BOOTSTRAP_CONFIG} \
          --restart-file "${restartfile}" \
