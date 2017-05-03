@@ -34,7 +34,7 @@ To get started using EZBake, please add it to the `:plugins` key in your
 `project.clj`:
 
 ```clojure
-{:plugins [[puppetlabs/lein-ezbake "0.2.3"]]}
+{:plugins [[puppetlabs/lein-ezbake "1.2.1"]]}
 ```
 
 Before you can get started using it, however, there may be some additional
@@ -129,7 +129,7 @@ Note that it is necessary here to use the `^:replace` metadata on the
 `:dependencies` list since Leiningen's default behavior is to append
 dependencies defined in a lein profile.
 
-Note that the symble `:ezbake` is not strictly necessary here.
+Note that the symbol `:ezbake` is not strictly necessary here.
 
 #### Composite
 
