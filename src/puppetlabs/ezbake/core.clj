@@ -58,6 +58,7 @@
    (schema/optional-key :build-type) schema/Str
    (schema/optional-key :reload-timeout) schema/Int
    (schema/optional-key :repo-target) schema/Str
+   (schema/optional-key :nonfinal-repo-target) schema/Str
    (schema/optional-key :replaces-pkgs) ReplacesPkgs
    (schema/optional-key :start-after) [schema/Str]
    (schema/optional-key :start-timeout) schema/Int
@@ -558,7 +559,8 @@ Additional uberjar dependencies:
        :uberjar-name (:uberjar-name lein-project)
        :additional-uberjars (mapv (fn [filename] {:uberjar filename}) additional-uberjars)
        :is-pe-build (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))
-       :repo-name (format "%s" (get-local-ezbake-var lein-project :repo-target ""))})))
+       :repo-name (format "%s" (get-local-ezbake-var lein-project :repo-target ""))
+       :nonfinal-repo-name (format "%s" (get-local-ezbake-var lein-project :nonfinal-repo-target ""))})))
 
 (schema/defn get-additional-uberjars
   "Returns the list of additional uberjar dependencies from the given lein project"
