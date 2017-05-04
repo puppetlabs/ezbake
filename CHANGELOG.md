@@ -1,3 +1,16 @@
+## 1.3.0 - 2017-5-3
+This is a feature release
+  * (SERVER-1772) Add support for building and installing additional uberjars.
+    An `:additional-uberjars` EZBake setting has been added which allows projects
+    to specify a list of versioned dependencies that will be built and installed
+    next to the projects own uberjar.
+  * (SERVER-1772) Support installing a `cli-defaults.sh` file which can be
+    configured by EZBake projects and supply defaults for bash variables in a
+    project's cli scripts
+  * (EZ-108) Add support for `EZBAKE_ALLOW_UNREPRODUCIBLE_BUILDS` environment
+    variable that when defined, will allow staging with undeployed SNAPSHOT
+    versions
+
 ## 1.2.1 - 2017-4-20
   * (SERVER-1782) Fix for the openjdk8 package name in SLES-12
 
