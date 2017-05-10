@@ -196,7 +196,7 @@
          :manifest-string (deputils/generate-manifest-string lein-project)
          :dependency-tree (deputils/generate-dependency-tree-string lein-project)
          :additional-uberjar-info uberjar-info
-         :has-additional-uberjars (not-empty additional-uberjars-info)}]
+         :has-additional-uberjars (not (empty? additional-uberjars-info))}]
     (spit
      (fs/file staging-dir "ext" "ezbake.manifest")
      (stencil/render-string "
