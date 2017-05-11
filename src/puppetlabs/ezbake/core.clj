@@ -1,8 +1,10 @@
 (ns puppetlabs.ezbake.core
-  (:import (java.io File InputStream InputStreamReader)
-           (java.util.jar JarEntry JarFile))
+  (:import (java.io File InputStream InputStreamReader FileOutputStream)
+           (java.util.jar JarEntry JarFile)
+           (java.util.zip ZipOutputStream))
   (:require [me.raynes.fs :as fs]
             [clojure.java.io :as io]
+            [clojure.set :as set]
             [clojure.string :as str]
             [clj-time.local :as local-time]
             [stencil.core :as stencil]
@@ -10,6 +12,8 @@
             [leiningen.core.project :as project]
             [leiningen.core.classpath :as lein-classpath]
             [leiningen.deploy :as deploy]
+            [leiningen.jar :as jar]
+            [leiningen.pom :as pom]
             [leiningen.uberjar :as uberjar]
             [schema.core :as schema]
             [puppetlabs.ezbake.dependency-utils :as deputils]
@@ -70,6 +74,7 @@
 
 (def UberjarInfo
   {:uberjar File
+   :dependency-coordinates [schema/Any]
    :lein-project {schema/Any schema/Any}})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -187,7 +192,11 @@
   [lein-project additional-uberjars-info]
   (let [uberjar-info (for [uberjar-info additional-uberjars-info]
                        {:uberjar (fs/base-name (:uberjar uberjar-info))
-                        :dependencies (deputils/generate-dependency-tree-string (:lein-project uberjar-info))})
+                        :dependencies (->> uberjar-info
+                                           :lein-project
+                                           deputils/generate-dependency-tree-string
+                                           (str (:dependency-coordinates
+                                                 uberjar-info) "\n"))})
         template-map
         {:ezbake-version (get-ezbake-version lein-project)
          :package-group (:group lein-project)
@@ -600,6 +609,41 @@ Additional uberjar dependencies:
     (spit out-file-path project-string)
     out-file-path))
 
+(schema/defn build-uberjar-with-dependency-jar! :- schema/Str
+  "Package up the dependencies referenced in the supplied project map and
+  files within the supplied jar path into a new 'uberjar' file.
+
+  Note: The :uberjar profile is implicitly activated for this task, and cannot
+  be deactivated.
+
+  This function is heavily copied from the implementation of
+  leiningen.uberjar/uberjar."
+  [project jar]
+  (let [scoped-profiles (set (project/pom-scope-profiles project :provided))
+        default-profiles (set (project/expand-profile project :default))
+        provided-profiles (remove
+                           (set/difference default-profiles scoped-profiles)
+                           (-> project meta :included-profiles))
+        project (project/merge-profiles
+                 (project/merge-profiles project [:uberjar]) provided-profiles)
+        _ #_ (bail early if snapshot) (pom/check-for-snapshot-deps project)
+        project (update-in project [:jar-inclusions]
+                           concat (:uberjar-inclusions project))
+        standalone-filename (jar/get-jar-filename project :standalone)]
+    (with-open [out (-> standalone-filename
+                        (FileOutputStream.)
+                        (ZipOutputStream.))]
+      (let [whitelisted (select-keys project project/whitelist-keys)
+            project (-> (project/unmerge-profiles project [:default])
+                        (merge whitelisted))
+            deps (->> (lein-classpath/resolve-managed-dependencies
+                       :dependencies :managed-dependencies project)
+                      (filter #(.endsWith (.getName %) ".jar")))
+            jars (cons (io/file jar) deps)]
+        (uberjar/write-components project jars out)))
+    (lein-main/info "Created" standalone-filename)
+    standalone-filename))
+
 (schema/defn build-uberjar-from-coordinates! :- UberjarInfo
   "Build an uberjar from maven coordinates and return a map containing a file
    pointing to the built uberjar and the lein project map that was used to
@@ -612,20 +656,17 @@ Additional uberjar dependencies:
                                 (name project-symbol)
                                 version)
         project-file (extract-project-from-jar! dependency-jar destination-dir)
-        ; This isn't very intuitive, but here we add the dependency back into its own
-        ; lein project. Since we've only extracted the project.clj file from the jar,
-        ; if we were to build an uberjar from that, it would include the compiled code
-        ; for all of its dependencies, but not its own code. By adding itself as a
-        ; dependency, we ensure its own code will be in the final uberjar as well.
         project-map (-> project-file
-                        (project/read [:uberjar])
-                        (update :dependencies conj dependency-coordinates))]
+                        (project/read [:uberjar]))]
     (lein-main/info "Building uberjar for " dependency-coordinates)
     ; When the project.clj file is read by project/read above, it includes the
     ; file's location in the project map that it produces. This is how the
     ; uberjar/uberjar function knows where to create the new uberjar
-    (let [uberjar-file (uberjar/uberjar project-map)]
+    (let [uberjar-file (build-uberjar-with-dependency-jar!
+                        project-map
+                        dependency-jar)]
       {:uberjar uberjar-file
+       :dependency-coordinates dependency-coordinates
        :lein-project project-map})))
 
 (schema/defn build-additional-uberjars! :- [UberjarInfo]
