@@ -63,8 +63,8 @@
 
 (defn expand-snapshot-version
   ([lein-project coords] (expand-snapshot-version lein-project coords {}))
-  ([lein-project [dependency version :as coords] options]
-   [dependency (get-full-snapshot-version lein-project coords options)]))
+  ([lein-project coords options]
+   (assoc coords 1 (get-full-snapshot-version lein-project coords options))))
 
 (defn expand-snapshot-versions
   ([lein-project dependencies] (expand-snapshot-versions lein-project dependencies {}))
