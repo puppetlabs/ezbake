@@ -64,6 +64,18 @@
 (defn expand-snapshot-version
   ([lein-project coords] (expand-snapshot-version lein-project coords {}))
   ([lein-project coords options]
+   ;; For cases where the -SNAPSHOT is expanded to a full version, the version
+   ;; portion of the coordinate (second element in the vector) is replaced but
+   ;; all other qualifying metadata in the coordinate, e.g., any :exclusions
+   ;; which might be present, is preserved.
+   ;;
+   ;; For example, if the original coordinate has:
+   ;;
+   ;;   ['foo "0.0.1-SNAPSHOT" :exclusions ['bar]]
+   ;;
+   ;; .. then the result after expansion might have:
+   ;;
+   ;;   ['foo "0.0.1-20170501.100101-123" :exclusions ['bar]]
    (assoc coords 1 (get-full-snapshot-version lein-project coords options))))
 
 (defn expand-snapshot-versions

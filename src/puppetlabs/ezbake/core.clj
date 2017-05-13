@@ -617,7 +617,13 @@ Additional uberjar dependencies:
   be deactivated.
 
   This function is heavily copied from the implementation of
-  leiningen.uberjar/uberjar."
+  leiningen.uberjar/uberjar, see:
+  https://github.com/technomancy/leiningen/blob/2.7.1/src/leiningen/uberjar.clj#L143-L187.
+  The main difference is that whereas the leiningen uberjar function builds a
+  new jar file for the immediate project artifact,
+  https://github.com/technomancy/leiningen/blob/2.7.1/src/leiningen/uberjar.clj#L167-L172,
+  this function uses the jar file passed in as an argument to this function
+  instead."
   [project jar]
   (let [scoped-profiles (set (project/pom-scope-profiles project :provided))
         default-profiles (set (project/expand-profile project :default))
@@ -626,7 +632,7 @@ Additional uberjar dependencies:
                            (-> project meta :included-profiles))
         project (project/merge-profiles
                  (project/merge-profiles project [:uberjar]) provided-profiles)
-        _ #_ (bail early if snapshot) (pom/check-for-snapshot-deps project)
+        _ (pom/check-for-snapshot-deps project) ;; bail early if snapshot
         project (update-in project [:jar-inclusions]
                            concat (:uberjar-inclusions project))
         standalone-filename (jar/get-jar-filename project :standalone)]
