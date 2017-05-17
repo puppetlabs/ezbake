@@ -496,6 +496,7 @@ Additional uberjar dependencies:
      :start-timeout             (get-local-ezbake-var lein-project :start-timeout "300")
      :stop-timeout              (get-local-ezbake-var lein-project :stop-timeout "60")
      :open-file-limit           (get-local-ezbake-var lein-project :open-file-limit "nil")
+     :is-pe-build               (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))
      :main-namespace            (get-local-ezbake-var lein-project
                                                       :main-namespace
                                                       "puppetlabs.trapperkeeper.main")
