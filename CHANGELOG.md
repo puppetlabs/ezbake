@@ -1,3 +1,22 @@
+## 1.4.0 - 2017-5-18
+This is a feature, maintenance, and bug fix release.
+
+Feature:
+  * (RE-8726) Add support for specifying nonfinal vs. final repo targets and
+    names.
+
+Maintenance:
+  * (RE-4844) Merge together content from the FOSS and PE ezbake templates.
+
+Bugs:
+  * (EZ-109) Eliminate some unnecessarily duplicated strings from the
+    ezbake.manifest file.
+  * (EZ-110) Retain any qualifying attributes (e.g., exclusions) when expanding
+    a SNAPSHOT version for a coordinate, allowing exclusions to be reflected 
+    properly in the resulting ezbake.manifest file.
+  * (EZ-110) For an `additional-uberjar`, build the immediate jar into the final
+    uberjar even when the project has defined its own `uberjar` profile.
+
 ## 1.3.0 - 2017-5-3
 This is a feature release
   * (SERVER-1772) Add support for building and installing additional uberjars.
