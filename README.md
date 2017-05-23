@@ -30,12 +30,10 @@ Error(s) occurred while parsing command-line arguments: Unknown option: "--resta
 
 ## Using
 
-To get started using EZBake, please add it to the `:plugins` key in your
-`project.clj`:
+To get started using EZBake, please add the following to the value for the
+`:plugins` key in your `project.clj`:
 
-```clojure
-{:plugins [[puppetlabs/lein-ezbake "0.2.3"]]}
-```
+[![Clojars Project](http://clojars.org/puppetlabs/lein-ezbake/latest-version.svg)](http://clojars.org/puppetlabs/lein-ezbake)
 
 Before you can get started using it, however, there may be some additional
 configuration necessary.
