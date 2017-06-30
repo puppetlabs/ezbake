@@ -1,3 +1,13 @@
+## 1.5.0 - 2017-6-30
+This is a feature release.
+
+Feature:
+  * (RE-8861) Generate metadata files when building projects.
+    Adds a new `manifest` command that creates an 'ext/build_metadata.json' file
+    containing dependencies and related metadata to aid in tracking down
+    differences between packages built with ezbake.
+    This file is also created during the `stage` and `build` actions.
+
 ## 1.4.0 - 2017-5-18
 This is a feature, maintenance, and bug fix release.
 
