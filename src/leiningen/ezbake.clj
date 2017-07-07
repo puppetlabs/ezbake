@@ -12,6 +12,7 @@ as defined below.
 Actions:
   stage      Generate and stage ezbake artifacts.
   build      Build native packages from staged artifacts.
+  manifest   Generate ezbake manifest json file.
   "
   ([project action]
    (let [resource-path (get-in project [:lein-ezbake :resources :dir])
