@@ -731,7 +731,7 @@ Additional uberjar dependencies:
                   "version" (get-git-sha)
                   "build_time" (local-time/format-local-time (local-time/local-now) :basic-date-time)
                   "components" deps}
-        json-string (json/generate-string metadata)]
+        json-string (json/generate-string metadata {:pretty true})]
     (io/make-parents (fs/file staging-dir "ext" "build_metadata.json"))
     (spit (fs/file staging-dir "ext" "build_metadata.json") json-string)))
 
