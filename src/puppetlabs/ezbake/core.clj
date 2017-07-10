@@ -729,7 +729,7 @@ Additional uberjar dependencies:
         deps (munge-deps dep-map)
         metadata {"packaging_type" {"ezbake" (get-ezbake-version lein-project)}
                   "git_sha" (get-git-sha)
-                  "build_time" (local-time/format-local-time (local-time/local-now) :rfc822)
+                  "build_time" (local-time/format-local-time (local-time/local-now) :basic-date-time)
                   "components" deps}
         json-string (json/generate-string metadata)]
     (io/make-parents (fs/file staging-dir "ext" "build_metadata.json"))
