@@ -728,7 +728,7 @@ Additional uberjar dependencies:
   (let [dep-map (deputils/generate-dependency-map lein-project)
         deps (munge-deps dep-map)
         metadata {"packaging_type" {"ezbake" (get-ezbake-version lein-project)}
-                  "git_sha" (get-git-sha)
+                  "version" (get-git-sha)
                   "build_time" (local-time/format-local-time (local-time/local-now) :basic-date-time)
                   "components" deps}
         json-string (json/generate-string metadata)]
