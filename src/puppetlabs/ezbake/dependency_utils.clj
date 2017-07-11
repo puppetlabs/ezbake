@@ -253,7 +253,7 @@
 (defn generate-dependency-map
   [lein-project]
   (aether/dependency-hierarchy
-   (:dependencies lein-project)
+    (concat (:dependencies lein-project) (:managed-dependencies lein-project))
    (aether/resolve-dependencies
     :coordinates (:dependencies lein-project)
     :managed-coordinates (:managed-dependencies lein-project)
