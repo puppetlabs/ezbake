@@ -1,3 +1,13 @@
+## 1.1.10 - 2017-07-13
+This is a feature release.
+
+Feature:
+  * (RE-8861) Generate metadata files when building projects.
+    Adds a new `manifest` command that creates an `ext/build_metadata.json`
+    file containing dependencies and related metadata to aid in tracking down
+    differences between packages built with ezbake.
+    This file is also created during the `stage` and `build` actions.
+
 ## 1.1.9 - 2017-4-24
   * (maint) Resolve SNAPSHOT dependencies to a deployed snapshot artifact
   * (maint) Deploy the project to the snapshots repo when it has a SNAPSHOT version
