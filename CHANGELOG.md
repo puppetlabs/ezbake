@@ -1,3 +1,8 @@
+## 1.5.1 - 2017-7-13
+Bugs:
+  * Get dependencies from requirements which do not have version numbers
+    associated with it, as well parent dependencies.
+
 ## 1.5.0 - 2017-6-30
 This is a feature release.
 
