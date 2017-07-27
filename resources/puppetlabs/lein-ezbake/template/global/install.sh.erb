@@ -139,6 +139,11 @@ function task_install {
     install -m 0644 ext/ezbake.manifest "${dest_apps_dir}"
     install -d -m 0755 "${DESTDIR}${projconfdir}/conf.d"
 
+    if [ -d ext/docs ]; then
+      install -d "${DESTDIR}${app_prefix}/share/doc/<%= EZBake::Config[:project] %>-<%= EZBake::Config[:version] %>"
+      cp -a ext/docs "${DESTDIR}${app_prefix}/share/doc/<%= EZBake::Config[:project] %>-<%= EZBake::Config[:version] %>"
+    fi
+
 <% if EZBake::Config[:additional_uberjars]  -%>
   <% EZBake::Config[:additional_uberjars].each do |jar| -%>
     install -m 0644 <%= jar %> "${dest_apps_dir}"
