@@ -129,6 +129,22 @@ function task_install_source_deb_systemd {
     task postinst_deb
 }
 
+# install docs for debian based systems
+function task_install_docs_deb {
+  if [ -d ext/docs ]; then
+    install -d "${DESTDIR}${app_prefix}/share/doc/<%= EZBake::Config[:project] %>"
+    cp -a ext/docs "${DESTDIR}${app_prefix}/share/doc/<%= EZBake::Config[:project] %>"
+  fi
+}
+
+# install docs for rpm based systems
+function task_install_docs_rpm {
+  if [ -d ext/docs ]; then
+    install -d "${DESTDIR}${app_prefix}/share/doc/<%= EZBake::Config[:project] %>-<%= EZBake::Config[:version] %>"
+    cp -a ext/docs "${DESTDIR}${app_prefix}/share/doc/<%= EZBake::Config[:project] %>-<%= EZBake::Config[:version] %>"
+  fi
+}
+
 # Install the ezbake package software. This step is used during RPM &
 # Debian packaging during the 'install' phases.
 function task_install {
@@ -138,11 +154,6 @@ function task_install {
     install -m 0755 ext/ezbake-functions.sh "${dest_apps_dir}"
     install -m 0644 ext/ezbake.manifest "${dest_apps_dir}"
     install -d -m 0755 "${DESTDIR}${projconfdir}/conf.d"
-
-    if [ -d ext/docs ]; then
-      install -d "${DESTDIR}${app_prefix}/share/doc/<%= EZBake::Config[:project] %>-<%= EZBake::Config[:version] %>"
-      cp -a ext/docs "${DESTDIR}${app_prefix}/share/doc/<%= EZBake::Config[:project] %>-<%= EZBake::Config[:version] %>"
-    fi
 
 <% if EZBake::Config[:additional_uberjars]  -%>
   <% EZBake::Config[:additional_uberjars].each do |jar| -%>
@@ -199,6 +210,7 @@ fi
 
 function task_install_redhat {
     task install
+    task install_docs_rpm
 <% EZBake::Config[:redhat][:additional_install].each do |install| -%>
     <%= install %>
 <% end -%>
@@ -206,6 +218,7 @@ function task_install_redhat {
 
 function task_install_deb {
     task install
+    task install_docs_deb
 <% EZBake::Config[:debian][:additional_install].each do |install| -%>
     <%= install %>
 <% end -%>
