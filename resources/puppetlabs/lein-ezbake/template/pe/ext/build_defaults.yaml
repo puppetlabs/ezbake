@@ -2,7 +2,7 @@
 packaging_url: 'git://github.com/puppetlabs/packaging.git --branch=master'
 packaging_repo: 'packaging'
 default_cow: 'base-trusty-amd64.cow'
-cows: 'base-precise-amd64.cow base-trusty-amd64.cow base-xenial-amd64.cow'
+cows: 'base-trusty-amd64.cow base-xenial-amd64.cow'
 pbuild_conf: '/etc/pbuilderrc'
 packager: 'puppet'
 gpg_key: '7F438280EF8D349F'
