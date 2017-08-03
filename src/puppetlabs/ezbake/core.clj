@@ -442,6 +442,25 @@ Additional uberjar dependencies:
             (get-timestamp-string))
     lein-version))
 
+(defn generate-package-version-from-version
+  [lein-version]
+  {:pre [(string? lein-version)]
+   :post [(string? %)]}
+  (if (.endsWith lein-version "-SNAPSHOT")
+    (format "%s"
+            (str/replace lein-version #"-SNAPSHOT|-" { "-SNAPSHOT" "" "-" "."}))
+    lein-version))
+
+(defn generate-package-release-from-version
+  [lein-version]
+  {:pre [(string? lein-version)]
+   :post [(string? %)]}
+  (if (.endsWith lein-version "-SNAPSHOT")
+    (format "%s.%s"
+            (str/replace lein-version #".*-" "0.1")
+            (get-timestamp-string))
+    lein-version))
+
 ;; TODO: this is a horrible, horrible hack; I can't yet see a good way to
 ;; let the packaging library know what the version number is without faking
 ;; up a git tag; it seems like the packaging code is pretty well hard-coded
@@ -476,7 +495,8 @@ Additional uberjar dependencies:
                                                       platform
                                                       variable)))]
     {:project                   (:name lein-project)
-     :version                   (:version lein-project)
+     :packaging-version         (generate-package-version-from-version (:version lein-project))
+     :packaging-release         (generate-package-release-from-version (:version lein-project))
      :real-name                 (get-real-name (:name lein-project))
      :user                      (get-local-ezbake-var lein-project :user
                                                       (:name lein-project))
@@ -800,6 +820,14 @@ Additional uberjar dependencies:
   (exec/exec "rake" "package:bootstrap" :dir staging-dir)
   (let [downstream-job nil
         rake-call ["rake" "pl:jenkins:uber_build[5]"]]
+    (exec/lazy-sh rake-call {:dir staging-dir})))
+
+(defmethod action "local-build"
+  [_ lein-project build-target]
+  (action "stage" lein-project build-target)
+  (exec/exec "rake" "package:bootstrap" :dir staging-dir)
+  (let [downstream-job nil
+        rake-call ["rake" "pl:local_build"]]
     (exec/lazy-sh rake-call {:dir staging-dir})))
 
 (defmethod action :default
