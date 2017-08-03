@@ -476,6 +476,7 @@ Additional uberjar dependencies:
                                                       platform
                                                       variable)))]
     {:project                   (:name lein-project)
+     :version                   (:version lein-project)
      :real-name                 (get-real-name (:name lein-project))
      :user                      (get-local-ezbake-var lein-project :user
                                                       (:name lein-project))
