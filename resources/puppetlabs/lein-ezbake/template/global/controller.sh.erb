@@ -1,0 +1,134 @@
+#!/bin/bash
+
+build_os=$1
+
+if [ ! -d base ]; then
+        DESTDIR=base bash install.sh install_redhat
+fi
+if [ ! -d systemd_el ]; then
+        cp -r base systemd_el
+        DESTDIR=systemd_el bash install.sh systemd_redhat
+fi
+if [ ! -d old_el ]; then
+        cp -r base old_el
+        DESTDIR=old_el bash install.sh sysv_init_redhat
+fi
+if [ ! -d old_sles ]; then
+        cp -r base old_sles
+        DESTDIR=old_sles bash install.sh sysv_init_suse
+fi
+
+# things are only different if we have docs
+
+if [ -d ext/docs ]; then
+        if [ ! -d base_deb ]; then
+                DESTDIR=base_deb bash install.sh install_deb
+                if [ ! -d systemd_deb ]; then
+                        cp -r base_deb systemd_deb
+                        DESTDIR=systemd_deb bash install.sh systemd_deb
+                fi
+                if [ ! -d sysvinit_deb ]; then
+                        cp -r base_deb sysvinit_deb
+                        DESTDIR=sysvinit_deb bash install.sh sysvinit_deb
+                fi
+        fi
+else
+        if [ ! -d systemd_deb ]; then
+                cp -r base systemd_deb
+                DESTDIR=systemd_deb bash install.sh systemd_deb
+        fi
+        if [ ! -d sysvinit_deb ]; then
+                cp -r base sysvinit_deb
+                DESTDIR=sysvinit_deb bash install sysvinit_deb
+        fi
+fi
+
+case $build_os in
+        *el-7*|*el7*)
+                os=el
+                os_version=7
+                dir=systemd_el
+                ;;
+        *el-6*|*el6*)
+                os=el
+                os_version=6
+                dir=old_el
+                ;;
+        *sles-11*|*sles11*)
+                os=suse
+                os_version=1110
+                dir=old_sles
+                os_dist=sles11
+                ;;
+        *sles-12*|*sles12*)
+                os=suse
+                os_version=1315
+                dir=systemd_el
+                os_dist=sles12
+                ;;
+        *trusty*)
+                os=ubuntu
+                dir=sysvinit_deb
+                os_dist=trusty
+                ;;
+        *jessie*)
+                os=debian
+                dir=systemd_deb
+                os_dist=jessie
+                ;;
+        *xenial*)
+                os=ubuntu
+                dir=systemd_deb
+                os_dist=xenial
+                ;;
+        *stretch*)
+                os=debian
+                dir=systemd_deb
+                os_dist=stretch
+                ;;
+        *yakkety*)
+                os=ubuntu
+                dir=systemd_deb
+                os_dist=yakkety
+                ;;
+        *)
+                echo "I have no idea what I'm doing with $build_os, teach me?" >&2
+                exit 1
+                ;;
+esac
+
+# bash will eat your spaces, so let's array. see http://mywiki.wooledge.org/BashFAQ/050 for more fun.
+params=("--user" "<%= EZBake::Config[:user] -%>" "--group" "<%= EZBake::Config[:group] -%>" "--chdir" "${dir}" "--realname" "<%= EZBake::Config[:real_name] -%>" "--debug" "--operating-system" "${os}" "--name" "<%= EZBake::Config[:project] -%>" "--package-version" "<%= EZBake::Config[:version] -%>" "--release" "<%= EZBake::Config[:release] -%>")
+if [ -n "${os_version}" ]; then params+=("--os-version" "${os_version}"); fi
+if [ -n "${os_dist}" ]; then params+=("--dist" "${os_dist}"); fi
+
+<% unless EZBake::Config[:terminus_info].empty? -%>
+DESTDIR=termini bash install.sh termini
+params+=('--build-termini')
+<% end -%>
+
+<% if EZBake::Config[:logrotate_enabled]-%>
+DESTDIR=systemd_el bash install.sh logrotate
+DESTDIR=systemd_deb bash install.sh logrotate
+DESTDIR=sysvinit_deb bash install.sh logrotate
+DESTDIR=old_el bash install.sh logrotate_legacy
+DESTDIR=old_sles bash install.sh logrotate_legacy
+params+=('--logrotate')
+<% end -%>
+
+<% if EZBake::Config[:is_pe_build] -%>
+params+=('--enterprise-build')
+<% end -%>
+if [[ "$build_os" =~ el-7 || "$build_os" =~ el-6 || "$build_os" =~ sles || "$build_os" =~ fedora ]]; then
+        <%EZBake::Config[:redhat][:additional_dependencies].each do |dep| -%>
+                params+=("--additional-dependency")
+                params+=("<%= dep -%>")
+        <% end -%>
+else
+        <%EZBake::Config[:debian][:additional_dependencies].each do |dep| -%>
+                params+=("--additional-dependency")
+                params+=("<%= dep -%>")
+        <% end -%>
+fi
+
+ruby $PWD/ext/fpm.rb "${params[@]}"

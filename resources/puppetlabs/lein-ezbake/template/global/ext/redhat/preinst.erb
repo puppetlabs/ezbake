@@ -1,0 +1,19 @@
+# Note: changes to this section of the spec may require synchronisation with the
+# install.sh source based installation methodology.
+#
+# Add <%= EZBake::Config[:group] %> group
+getent group <%= EZBake::Config[:group] %> > /dev/null || \
+  groupadd -r <%= EZBake::Config[:group] %> || :
+# Add <%= EZBake::Config[:user] %> user
+if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
+  usermod --gid <%= EZBake::Config[:group] %> --home %{_app_data} \
+  --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
+else
+  useradd -r --gid <%= EZBake::Config[:group] %> --home %{_app_data} --shell $(which nologin) \
+    --comment "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
+fi
+<% if defined?(additional_preinst)
+additional_preinst.split(',').each do |cmd| -%>
+<%= cmd %>
+<% end -%>
+<% end -%>
