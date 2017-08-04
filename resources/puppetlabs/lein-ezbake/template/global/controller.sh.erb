@@ -107,9 +107,9 @@ case $build_os in
 esac
 
 # bash will eat your spaces, so let's array. see http://mywiki.wooledge.org/BashFAQ/050 for more fun.
-params=("--user" "<%= EZBake::Config[:user] -%>" "--group" "<%= EZBake::Config[:group] -%>" "--chdir" "${dir}" "--realname" "<%= EZBake::Config[:real_name] -%>" "--debug" "--operating-system" "${os}" "--name" "<%= EZBake::Config[:project] -%>" "--package-version" "<%= EZBake::Config[:version] -%>" "--release" "<%= EZBake::Config[:release] -%>")
-if [ -n "${os_version}" ]; then params+=("--os-version" "${os_version}"); fi
-if [ -n "${os_dist}" ]; then params+=("--dist" "${os_dist}"); fi
+params=("--user" "<%= EZBake::Config[:user] -%>" "--group" "<%= EZBake::Config[:group] -%>" "--chdir" "$dir" "--realname" "<%= EZBake::Config[:real_name] -%>" "--debug" "--operating-system" "$os" "--name" "<%= EZBake::Config[:project] -%>" "--package-version" "<%= EZBake::Config[:version] -%>" "--release" "<%= EZBake::Config[:release] -%>")
+if [ -n "$os_version" ]; then params+=("--os-version" "$os_version"); fi
+if [ -n "$os_dist" ]; then params+=("--dist" "$os_dist"); fi
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
 DESTDIR=termini bash install.sh termini
