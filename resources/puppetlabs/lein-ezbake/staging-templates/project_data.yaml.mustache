@@ -19,6 +19,7 @@ files:
   - Makefile.erb
   - puppet
   - install.sh.erb
+  - ext/fpm.rb
 templates:
   - source: ext/redhat/ezbake.spec.erb
     target: ext/redhat/{{{project}}}.spec
@@ -36,7 +37,6 @@ templates:
     target: ext/{{{project}}}.logrotate-legacy.conf
   - source: ext/ezbake.tmpfiles.conf.erb
     target: ext/{{{project}}}.tmpfiles.conf
-  - ext/fpm.rb.erb
   - ext/redhat/preinst.erb
   - ext/redhat/postinst.erb
   - ext/redhat/prerm.erb
