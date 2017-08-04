@@ -38,7 +38,7 @@ if [ -d ext/docs ]; then
                 fi
                 if [ ! -d sysvinit_deb ]; then
                         cp -r base_deb sysvinit_deb
-                        DESTDIR=sysvinit_deb bash install.sh sysvinit_deb
+                        DESTDIR=sysvinit_deb bash install.sh sysv_init_deb
                 fi
         fi
 else
@@ -48,7 +48,7 @@ else
         fi
         if [ ! -d sysvinit_deb ]; then
                 cp -r base sysvinit_deb
-                DESTDIR=sysvinit_deb bash install sysvinit_deb
+                DESTDIR=sysvinit_deb bash install sysv_init_deb
         fi
 fi
 
