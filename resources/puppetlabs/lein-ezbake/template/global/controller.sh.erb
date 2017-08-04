@@ -1,5 +1,13 @@
 #!/bin/bash
 
+################
+# Usage: controller.sh <os>
+# The controller script does all of the jar compilation
+# and setup needed to build packages for <os>
+# The os definition is fairly flexible using string matching
+# and currently supports el6, el7, sles11, sles12, debian jessie,
+# debian stretch, ubuntu trusty, ubuntu xenial, and ubuntu yakkety
+################
 build_os=$1
 
 if [ ! -d base ]; then
@@ -18,8 +26,9 @@ if [ ! -d old_sles ]; then
         DESTDIR=old_sles bash install.sh sysv_init_suse
 fi
 
-# things are only different if we have docs
-
+# things are only different if we have docs, deb docs get
+# installed in an unversioned folder but rpm docs get installed
+# in a versioned folder.
 if [ -d ext/docs ]; then
         if [ ! -d base_deb ]; then
                 DESTDIR=base_deb bash install.sh install_deb
@@ -119,11 +128,14 @@ params+=('--logrotate')
 <% if EZBake::Config[:is_pe_build] -%>
 params+=('--enterprise-build')
 <% end -%>
-if [[ "$build_os" =~ el-7 || "$build_os" =~ el-6 || "$build_os" =~ sles || "$build_os" =~ fedora ]]; then
+
+# pull in rpm dependencies
+if [[ "$build_os" =~ el-?7 || "$build_os" =~ el-?6 || "$build_os" =~ sles || "$build_os" =~ fedora ]]; then
         <%EZBake::Config[:redhat][:additional_dependencies].each do |dep| -%>
                 params+=("--additional-dependency")
                 params+=("<%= dep -%>")
         <% end -%>
+# if we aren't an rpm, pull in deb dependencies
 else
         <%EZBake::Config[:debian][:additional_dependencies].each do |dep| -%>
                 params+=("--additional-dependency")

@@ -14,6 +14,7 @@ namespace :pl do
     nested_output = '../../../../output'
     FileUtils.mkdir(base_output) unless File.directory?(base_output)
     Dir.chdir('pkg') do
+      # unpack the tarball we made during the build step
       `tar xf #{Dir.glob("*.gz").join('')}`
       Dir.chdir("#{Pkg::Config.project}-#{Pkg::Config.version}") do
         Pkg::Config.final_mocks.split(" ").each do |mock|

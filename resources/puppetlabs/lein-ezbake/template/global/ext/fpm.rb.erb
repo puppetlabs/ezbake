@@ -54,10 +54,10 @@ OptionParser.new do |opts|
   opts.on('--additional-dependency DEP', 'Additional dependency this package has. Can be passed multiple times.') do |dep|
     options.additional_dependencies << dep
   end
-  opts.on('-u', '--user USER', 'word something') do |user|
+  opts.on('-u', '--user USER', 'USER that should be added with this package') do |user|
     options.user = user
   end
-  opts.on('-g', '--group GROUP', 'words') do |group|
+  opts.on('-g', '--group GROUP', 'GROUP that should be added with this package') do |group|
     options.group = group
   end
   opts.on('--create-dir DIR', 'The package should additionally create DIR') do |dir|
@@ -90,6 +90,10 @@ OptionParser.new do |opts|
   opts.on('--termini-sources <SOURCES>', Array, 'sources for the termini build, defaults to "opt"') do |c|
     options.termini_chdir = c
   end
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
 end.parse!
 
 # validation
@@ -106,17 +110,20 @@ options.output_type = case options.operating_system
                       else
                         fail "Can't figure out the output type for #{options.operating_system}. Teach me?"
                       end
+# don't require the os-version for deb, just require dist
 fail "--os-version is required!" unless options.os_version or options.output_type == 'deb'
+fail "--dist is required!" if options.output_type == 'deb' && options.dist.nil?
+# set some default sources
 if options.sources.empty?
   options.sources = case options.operating_system
                     when :fedora, :suse, :el
-                      if options.operating_system == :el && options.os_version < 7 || (options.operating_system == :suse && options.os_version <= 1210)
+                      if options.operating_system == :el && options.os_version < 7 || (options.operating_system == :suse && options.os_version <= 1210) #sysv rpm platforms
                         ['etc', 'opt', 'var']
                       else
                         ['etc', 'opt', 'usr', 'var']
                       end
                     when :debian, :ubuntu
-                      if options.dist == 'trusty'
+                      if options.dist == 'trusty' #trusty is the only sysv deb we build for right now
                         ['etc', 'opt', 'var']
                       else
                         ['etc', 'lib', 'opt', 'usr', 'var']
@@ -128,10 +135,10 @@ end
 options.dist = "#{options.operating_system}#{options.os_version}" if options.dist.nil?
 
 if options.debug
-  puts "=========================="
-  puts "OPTIONS HASH"
-  puts options
-  puts "=========================="
+  STDERR.puts "=========================="
+  STDERR.puts "OPTIONS HASH"
+  STDERR.puts options
+  STDERR.puts "=========================="
 end
 
 fpm_opts = Array('')
@@ -161,7 +168,7 @@ if options.output_type == 'rpm'
   elsif options.operating_system == :el # old el
     options.sysvinit = 1
     options.old_el = 1
-  elsif options.operating_system == :suse && options.os_version >= 1210
+  elsif options.operating_system == :suse && options.os_version >= 1210 # systemd sles
     options.systemd = 1
     options.systemd_sles = 1
     options.sles = 1
@@ -178,8 +185,6 @@ if options.output_type == 'rpm'
   fpm_opts << "--rpm-rpmbuild-define '_systemd_el #{options.systemd_el}'"
   fpm_opts << "--rpm-rpmbuild-define '_systemd_sles #{options.systemd_sles}'"
   fpm_opts << "--rpm-rpmbuild-define '_old_el #{options.old_el}'"
-
-
   fpm_opts << "--rpm-rpmbuild-define '_sysconfdir /etc'"
   fpm_opts << "--rpm-rpmbuild-define '_prefix #{options.app_prefix}'"
   fpm_opts << "--rpm-rpmbuild-define '_rundir /var/run'"
@@ -197,7 +202,6 @@ if options.output_type == 'rpm'
     fpm_opts << "--depends systemd"
   end
 
- #files/dirs
   fpm_opts << "--config-files /etc/puppetlabs/#{options.realname}"
   fpm_opts << "--config-files /etc/sysconfig/#{options.name}"
 
@@ -269,7 +273,6 @@ elsif options.output_type == 'deb'
   else
     fpm_opts << '--deb-build-depends "ruby | ruby-interpreter"'
   end
-  #todo -- additional build deps
   fpm_opts << '--deb-priority optional'
   fpm_opts << '--category utils'
 end
@@ -349,11 +352,11 @@ if options.debug
   STDERR.puts "FPM_EDITOR=\"sed -i 's/%dir %attr(-/%attr(-/'\" fpm #{fpm_opts.join(' ')}"
   STDERR.puts "=========================="
   STDERR.puts "#{Dir.pwd}"
-#  STDERR.puts "#{Dir.glob('**/*').join('\n')}"
 end
 
 # TODO: Find a better way to recursively set directory attributes for rpms.
 # This is bad and I am bad for doing it.
+# MMR - 2017-08-03
 out, err, stat = Open3.capture3("FPM_EDITOR=\"sed -i 's/%dir %attr(-/%attr(-/'\" fpm #{fpm_opts.join(' ')}")
 
 STDERR.puts "OUTPUT\n#{out}"
