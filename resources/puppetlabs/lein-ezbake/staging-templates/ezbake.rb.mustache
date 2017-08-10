@@ -52,7 +52,8 @@ module EZBake
                             "{{package}}" => "{{version}}",
                           {{/replaces-pkgs}}
                           },
-      :bootstrap_source => '{{{bootstrap-source}}}',
-      :logrotate_enabled => {{{logrotate-enabled}}}
+      :bootstrap_source  => '{{{bootstrap-source}}}',
+      :logrotate_enabled => {{{logrotate-enabled}}},
+      :create_jar_dir    => {{{create-jar-dir}}}
   }
 end

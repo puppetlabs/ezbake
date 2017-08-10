@@ -524,6 +524,7 @@ Additional uberjar dependencies:
                                                             :bootstrap-cfg))
      :logrotate-enabled         (get-local-ezbake-var lein-project :logrotate-enabled
                                                       true)
+     :create-jar-dir            (get-local-ezbake-var lein-project :create-jar-dir false)
      :additional-uberjars       (quoted-list additional-uberjars)}))
 
 ;; TODO: this is wonky; we're basically doing some templating here and it
