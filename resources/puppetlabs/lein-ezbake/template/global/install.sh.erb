@@ -195,6 +195,10 @@ if [ -e "<%= EZBake::Config[:cli_defaults_file] %>" ]; then
     install -m 0755 <%= EZBake::Config[:cli_defaults_file] %> "${dest_apps_dir}/cli/"
 fi
 
+<% if EZBake::Config[:create_jar_dir] -%>
+  install -d -m 0755 "${app_data}/jars"
+<% end -%>
+
 <% EZBake::Config[:bin_files].each do |bin_file| -%>
     install -m 0755 <%= bin_file %> "${DESTDIR}${bindir}"
     <% basename = File.basename(bin_file) -%>
