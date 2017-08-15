@@ -21,7 +21,8 @@ wait_for_app()
         fi
 
         # if there are any TCP ports associated with the process, return success
-        netstat -tulpn 2>/dev/null | grep "$pid" 2>&1 >/dev/null
+        # ports are listed in column 7 for tcp and column 6 for udp. We don't care about udp.
+        netstat -tulpn 2>/dev/null | awk '{print $7}' | grep "$pid" 2>&1 >/dev/null
         if [ "$?" = 0 ]; then
             sleep 5
             return 0
