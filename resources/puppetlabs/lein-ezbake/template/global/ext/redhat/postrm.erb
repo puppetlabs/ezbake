@@ -7,7 +7,7 @@
 %if %{_with_sysvinit}
 # Remove the rundir if this is an uninstall (as opposed to an upgrade)...
 if [ "$1" = "0" ]; then
-    rm -rf %{_app_rundir} || :
+    rm -rf %{_app_rundir}
 fi
 
 # Only restart it if it is running
