@@ -117,7 +117,7 @@ fail "--dist is required!" if options.output_type == 'deb' && options.dist.nil?
 if options.sources.empty?
   options.sources = case options.operating_system
                     when :fedora, :suse, :el
-                      if options.operating_system == :el && options.os_version < 7 || (options.operating_system == :suse && options.os_version <= 1210) #sysv rpm platforms
+                      if options.operating_system == :el && options.os_version < 7 || options.operating_system == :suse && options.os_version <= 12 #sysv rpm platforms
                         ['etc', 'opt', 'var']
                       else
                         ['etc', 'opt', 'usr', 'var']
@@ -168,7 +168,7 @@ if options.output_type == 'rpm'
   elsif options.operating_system == :el # old el
     options.sysvinit = 1
     options.old_el = 1
-  elsif options.operating_system == :suse && options.os_version >= 1210 # systemd sles
+  elsif options.operating_system == :suse && options.os_version >= 12 # systemd sles
     options.systemd = 1
     options.systemd_sles = 1
     options.sles = 1
