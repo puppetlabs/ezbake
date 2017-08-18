@@ -1,12 +1,13 @@
 #!/bin/bash
 
 ################
-# Usage: controller.sh <os>
+# Usage: controller.sh <os> <version>
 # The controller script does all of the jar compilation
 # and setup needed to build packages for <os>
-# The os definition is fairly flexible using string matching
-# and currently supports el6, el7, sles11, sles12, debian jessie,
-# debian stretch, ubuntu trusty, ubuntu xenial, and ubuntu yakkety
+# The os string should be one of el, sles, debian, ubuntu,
+# or fedora
+# The version should be the numerical OS version for el,
+# sles, and fedora and the codename for debian/ubuntu.
 ################
 build_os=$1
 build_ver=$2
