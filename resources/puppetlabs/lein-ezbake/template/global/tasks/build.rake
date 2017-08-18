@@ -23,14 +23,16 @@ namespace :pl do
           os, ver = /([a-zA-Z]+)(\d+)/.match(platform_path).captures
           platform_path = "#{os}/#{ver}"
           FileUtils.mkdir_p("#{nested_output}/#{platform_path}") unless File.directory?("#{nested_output}/#{platform_path}")
-          `bash controller.sh #{platform}`
+          `bash controller.sh #{os} #{ver}`
           FileUtils.cp(Dir.glob("*#{os}#{ver}*.rpm"), "#{nested_output}/#{platform_path}")
         end
         Pkg::Config.cows.split(" ").each do |cow|
           platform = cow.split('-')[1..-2].join('-')
           platform_path = "deb/#{platform}"
           FileUtils.mkdir_p("#{nested_output}/#{platform_path}") unless File.directory?("#{nested_output}/#{platform_path}")
-          `bash controller.sh #{cow}`
+          # there's no differences in packaging for deb vs ubuntu so picking debian
+          # if that changes we'll need to fix that
+          `bash controller.sh debian #{platform}`
           FileUtils.cp(Dir.glob("*#{platform}*.deb"), "#{nested_output}/#{platform_path}")
         end
       end
