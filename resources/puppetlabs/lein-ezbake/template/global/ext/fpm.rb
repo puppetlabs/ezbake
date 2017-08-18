@@ -30,7 +30,7 @@ options.termini_chdir = 'termini'
 options.termini_sources = ['opt']
 
 OptionParser.new do |opts|
-  opts.on('-o', '--operating-system OS', [:fedora, :el, :suse, :debian, :ubuntu], 'Select operating system (fedora, el, suse, debian, ubuntu)') do |o|
+  opts.on('-o', '--operating-system OS', [:fedora, :el, :sles, :debian, :ubuntu], 'Select operating system (fedora, el, suse, debian, ubuntu)') do |o|
     options.operating_system = o
   end
   opts.on('--os-version VERSION', Integer, 'VERSION of the operating system to build for') do |v|
@@ -103,7 +103,7 @@ fail "--package-version is required!" unless options.version
 fail "--operating-system is required!" unless options.operating_system
 options.chdir = options.dist if options.chdir.nil?
 options.output_type = case options.operating_system
-                      when :fedora, :el, :suse
+                      when :fedora, :el, :sles
                         'rpm'
                       when :debian, :ubuntu
                         'deb'
@@ -116,8 +116,8 @@ fail "--dist is required!" if options.output_type == 'deb' && options.dist.nil?
 # set some default sources
 if options.sources.empty?
   options.sources = case options.operating_system
-                    when :fedora, :suse, :el
-                      if options.operating_system == :el && options.os_version < 7 || options.operating_system == :suse && options.os_version <= 12 #sysv rpm platforms
+                    when :fedora, :sles, :el
+                      if options.operating_system == :el && options.os_version < 7 || options.operating_system == :sles && options.os_version <= 12 #sysv rpm platforms
                         ['etc', 'opt', 'var']
                       else
                         ['etc', 'opt', 'usr', 'var']
@@ -168,13 +168,13 @@ if options.output_type == 'rpm'
   elsif options.operating_system == :el # old el
     options.sysvinit = 1
     options.old_el = 1
-  elsif options.operating_system == :suse && options.os_version >= 12 # systemd sles
+  elsif options.operating_system == :sles && options.os_version >= 12 # systemd sles
     options.systemd = 1
     options.systemd_sles = 1
     options.sles = 1
     options.certs_package = 'ca-certificates-mozilla'
     options.java = 'java-1_8_0-openjdk-headless'
-  elsif options.operating_system == :suse #old sles
+  elsif options.operating_system == :sles #old sles
     options.sysvinit = 1
     options.old_sles = 1
   end

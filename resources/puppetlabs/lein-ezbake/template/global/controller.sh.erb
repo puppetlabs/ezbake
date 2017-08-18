@@ -10,45 +10,47 @@
 ################
 build_os=$1
 
-if [ ! -d base ]; then
-        DESTDIR=base bash install.sh install_redhat
+BASEPATH='pkg_artifacts'
+mkdir $BASEPATH
+if [ ! -d "$BASEPATH/base" ]; then
+        DESTDIR="$BASEPATH/base" bash install.sh install_redhat
 fi
-if [ ! -d systemd_el ]; then
-        cp -r base systemd_el
-        DESTDIR=systemd_el bash install.sh systemd_redhat
+if [ ! -d "$BASEPATH/systemd_el" ]; then
+        cp -r "$BASEPATH/base" "$BASEPATH/systemd_el"
+        DESTDIR="$BASEPATH/systemd_el" bash install.sh systemd_redhat
 fi
-if [ ! -d old_el ]; then
-        cp -r base old_el
-        DESTDIR=old_el bash install.sh sysv_init_redhat
+if [ ! -d "$BASEPATH/old_el" ]; then
+        cp -r "$BASEPATH/base" "$BASEPATH/old_el"
+        DESTDIR="$BASEPATH/old_el" bash install.sh sysv_init_redhat
 fi
-if [ ! -d old_sles ]; then
-        cp -r base old_sles
-        DESTDIR=old_sles bash install.sh sysv_init_suse
+if [ ! -d "$BASEPATH/old_sles" ]; then
+        cp -r "$BASEPATH/base" "$BASEPATH/old_sles"
+        DESTDIR="$BASEPATH/old_sles" bash install.sh sysv_init_suse
 fi
 
 # things are only different if we have docs, deb docs get
 # installed in an unversioned folder but rpm docs get installed
 # in a versioned folder.
 if [ -d ext/docs ]; then
-        if [ ! -d base_deb ]; then
-                DESTDIR=base_deb bash install.sh install_deb
-                if [ ! -d systemd_deb ]; then
-                        cp -r base_deb systemd_deb
-                        DESTDIR=systemd_deb bash install.sh systemd_deb
+        if [ ! -d "$BASEPATH/base_deb" ]; then
+                DESTDIR="$BASEPATH/base_deb" bash install.sh install_deb
+                if [ ! -d "$BASEPATH/systemd_deb" ]; then
+                        cp -r "$BASEPATH/base_deb" "$BASEPATH/systemd_deb"
+                        DESTDIR="$BASEPATH/systemd_deb" bash install.sh systemd_deb
                 fi
-                if [ ! -d sysvinit_deb ]; then
-                        cp -r base_deb sysvinit_deb
-                        DESTDIR=sysvinit_deb bash install.sh sysv_init_deb
+                if [ ! -d "$BASEPATH/sysvinit_deb" ]; then
+                        cp -r "$BASEPATH/base_deb" "$BASEPATH/sysvinit_deb"
+                        DESTDIR="$BASEPATH/sysvinit_deb" bash install.sh sysv_init_deb
                 fi
         fi
 else
-        if [ ! -d systemd_deb ]; then
-                cp -r base systemd_deb
-                DESTDIR=systemd_deb bash install.sh systemd_deb
+        if [ ! -d "$BASEPATH/systemd_deb" ]; then
+                cp -r "$BASEPATH/base" "$BASEPATH/systemd_deb"
+                DESTDIR="$BASEPATH/systemd_deb" bash install.sh systemd_deb
         fi
-        if [ ! -d sysvinit_deb ]; then
-                cp -r base sysvinit_deb
-                DESTDIR=sysvinit_deb bash install sysv_init_deb
+        if [ ! -d "$BASEPATH/sysvinit_deb" ]; then
+                cp -r "$BASEPATH/base" "$BASEPATH/sysvinit_deb"
+                DESTDIR="$BASEPATH/sysvinit_deb" bash install sysv_init_deb
         fi
 fi
 
@@ -56,46 +58,46 @@ case $build_os in
         *el-7*|*el7*)
                 os=el
                 os_version=7
-                dir=systemd_el
+                dir="$BASEPATH/systemd_el"
                 ;;
         *el-6*|*el6*)
                 os=el
                 os_version=6
-                dir=old_el
+                dir="$BASEPATH/old_el"
                 ;;
         *sles-11*|*sles11*)
-                os=suse
+                os=sles
                 os_version=11
-                dir=old_sles
+                dir="$BASEPATH/old_sles"
                 ;;
         *sles-12*|*sles12*)
-                os=suse
-                os_version=13
-                dir=systemd_el
+                os=sles
+                os_version=12
+                dir="$BASEPATH/systemd_el"
                 ;;
         *trusty*)
                 os=ubuntu
-                dir=sysvinit_deb
+                dir="$BASEPATH/sysvinit_deb"
                 os_dist=trusty
                 ;;
         *jessie*)
                 os=debian
-                dir=systemd_deb
+                dir="$BASEPATH/systemd_deb"
                 os_dist=jessie
                 ;;
         *xenial*)
                 os=ubuntu
-                dir=systemd_deb
+                dir="$BASEPATH/systemd_deb"
                 os_dist=xenial
                 ;;
         *stretch*)
                 os=debian
-                dir=systemd_deb
+                dir="$BASEPATH/systemd_deb"
                 os_dist=stretch
                 ;;
         *yakkety*)
                 os=ubuntu
-                dir=systemd_deb
+                dir="$BASEPATH/systemd_deb"
                 os_dist=yakkety
                 ;;
         *)
@@ -110,16 +112,17 @@ if [ -n "$os_version" ]; then params+=("--os-version" "$os_version"); fi
 if [ -n "$os_dist" ]; then params+=("--dist" "$os_dist"); fi
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
-DESTDIR=termini bash install.sh termini
+DESTDIR="$BASEPATH/termini" bash install.sh termini
 params+=('--build-termini')
+params+=('--termini-chdir' "$BASEPATH/termini")
 <% end -%>
 
 <% if EZBake::Config[:logrotate_enabled]-%>
-DESTDIR=systemd_el bash install.sh logrotate
-DESTDIR=systemd_deb bash install.sh logrotate
-DESTDIR=sysvinit_deb bash install.sh logrotate
-DESTDIR=old_el bash install.sh logrotate_legacy
-DESTDIR=old_sles bash install.sh logrotate_legacy
+if [[ "$dir" =~ old_ ]]; then
+        DESTDIR=$dir bash install.sh logrotate_legacy
+else
+        DESTDIR=$dir bash install.sh logrotate
+fi
 params+=('--logrotate')
 <% end -%>
 
@@ -142,3 +145,5 @@ else
 fi
 
 ruby $PWD/ext/fpm.rb "${params[@]}"
+
+rm -rf $BASEPATH

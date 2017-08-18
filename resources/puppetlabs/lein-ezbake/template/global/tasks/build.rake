@@ -18,14 +18,20 @@ namespace :pl do
       `tar xf #{Dir.glob("*.gz").join('')}`
       Dir.chdir("#{Pkg::Config.project}-#{Pkg::Config.version}") do
         Pkg::Config.final_mocks.split(" ").each do |mock|
-          FileUtils.mkdir("#{nested_output}/#{mock}") unless File.directory?("#{nested_output}/#{mock}")
-          `bash controller.sh #{mock}`
-          FileUtils.mv(Dir.glob("*.rpm"), "#{nested_output}/#{mock}")
+          platform = mock.split('-')[1..-2].join('-')
+          platform_path = platform.gsub(/\-/, '')
+          os, ver = /([a-zA-Z]+)(\d+)/.match(platform_path).captures
+          platform_path = "#{os}/#{ver}"
+          FileUtils.mkdir_p("#{nested_output}/#{platform_path}") unless File.directory?("#{nested_output}/#{platform_path}")
+          `bash controller.sh #{platform}`
+          FileUtils.cp(Dir.glob("*#{os}#{ver}*.rpm"), "#{nested_output}/#{platform_path}")
         end
         Pkg::Config.cows.split(" ").each do |cow|
-          FileUtils.mkdir("#{nested_output}/#{cow}") unless File.directory?("#{nested_output}/#{cow}")
+          platform = cow.split('-')[1..-2].join('-')
+          platform_path = "deb/#{platform}"
+          FileUtils.mkdir_p("#{nested_output}/#{platform_path}") unless File.directory?("#{nested_output}/#{platform_path}")
           `bash controller.sh #{cow}`
-          FileUtils.mv(Dir.glob("*.deb"), "#{nested_output}/#{cow}")
+          FileUtils.cp(Dir.glob("*#{platform}*.deb"), "#{nested_output}/#{platform_path}")
         end
       end
     end
