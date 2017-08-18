@@ -251,7 +251,8 @@ special.
 
 Packages will end up in the output directory. RPM targets can be overwritten
 by setting the `MOCK` environment variable and deb targets can be overwritten
-by setting the `COW` environment variable.
+by setting the `COW` environment variable. These variables should be
+space-separated lists of rpm(MOCK) and deb(COW) platforms.
 
 #### `build` with a different profile
 
