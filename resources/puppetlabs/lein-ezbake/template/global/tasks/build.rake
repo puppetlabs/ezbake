@@ -19,15 +19,20 @@ namespace :pl do
         os, ver = /([a-zA-Z]+)(\d+)/.match(platform_path).captures
         platform_path = "#{os}/#{ver}"
         `bash controller.sh #{os} #{ver}`
+        # carry forward defaults from mock.rake
+        repo = Pkg::Config.yum_repo_name || 'products'
         # We want to include the arches for el/sles/fedora paths
         ['x86_64', 'i386'].each do |arch|
-          FileUtils.mkdir_p("#{pkg_path}/#{platform_path}/#{arch}") unless File.directory?("#{pkg_path}/#{platform_path}/#{arch}")
-          FileUtils.cp(Dir.glob("*#{os}#{ver}*.rpm"), "#{pkg_path}/#{platform_path}/#{arch}")
+          target_dir = "#{pkg_path}/#{platform_path}/#{repo}/#{arch}"
+          FileUtils.mkdir_p(target_dir) unless File.directory?(target_dir)
+          FileUtils.cp(Dir.glob("*#{os}#{ver}*.rpm"), target_dir)
         end
       end
       Pkg::Config.cows.split(" ").each do |cow|
+        # carry forward defaults from Packaging::Deb::Repo
+        repo = Pkg::Config.apt_repo_name || 'main'
         platform = cow.split('-')[1..-2].join('-')
-        platform_path = "deb/#{platform}"
+        platform_path = "deb/#{platform}/#{repo}"
         FileUtils.mkdir_p("#{pkg_path}/#{platform_path}") unless File.directory?("#{pkg_path}/#{platform_path}")
         # there's no differences in packaging for deb vs ubuntu so picking debian
         # if that changes we'll need to fix that
