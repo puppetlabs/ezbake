@@ -234,6 +234,26 @@ version of PE you're building a package for.  e.g.:
 PE_VER=2016.3 lein with-profile ezbake ezbake build
 ```
 
+#### `local-build`
+
+```shell
+lein with-profile ezbake ezbake local-build
+```
+
+This will do everything the `stage` action does and then call the local builder
+defined for this project. This will build .deb and .rpm packages for the project
+on your local machine using [FPM](https://github.com/jordansissel/fpm). To
+build successfully you'll need the FPM gem installed. You'll also need java
+and leiningen. To build RPMs you'll want to be on some sort of RPM-based system
+as you need RPM build tools. To build RPMs for SLES you'll need to have 
+the systemd-rpm-macros rpm installed. Building .debs doesn't require anything
+special.
+
+Packages will end up in the output directory. RPM targets can be overwritten
+by setting the `MOCK` environment variable and deb targets can be overwritten
+by setting the `COW` environment variable. These variables should be
+space-separated lists of rpm(MOCK) and deb(COW) platforms.
+
 #### `build` with a different profile
 
 ```shell

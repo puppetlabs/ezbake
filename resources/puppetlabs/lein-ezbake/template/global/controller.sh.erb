@@ -1,0 +1,136 @@
+#!/bin/bash
+
+################
+# Usage: controller.sh <os> <version>
+# The controller script does all of the jar compilation
+# and setup needed to build packages for <os>
+# The os string should be one of el, sles, debian, ubuntu,
+# or fedora
+# The version should be the numerical OS version for el,
+# sles, and fedora and the codename for debian/ubuntu.
+################
+build_os=$1
+build_ver=$2
+
+BASEPATH='pkg_artifacts'
+mkdir $BASEPATH
+if [ ! -d "$BASEPATH/base" ]; then
+        DESTDIR="$BASEPATH/base" bash install.sh install_redhat
+fi
+if [ ! -d "$BASEPATH/systemd_el" ]; then
+        cp -r "$BASEPATH/base" "$BASEPATH/systemd_el"
+        DESTDIR="$BASEPATH/systemd_el" bash install.sh systemd_redhat
+fi
+if [ ! -d "$BASEPATH/old_el" ]; then
+        cp -r "$BASEPATH/base" "$BASEPATH/old_el"
+        DESTDIR="$BASEPATH/old_el" bash install.sh sysv_init_redhat
+fi
+if [ ! -d "$BASEPATH/old_sles" ]; then
+        cp -r "$BASEPATH/base" "$BASEPATH/old_sles"
+        DESTDIR="$BASEPATH/old_sles" bash install.sh sysv_init_suse
+fi
+
+# things are only different if we have docs, deb docs get
+# installed in an unversioned folder but rpm docs get installed
+# in a versioned folder.
+if [ -d ext/docs ]; then
+        if [ ! -d "$BASEPATH/base_deb" ]; then
+                DESTDIR="$BASEPATH/base_deb" bash install.sh install_deb
+                if [ ! -d "$BASEPATH/systemd_deb" ]; then
+                        cp -r "$BASEPATH/base_deb" "$BASEPATH/systemd_deb"
+                        DESTDIR="$BASEPATH/systemd_deb" bash install.sh systemd_deb
+                fi
+                if [ ! -d "$BASEPATH/sysvinit_deb" ]; then
+                        cp -r "$BASEPATH/base_deb" "$BASEPATH/sysvinit_deb"
+                        DESTDIR="$BASEPATH/sysvinit_deb" bash install.sh sysv_init_deb
+                fi
+        fi
+else
+        if [ ! -d "$BASEPATH/systemd_deb" ]; then
+                cp -r "$BASEPATH/base" "$BASEPATH/systemd_deb"
+                DESTDIR="$BASEPATH/systemd_deb" bash install.sh systemd_deb
+        fi
+        if [ ! -d "$BASEPATH/sysvinit_deb" ]; then
+                cp -r "$BASEPATH/base" "$BASEPATH/sysvinit_deb"
+                DESTDIR="$BASEPATH/sysvinit_deb" bash install sysv_init_deb
+        fi
+fi
+
+os=$build_os
+if [ "$os" = "debian" ]; then
+        os_dist=$build_ver
+else
+        os_version=$build_ver
+fi
+
+case $os in
+        # there's no differences in packaging for deb vs ubuntu
+        # if that changes we'll need to fix this
+        debian|ubuntu)
+                if [ "$os_dist" = 'trusty' ]; then
+                        dir="$BASEPATH/sysvinit_deb"
+                else
+                        dir="$BASEPATH/systemd_deb"
+                fi
+                ;;
+        el)
+                if [ "$os_version" -gt '6' ]; then
+                        dir="$BASEPATH/systemd_el"
+                else
+                        dir="$BASEPATH/old_el"
+                fi
+                ;;
+        sles)
+                if [ "$os_version" -gt '11' ]; then
+                        dir="$BASEPATH/systemd_el"
+                else
+                        dir="$BASEPATH/old_sles"
+                fi
+                ;;
+        *)
+                echo "I have no idea what I'm doing with $os, teach me?" >&2
+                exit 1
+                ;;
+esac
+
+# bash will eat your spaces, so let's array. see http://mywiki.wooledge.org/BashFAQ/050 for more fun.
+params=("--user" "<%= EZBake::Config[:user] -%>" "--group" "<%= EZBake::Config[:group] -%>" "--chdir" "$dir" "--realname" "<%= EZBake::Config[:real_name] -%>" "--debug" "--operating-system" "$os" "--name" "<%= EZBake::Config[:project] -%>" "--package-version" "<%= EZBake::Config[:version] -%>" "--release" "<%= EZBake::Config[:release] -%>")
+if [ -n "$os_version" ]; then params+=("--os-version" "$os_version"); fi
+if [ -n "$os_dist" ]; then params+=("--dist" "$os_dist"); fi
+
+<% unless EZBake::Config[:terminus_info].empty? -%>
+DESTDIR="$BASEPATH/termini" bash install.sh termini
+params+=('--build-termini')
+params+=('--termini-chdir' "$BASEPATH/termini")
+<% end -%>
+
+<% if EZBake::Config[:logrotate_enabled]-%>
+if [[ "$dir" =~ old_ ]]; then
+        DESTDIR=$dir bash install.sh logrotate_legacy
+else
+        DESTDIR=$dir bash install.sh logrotate
+fi
+params+=('--logrotate')
+<% end -%>
+
+<% if EZBake::Config[:is_pe_build] -%>
+params+=('--enterprise-build')
+<% end -%>
+
+# pull in rpm dependencies
+if [[ "$os" = 'el' || "$os" = 'sles' || "$os" = 'fedora' ]]; then
+        <%EZBake::Config[:redhat][:additional_dependencies].each do |dep| -%>
+                params+=("--additional-dependency")
+                params+=("<%= dep -%>")
+        <% end -%>
+# if we aren't an rpm, pull in deb dependencies
+else
+        <%EZBake::Config[:debian][:additional_dependencies].each do |dep| -%>
+                params+=("--additional-dependency")
+                params+=("<%= dep -%>")
+        <% end -%>
+fi
+
+ruby $PWD/ext/fpm.rb "${params[@]}"
+
+rm -rf $BASEPATH

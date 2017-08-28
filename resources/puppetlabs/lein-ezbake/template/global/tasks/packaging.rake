@@ -9,10 +9,10 @@ if File.exist?(build_defs_file)
     STDERR.puts "Unable to load yaml from #{build_defs_file}:"
     STDERR.puts e
   end
-   @packaging_url  = @build_defaults['packaging_url']
-   @packaging_repo = @build_defaults['packaging_repo']
-   raise "Could not find packaging url in #{build_defs_file}" if @packaging_url.nil?
-   raise "Could not find packaging repo in #{build_defs_file}" if @packaging_repo.nil?
+  @packaging_url  = @build_defaults['packaging_url']
+  @packaging_repo = @build_defaults['packaging_repo']
+  raise "Could not find packaging url in #{build_defs_file}" if @packaging_url.nil?
+  raise "Could not find packaging repo in #{build_defs_file}" if @packaging_repo.nil?
 
   namespace :package do
     desc "Bootstrap packaging automation, e.g. clone into packaging repo"
