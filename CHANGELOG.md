@@ -1,3 +1,9 @@
+## 1.1.11 - 2017-08-29
+This is a maintenance release.
+
+Maintenance:
+  * Remove EOL Ubuntu platforms (precise, wily) from the default COW list.
+
 ## 1.1.10 - 2017-07-13
 This is a feature release.
 
