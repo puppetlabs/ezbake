@@ -1,3 +1,8 @@
+## 1.5.2 - 2017-08-29
+Maintenance:
+  * Removes Ubuntu Yakkety and Ubuntu Precise from the default COW list as those
+    platforms are EOL.
+
 ## 1.5.1 - 2017-7-13
 Bugs:
   * Get dependencies from requirements which do not have version numbers
