@@ -56,7 +56,7 @@ else
         fi
         if [ ! -d "$BASEPATH/sysvinit_deb" ]; then
                 cp -r "$BASEPATH/base" "$BASEPATH/sysvinit_deb"
-                DESTDIR="$BASEPATH/sysvinit_deb" bash install sysv_init_deb
+                DESTDIR="$BASEPATH/sysvinit_deb" bash install.sh sysv_init_deb
         fi
 fi
 
