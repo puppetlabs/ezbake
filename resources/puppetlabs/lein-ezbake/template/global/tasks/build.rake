@@ -72,4 +72,37 @@ namespace :pl do
       FileUtils.cp_r(pkg_path, nested_output)
     end
   end
+  desc "get the property and bundle artifacts ready"
+  task :prep_artifacts, [:output_dir] => "pl:fetch" do |t, args|
+    props = Pkg::Config.config_to_yaml
+    bundle = Pkg::Util::Git.git_bundle('HEAD')
+    FileUtils.cp(props, "#{args[:output_dir]}/BUILD_PROPERTIES")
+    FileUtils.cp(bundle, "#{args[:output_dir]}/PROJECT_BUNDLE")
+  end
+  namespace :jenkins do
+    desc "trigger jenkins packaging job"
+    task :trigger_build, [:auth_string, :job_url] do |t, args|
+      Pkg::Util::RakeUtils.invoke_task("pl:prep_artifacts", "#{Dir.pwd}")
+
+      curl_opts = [
+        '--request POST',
+        "--form file0=@#{Dir.pwd}/BUILD_PROPERTIES",
+        "--form file1=@#{Dir.pwd}/PROJECT_BUNDLE",
+      ]
+      if Pkg::Config.build_pe
+        Pkg::Util.check_var('PE_VER', ENV['PE_VER'])
+        curl_opts << %(--form json='{"parameter": [{"name":"PE_VER", "value":"#{ENV['PE_VER']}"},{"name":"BUILD_PROPERTIES", "file":"file0"},{"name":"PROJECT_BUNDLE", "file":"file1"}]}')
+      else
+        curl_opts << %(--form json='{"parameter": [{"name":"BUILD_PROPERTIES", "file":"file0"},{"name":"PROJECT_BUNDLE", "file":"file1"}]}')
+      end
+      if args[:auth_string] =~ /:/
+        curl_opts << "--user #{args[:auth_string]}"
+        Pkg::Util::Net.curl_form_data("#{args[:job_url]}/build", curl_opts)
+      #assume we're using a token
+      else
+        Pkg::Util::Net.curl_form_data("#{args[:job_url]}/build?token=#{args[:auth_string]}", curl_opts)
+      end
+      Pkg::Util::Net.print_url_info(args[:job_url])
+    end
+  end
 end
