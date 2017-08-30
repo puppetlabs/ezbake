@@ -135,10 +135,10 @@ end
 options.dist = "#{options.operating_system}#{options.os_version}" if options.dist.nil?
 
 if options.debug
-  STDERR.puts "=========================="
-  STDERR.puts "OPTIONS HASH"
-  STDERR.puts options
-  STDERR.puts "=========================="
+  puts "=========================="
+  puts "OPTIONS HASH"
+  puts options
+  puts "=========================="
 end
 
 fpm_opts = Array('')
@@ -265,7 +265,7 @@ elsif options.output_type == 'deb'
   options.java = 'openjdk-8-jre-headless'
 
   fpm_opts << '--deb-build-depends cdbs'
-  fpm_opts << '--deb-build-depends bc' 
+  fpm_opts << '--deb-build-depends bc'
   fpm_opts << '--deb-build-depends mawk'
   fpm_opts << '--deb-build-depends lsb-release'
   if options.is_pe
@@ -347,30 +347,33 @@ fpm_opts << "#{options.sources.join(' ')}"
 termini_opts << "#{options.termini_sources.join(' ')}"
 
 if options.debug
-  STDERR.puts "=========================="
-  STDERR.puts "FPM COMMAND"
-  STDERR.puts "FPM_EDITOR=\"sed -i 's/%dir %attr(-/%attr(-/'\" fpm #{fpm_opts.join(' ')}"
-  STDERR.puts "=========================="
-  STDERR.puts "#{Dir.pwd}"
+  puts "=========================="
+  puts "FPM COMMAND"
+  puts "FPM_EDITOR=\"sed -i 's/%dir %attr(-/%attr(-/'\" fpm #{fpm_opts.join(' ')}"
+  puts "=========================="
+  puts "#{Dir.pwd}"
 end
 
 # TODO: Find a better way to recursively set directory attributes for rpms.
 # This is bad and I am bad for doing it.
 # MMR - 2017-08-03
-out, err, stat = Open3.capture3("FPM_EDITOR=\"sed -i 's/%dir %attr(-/%attr(-/'\" fpm #{fpm_opts.join(' ')}")
 
-STDERR.puts "OUTPUT\n#{out}"
-STDERR.puts "ERR\n#{err}"
+# fpm sends all output to stdout
+out, _, stat = Open3.capture3("FPM_EDITOR=\"sed -i 's/%dir %attr(-/%attr(-/'\" fpm #{fpm_opts.join(' ')}")
+fail "Error trying to run FPM for #{options.dist}!\n#{out}" unless stat.success?
+
+puts "#{out}"
 
 if options.termini
   if options.debug
-    STDERR.puts "=========================="
-    STDERR.puts "FPM COMMAND"
-    STDERR.puts "fpm #{termini_opts.join(' ')}"
-    STDERR.puts "=========================="
+    puts "=========================="
+    puts "FPM COMMAND"
+    puts "fpm #{termini_opts.join(' ')}"
+    puts "=========================="
   end
 
-  out,err,stat = Open3.capture3("fpm #{termini_opts.join(' ')}")
-  STDERR.puts "OUTPUT\n#{out}"
-  STDERR.puts "ERR\n#{err}"
+  # fpm sends all output to stdout
+  out, _, stat = Open3.capture3("fpm #{termini_opts.join(' ')}")
+  fail "Error trying to run FPM for the termini for #{options.dist}!\n#{out}" unless stat.success?
+  puts "#{out}"
 end
