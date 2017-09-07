@@ -63,7 +63,10 @@
    (schema/optional-key :build-type) schema/Str
    (schema/optional-key :reload-timeout) schema/Int
    (schema/optional-key :repo-target) schema/Str
+   (schema/optional-key :new-repo-target) schema/Str
+   (schema/optional-key :repo-link-target) schema/Str
    (schema/optional-key :nonfinal-repo-target) schema/Str
+   (schema/optional-key :nonfinal-repo-link-target) schema/Str
    (schema/optional-key :replaces-pkgs) ReplacesPkgs
    (schema/optional-key :start-after) [schema/Str]
    (schema/optional-key :start-timeout) schema/Int
@@ -597,7 +600,10 @@ Additional uberjar dependencies:
        :additional-uberjars (mapv (fn [filename] {:uberjar filename}) additional-uberjars)
        :is-pe-build (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))
        :repo-name (format "%s" (get-local-ezbake-var lein-project :repo-target ""))
+       :new-repo-name (format "%s" (get-local-ezbake-var lein-project :new-repo-target ""))
+       :repo-link-name (format "%s" (= (get-local-ezbake-var lein-project :repo-link-target "") "puppet"))
        :nonfinal-repo-name (format "%s" (get-local-ezbake-var lein-project :nonfinal-repo-target ""))})))
+       :nonfinal-repo-link-name (format "%s" (= (get-local-ezbake-var lein-project :nonfinal-repo-link-target "") "puppet-nightly"))
 
 (schema/defn get-additional-uberjars
   "Returns the list of additional uberjar dependencies from the given lein project"
