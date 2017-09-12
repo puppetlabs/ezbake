@@ -27,7 +27,7 @@ namespace :pl do
 
         # I'm so sorry
         # These paths are hard-coded in packaging, so hard code here too.
-        # When everything is moved to packaging 1.0.x this should be able
+        # When everything is moved to artifactory this should be able
         # to be fixed. --MMR, 2017-08-30
         if Pkg::Config.build_pe
           platform_path = "pe/rpm/#{os}-#{ver}-"
@@ -50,7 +50,7 @@ namespace :pl do
         platform = cow.split('-')[1..-2].join('-')
 
         # Keep on keepin' on with hardcoded paths in packaging
-        # Hopefully this goes away with packaging 1.0.x.
+        # Hopefully this goes away with artifactory.
         #  --MMR, 2017-08-30
         if Pkg::Config.build_pe
           platform_path = "pe/deb/#{platform}"
