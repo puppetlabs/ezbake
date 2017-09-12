@@ -107,10 +107,14 @@ namespace :pl do
     desc "trigger jenkins packaging job with local auth"
     task :trigger_build_local_auth => "pl:fetch" do
       if Pkg::Config.build_pe
-        job_url = "https://cinext-jenkinsmaster-enterprise-prod-1.delivery.puppetlabs.net/job/enterprise_various-packaging-jobs_packaging-os-clj_lein-ezbake-generic"
+        jenkins = 'cinext-jenkinsmaster-enterprise-prod-1'
+        stream = 'enterprise'
       else
-        job_url = "https://jenkins-master-prod-1.delivery.puppetlabs.net/job/platform_various-packaging-jobs_packaging-os-clj_lein-ezbake-generic"
+        jenkins = 'jenkins-master-prod-1'
+        stream = 'platform'
       end
+      job_url = "https://#{jenkins}.delivery.puppetlabs.net/job/#{stream}_various-packaging-jobs_packaging-os-clj_lein-ezbake-generic"
+
       begin
         auth = Pkg::Util.check_var('JENKINS_USER_AUTH', ENV['JENKINS_USER_AUTH'])
         Pkg::Util::RakeUtils.invoke_task("pl:jenkins:trigger_build", auth, job_url)
