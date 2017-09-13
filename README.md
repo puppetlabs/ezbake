@@ -222,8 +222,12 @@ lein with-profile ezbake ezbake build
 ```
 
 This will do everything the `stage` action does and then call the external
-builder defined for this project. Currently, the only builder supported is
-[Puppetlabs' Packaging tool](https://github.com/puppetlabs/packaging).
+builder defined for this project. Currently, this is tied to internal
+infrastructure at Puppet. If you want to run an ezbake build on your own
+infrastructure, see the `local-build` option below. Starting in version 1.6.0
+`build` requires jenkins authorization to be passed in at runtime. This should
+be set in the `JENKINS_USER_AUTH` environment variable to either '<job token>'
+or '<ldap username>:<personal auth token>'.
 
 #### `build` for PE
 
@@ -233,6 +237,18 @@ version of PE you're building a package for.  e.g.:
 ```shell
 PE_VER=2016.3 lein with-profile ezbake ezbake build
 ```
+
+#### `build` with a different profile
+
+```shell
+lein with-profile ezbake,pe ezbake build
+```
+
+This is an example of how a project might differentiate between "foss" and "pe"
+packages. The `:pe` profile may define different values for `:lein-ezbake` or for
+anything that might be found in the `:ezbake` profile. This is primarily useful
+for projects that need to build their PE and FOSS packages from the same
+repository.
 
 #### `local-build`
 
@@ -254,17 +270,16 @@ by setting the `MOCK` environment variable and deb targets can be overwritten
 by setting the `COW` environment variable. These variables should be
 space-separated lists of rpm(MOCK) and deb(COW) platforms.
 
-#### `build` with a different profile
+#### `legacy-build`
 
 ```shell
-lein with-profile ezbake,pe ezbake build
+lein with-profile ezbake ezbake legacy-build
 ```
 
-This is an example of how a project might differentiate between "foss" and "pe"
-packages. The `:pe` profile may define different values for `:lein-ezbake` or for
-anything that might be found in the `:ezbake` profile. This is primarily useful
-for projects that need to build their PE and FOSS packages from the same
-repository.
+This will behave exactly like the `build` task in versions of ezbake prior to
+1.6.0.  This will do everything the `stage` action does and then call the external
+builder defined for this project. Currently, the only builder supported is
+[Puppetlabs' Packaging tool](https://github.com/puppetlabs/packaging).
 
 #### `manifest`
 
