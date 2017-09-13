@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 ################
 # Usage: controller.sh <os> <version>
 # The controller script does all of the jar compilation
@@ -13,7 +15,9 @@ build_os=$1
 build_ver=$2
 
 BASEPATH='pkg_artifacts'
-mkdir $BASEPATH
+if [ ! -d "$BASEPATH" ]; then
+  mkdir $BASEPATH
+fi
 if [ ! -d "$BASEPATH/base" ]; then
         DESTDIR="$BASEPATH/base" bash install.sh install_redhat
 fi
@@ -52,7 +56,7 @@ else
         fi
         if [ ! -d "$BASEPATH/sysvinit_deb" ]; then
                 cp -r "$BASEPATH/base" "$BASEPATH/sysvinit_deb"
-                DESTDIR="$BASEPATH/sysvinit_deb" bash install sysv_init_deb
+                DESTDIR="$BASEPATH/sysvinit_deb" bash install.sh sysv_init_deb
         fi
 fi
 
@@ -94,7 +98,7 @@ case $os in
 esac
 
 # bash will eat your spaces, so let's array. see http://mywiki.wooledge.org/BashFAQ/050 for more fun.
-params=("--user" "<%= EZBake::Config[:user] -%>" "--group" "<%= EZBake::Config[:group] -%>" "--chdir" "$dir" "--realname" "<%= EZBake::Config[:real_name] -%>" "--debug" "--operating-system" "$os" "--name" "<%= EZBake::Config[:project] -%>" "--package-version" "<%= EZBake::Config[:version] -%>" "--release" "<%= EZBake::Config[:release] -%>")
+params=("--user" "<%= EZBake::Config[:user] -%>" "--group" "<%= EZBake::Config[:group] -%>" "--chdir" "$dir" "--realname" "<%= EZBake::Config[:real_name] -%>" "--operating-system" "$os" "--name" "<%= EZBake::Config[:project] -%>" "--package-version" "<%= EZBake::Config[:version] -%>" "--release" "<%= EZBake::Config[:release] -%>")
 if [ -n "$os_version" ]; then params+=("--os-version" "$os_version"); fi
 if [ -n "$os_dist" ]; then params+=("--dist" "$os_dist"); fi
 

@@ -11,19 +11,35 @@ namespace :pl do
     pkg_path = '../pkg'
     FileUtils.mv(Dir.glob("pkg/*.gz").join(''), FileUtils.pwd)
     # unpack the tarball we made during the build step
-    `tar xf #{Dir.glob("*.gz").join('')}`
+    stdout, stderr, exitstatus = Pkg::Util::Execution.capture3(%(tar xf #{Dir.glob("*.gz").join('')}))
+    Pkg::Util::Execution.success?(exitstatus) or raise "Error unpacking tarball: #{stderr}"
     Dir.chdir("#{Pkg::Config.project}-#{Pkg::Config.version}") do
       Pkg::Config.final_mocks.split(" ").each do |mock|
         platform = mock.split('-')[1..-2].join('-')
         platform_path = platform.gsub(/\-/, '')
         os, ver = /([a-zA-Z]+)(\d+)/.match(platform_path).captures
-        platform_path = "#{os}/#{ver}"
-        `bash controller.sh #{os} #{ver}`
-        # carry forward defaults from mock.rake
-        repo = Pkg::Config.yum_repo_name || 'products'
+        puts "===================================="
+        puts "Packaging for #{os} #{ver}"
+        puts "===================================="
+        stdout, stderr, exitstatus = Pkg::Util::Execution.capture3(%(bash controller.sh #{os} #{ver}))
+        Pkg::Util::Execution.success?(exitstatus) or raise "Error running packaging: #{stdout}\n#{stderr}"
+        puts "#{stdout}\n#{stderr}"
+
+        # I'm so sorry
+        # These paths are hard-coded in packaging, so hard code here too.
+        # When everything is moved to artifactory this should be able
+        # to be fixed. --MMR, 2017-08-30
+        if Pkg::Config.build_pe
+          platform_path = "pe/rpm/#{os}-#{ver}-"
+        else
+          # carry forward defaults from mock.rake
+          repo = Pkg::Config.yum_repo_name || 'products'
+          platform_path = "#{os}/#{ver}/#{repo}/"
+        end
+
         # We want to include the arches for el/sles/fedora paths
         ['x86_64', 'i386'].each do |arch|
-          target_dir = "#{pkg_path}/#{platform_path}/#{repo}/#{arch}"
+          target_dir = "#{pkg_path}/#{platform_path}#{arch}"
           FileUtils.mkdir_p(target_dir) unless File.directory?(target_dir)
           FileUtils.cp(Dir.glob("*#{os}#{ver}*.rpm"), target_dir)
         end
@@ -32,14 +48,89 @@ namespace :pl do
         # carry forward defaults from Packaging::Deb::Repo
         repo = Pkg::Config.apt_repo_name || 'main'
         platform = cow.split('-')[1..-2].join('-')
-        platform_path = "deb/#{platform}/#{repo}"
+
+        # Keep on keepin' on with hardcoded paths in packaging
+        # Hopefully this goes away with artifactory.
+        #  --MMR, 2017-08-30
+        if Pkg::Config.build_pe
+          platform_path = "pe/deb/#{platform}"
+        else
+          platform_path = "deb/#{platform}/#{repo}"
+        end
+
         FileUtils.mkdir_p("#{pkg_path}/#{platform_path}") unless File.directory?("#{pkg_path}/#{platform_path}")
         # there's no differences in packaging for deb vs ubuntu so picking debian
         # if that changes we'll need to fix that
-        `bash controller.sh debian #{platform}`
+        puts "===================================="
+        puts "Packaging for #{platform}"
+        puts "===================================="
+        stdout, stderr, exitstatus = Pkg::Util::Execution.capture3(%(bash controller.sh debian #{platform}))
+        Pkg::Util::Execution.success?(exitstatus) or raise "Error running packaging: #{stdout}\n#{stderr}"
+        puts "#{stdout}\n#{stderr}"
         FileUtils.cp(Dir.glob("*#{platform}*.deb"), "#{pkg_path}/#{platform_path}")
       end
       FileUtils.cp_r(pkg_path, nested_output)
+    end
+  end
+
+  desc "get the property and bundle artifacts ready"
+  task :prep_artifacts, [:output_dir] => "pl:fetch" do |t, args|
+    props = Pkg::Config.config_to_yaml
+    bundle = Pkg::Util::Git.git_bundle('HEAD')
+    FileUtils.cp(props, "#{args[:output_dir]}/BUILD_PROPERTIES")
+    FileUtils.cp(bundle, "#{args[:output_dir]}/PROJECT_BUNDLE")
+  end
+
+  namespace :jenkins do
+    desc "trigger jenkins packaging job"
+    task :trigger_build, [:auth_string, :job_url] do |t, args|
+      Pkg::Util::RakeUtils.invoke_task("pl:prep_artifacts", "#{Dir.pwd}")
+
+      curl_opts = [
+        '--request POST',
+        "--form file0=@#{Dir.pwd}/BUILD_PROPERTIES",
+        "--form file1=@#{Dir.pwd}/PROJECT_BUNDLE",
+      ]
+      if Pkg::Config.build_pe
+        Pkg::Util.check_var('PE_VER', ENV['PE_VER'])
+        curl_opts << %(--form json='{"parameter": [{"name":"PE_VER", "value":"#{ENV['PE_VER']}"},{"name":"BUILD_PROPERTIES", "file":"file0"},{"name":"PROJECT_BUNDLE", "file":"file1"}]}')
+      else
+        curl_opts << %(--form json='{"parameter": [{"name":"BUILD_PROPERTIES", "file":"file0"},{"name":"PROJECT_BUNDLE", "file":"file1"}]}')
+      end
+      if args[:auth_string] =~ /:/
+        curl_opts << "--user #{args[:auth_string]}"
+        Pkg::Util::Net.curl_form_data("#{args[:job_url]}/build", curl_opts)
+      #assume we're using a token
+      else
+        Pkg::Util::Net.curl_form_data("#{args[:job_url]}/build?token=#{args[:auth_string]}", curl_opts)
+      end
+      Pkg::Util::Net.print_url_info(args[:job_url])
+    end
+
+    desc "trigger jenkins packaging job with local auth"
+    task :trigger_build_local_auth => "pl:fetch" do
+      if Pkg::Config.build_pe
+        jenkins = 'cinext-jenkinsmaster-enterprise-prod-1'
+        stream = 'enterprise'
+      else
+        jenkins = 'jenkins-master-prod-1'
+        stream = 'platform'
+      end
+      job_url = "https://#{jenkins}.delivery.puppetlabs.net/job/#{stream}_various-packaging-jobs_packaging-os-clj_lein-ezbake-generic"
+
+      begin
+        auth = Pkg::Util.check_var('JENKINS_USER_AUTH', ENV['JENKINS_USER_AUTH'])
+        Pkg::Util::RakeUtils.invoke_task("pl:jenkins:trigger_build", auth, job_url)
+      rescue
+        STDERR.puts "You need to pass the environment variable JENKINS_USER_AUTH"
+        STDERR.puts "It should be in the format <LDAP username>:<access token>"
+        STDERR.puts "To find your access token, go to http://<jenkins-url>/me/configure"
+        STDERR.puts "These jobs also are configured with an authentication token"
+        STDERR.puts "that you can use instead of your personal token. To find the"
+        STDERR.puts "job authentication token see the 'Build Triggers' section of"
+        STDERR.puts "#{job_url}/configure. In this case, JENKINS_USER_AUTH should"
+        STDERR.puts "be set to only the Authentication Token."
+      end
     end
   end
 end
