@@ -72,6 +72,7 @@ namespace :pl do
       FileUtils.cp_r(pkg_path, nested_output)
     end
   end
+
   desc "get the property and bundle artifacts ready"
   task :prep_artifacts, [:output_dir] => "pl:fetch" do |t, args|
     props = Pkg::Config.config_to_yaml
@@ -79,6 +80,7 @@ namespace :pl do
     FileUtils.cp(props, "#{args[:output_dir]}/BUILD_PROPERTIES")
     FileUtils.cp(bundle, "#{args[:output_dir]}/PROJECT_BUNDLE")
   end
+
   namespace :jenkins do
     desc "trigger jenkins packaging job"
     task :trigger_build, [:auth_string, :job_url] do |t, args|
@@ -104,6 +106,7 @@ namespace :pl do
       end
       Pkg::Util::Net.print_url_info(args[:job_url])
     end
+
     desc "trigger jenkins packaging job with local auth"
     task :trigger_build_local_auth => "pl:fetch" do
       if Pkg::Config.build_pe
