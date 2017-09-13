@@ -1,3 +1,25 @@
+## 1.6.0 - 2017-09-13
+This is a feature and maintenance release.
+
+Feature:
+  * Added `local-build` task to allow building ezbake projects on infrastructure
+    outside of Puppet. There is more information available in the README but 
+    this addition enables package building on any machine/VM/container/etc with
+    the necessary dependencies installed.
+  * Changes to `build` task to let it use new infrastructure and CI systems.
+    These changes should be transparent with the exception of needing to pass 
+    jenkins authorization at runtime. This should be passed in the
+    JENKINS_USER_AUTH environment variable as either '<job token>' or
+    '<ldap username>:<personal auth token>'.
+  * Added `legacy-build` task to preserve the `build` task from previous versions
+    of ezbake.
+
+Maintenance:
+  * Document installation has been moved into the install.sh script. We were
+    previously installing the docs with `%doc` entries and the doc control file.
+    The `install.sh` script now installs the docs in the os-specific location to
+    enable us to more easily change how we are packaging.
+
 ## 1.5.2 - 2017-08-29
 Maintenance:
   * Removes Ubuntu Yakkety and Ubuntu Precise from the default COW list as those
