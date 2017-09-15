@@ -30,7 +30,7 @@ options.termini_chdir = 'termini'
 options.termini_sources = ['opt']
 
 OptionParser.new do |opts|
-  opts.on('-o', '--operating-system OS', [:fedora, :el, :sles, :debian, :ubuntu], 'Select operating system (fedora, el, suse, debian, ubuntu)') do |o|
+  opts.on('-o', '--operating-system OS', [:fedora, :el, :sles, :debian, :ubuntu], 'Select operating system (fedora, el, sles, debian, ubuntu)') do |o|
     options.operating_system = o
   end
   opts.on('--os-version VERSION', Integer, 'VERSION of the operating system to build for') do |v|
