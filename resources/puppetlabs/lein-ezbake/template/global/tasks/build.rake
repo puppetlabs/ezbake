@@ -107,6 +107,9 @@ namespace :pl do
         Pkg::Util::Net.curl_form_data("#{args[:job_url]}/build?token=#{args[:auth_string]}", curl_opts)
       end
       Pkg::Util::Net.print_url_info(args[:job_url])
+      package_url = "#{Pkg::Config.builds_server}/#{Pkg::Config.project}/#{Pkg::Config.ref}"
+      puts "After the build job is completed, packages will be available at:"
+      puts package_url
     end
 
     desc "trigger jenkins packaging job with local auth"
