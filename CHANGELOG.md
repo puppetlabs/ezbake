@@ -1,3 +1,18 @@
+## 1.6.1 - 2017-09-15
+This is a bugfix and maintenance release.
+
+Bugfix:
+  * There was a bad version check that caused sles 12 packages to not get init
+    scripts. This has been fixed.
+  * We were attempting to reuse packaging artifacts but were deleting them after
+    each platform was packaged. Moved the delete to after all platforms ran.
+
+Maintenance:
+  * Clean up debug output to accurately represent the options hash.
+  * Update `help` output to print correct platforms
+  * Print the URL for where the packages are going to be staged at the end of
+    the `build` step.
+
 ## 1.6.0 - 2017-09-13
 This is a feature and maintenance release.
 
