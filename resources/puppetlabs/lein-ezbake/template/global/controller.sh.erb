@@ -3,60 +3,61 @@
 set -ex
 
 ################
-# Usage: controller.sh <os> <version>
+# Usage: controller.sh <os> <version> <basepath>
 # The controller script does all of the jar compilation
 # and setup needed to build packages for <os>
 # The os string should be one of el, sles, debian, ubuntu,
 # or fedora
 # The version should be the numerical OS version for el,
 # sles, and fedora and the codename for debian/ubuntu.
+# The resulting artifacts will be stored in <basepath>
 ################
 build_os=$1
 build_ver=$2
+basepath=$3
 
-BASEPATH='pkg_artifacts'
-if [ ! -d "$BASEPATH" ]; then
-  mkdir $BASEPATH
+if [ ! -d "$basepath" ]; then
+  mkdir -p $basepath
 fi
-if [ ! -d "$BASEPATH/base" ]; then
-        DESTDIR="$BASEPATH/base" bash install.sh install_redhat
+if [ ! -d "$basepath/base" ]; then
+        DESTDIR="$basepath/base" bash install.sh install_redhat
 fi
-if [ ! -d "$BASEPATH/systemd_el" ]; then
-        cp -r "$BASEPATH/base" "$BASEPATH/systemd_el"
-        DESTDIR="$BASEPATH/systemd_el" bash install.sh systemd_redhat
+if [ ! -d "$basepath/systemd_el" ]; then
+        cp -r "$basepath/base" "$basepath/systemd_el"
+        DESTDIR="$basepath/systemd_el" bash install.sh systemd_redhat
 fi
-if [ ! -d "$BASEPATH/old_el" ]; then
-        cp -r "$BASEPATH/base" "$BASEPATH/old_el"
-        DESTDIR="$BASEPATH/old_el" bash install.sh sysv_init_redhat
+if [ ! -d "$basepath/old_el" ]; then
+        cp -r "$basepath/base" "$basepath/old_el"
+        DESTDIR="$basepath/old_el" bash install.sh sysv_init_redhat
 fi
-if [ ! -d "$BASEPATH/old_sles" ]; then
-        cp -r "$BASEPATH/base" "$BASEPATH/old_sles"
-        DESTDIR="$BASEPATH/old_sles" bash install.sh sysv_init_suse
+if [ ! -d "$basepath/old_sles" ]; then
+        cp -r "$basepath/base" "$basepath/old_sles"
+        DESTDIR="$basepath/old_sles" bash install.sh sysv_init_suse
 fi
 
 # things are only different if we have docs, deb docs get
 # installed in an unversioned folder but rpm docs get installed
 # in a versioned folder.
 if [ -d ext/docs ]; then
-        if [ ! -d "$BASEPATH/base_deb" ]; then
-                DESTDIR="$BASEPATH/base_deb" bash install.sh install_deb
-                if [ ! -d "$BASEPATH/systemd_deb" ]; then
-                        cp -r "$BASEPATH/base_deb" "$BASEPATH/systemd_deb"
-                        DESTDIR="$BASEPATH/systemd_deb" bash install.sh systemd_deb
+        if [ ! -d "$basepath/base_deb" ]; then
+                DESTDIR="$basepath/base_deb" bash install.sh install_deb
+                if [ ! -d "$basepath/systemd_deb" ]; then
+                        cp -r "$basepath/base_deb" "$basepath/systemd_deb"
+                        DESTDIR="$basepath/systemd_deb" bash install.sh systemd_deb
                 fi
-                if [ ! -d "$BASEPATH/sysvinit_deb" ]; then
-                        cp -r "$BASEPATH/base_deb" "$BASEPATH/sysvinit_deb"
-                        DESTDIR="$BASEPATH/sysvinit_deb" bash install.sh sysv_init_deb
+                if [ ! -d "$basepath/sysvinit_deb" ]; then
+                        cp -r "$basepath/base_deb" "$basepath/sysvinit_deb"
+                        DESTDIR="$basepath/sysvinit_deb" bash install.sh sysv_init_deb
                 fi
         fi
 else
-        if [ ! -d "$BASEPATH/systemd_deb" ]; then
-                cp -r "$BASEPATH/base" "$BASEPATH/systemd_deb"
-                DESTDIR="$BASEPATH/systemd_deb" bash install.sh systemd_deb
+        if [ ! -d "$basepath/systemd_deb" ]; then
+                cp -r "$basepath/base" "$basepath/systemd_deb"
+                DESTDIR="$basepath/systemd_deb" bash install.sh systemd_deb
         fi
-        if [ ! -d "$BASEPATH/sysvinit_deb" ]; then
-                cp -r "$BASEPATH/base" "$BASEPATH/sysvinit_deb"
-                DESTDIR="$BASEPATH/sysvinit_deb" bash install.sh sysv_init_deb
+        if [ ! -d "$basepath/sysvinit_deb" ]; then
+                cp -r "$basepath/base" "$basepath/sysvinit_deb"
+                DESTDIR="$basepath/sysvinit_deb" bash install.sh sysv_init_deb
         fi
 fi
 
@@ -72,23 +73,23 @@ case $os in
         # if that changes we'll need to fix this
         debian|ubuntu)
                 if [ "$os_dist" = 'trusty' ]; then
-                        dir="$BASEPATH/sysvinit_deb"
+                        dir="$basepath/sysvinit_deb"
                 else
-                        dir="$BASEPATH/systemd_deb"
+                        dir="$basepath/systemd_deb"
                 fi
                 ;;
         el)
                 if [ "$os_version" -gt '6' ]; then
-                        dir="$BASEPATH/systemd_el"
+                        dir="$basepath/systemd_el"
                 else
-                        dir="$BASEPATH/old_el"
+                        dir="$basepath/old_el"
                 fi
                 ;;
         sles)
                 if [ "$os_version" -gt '11' ]; then
-                        dir="$BASEPATH/systemd_el"
+                        dir="$basepath/systemd_el"
                 else
-                        dir="$BASEPATH/old_sles"
+                        dir="$basepath/old_sles"
                 fi
                 ;;
         *)
@@ -103,9 +104,9 @@ if [ -n "$os_version" ]; then params+=("--os-version" "$os_version"); fi
 if [ -n "$os_dist" ]; then params+=("--dist" "$os_dist"); fi
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
-DESTDIR="$BASEPATH/termini" bash install.sh termini
+DESTDIR="$basepath/termini" bash install.sh termini
 params+=('--build-termini')
-params+=('--termini-chdir' "$BASEPATH/termini")
+params+=('--termini-chdir' "$basepath/termini")
 <% end -%>
 
 <% if EZBake::Config[:logrotate_enabled]-%>
@@ -135,6 +136,5 @@ else
         <% end -%>
 fi
 
-ruby $PWD/ext/fpm.rb "${params[@]}"
 
-rm -rf $BASEPATH
+ruby $PWD/ext/fpm.rb "${params[@]}"

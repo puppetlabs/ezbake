@@ -9,6 +9,7 @@ namespace :pl do
     # where we want the packages to be copied to for the local build
     nested_output = '../../../output'
     pkg_path = '../pkg'
+    staging_path = 'pkg_artifacts'
     FileUtils.mv(Dir.glob("pkg/*.gz").join(''), FileUtils.pwd)
     # unpack the tarball we made during the build step
     stdout, stderr, exitstatus = Pkg::Util::Execution.capture3(%(tar xf #{Dir.glob("*.gz").join('')}))
@@ -21,7 +22,7 @@ namespace :pl do
         puts "===================================="
         puts "Packaging for #{os} #{ver}"
         puts "===================================="
-        stdout, stderr, exitstatus = Pkg::Util::Execution.capture3(%(bash controller.sh #{os} #{ver}))
+        stdout, stderr, exitstatus = Pkg::Util::Execution.capture3(%(bash controller.sh #{os} #{ver} #{staging_path}))
         Pkg::Util::Execution.success?(exitstatus) or raise "Error running packaging: #{stdout}\n#{stderr}"
         puts "#{stdout}\n#{stderr}"
 
@@ -64,12 +65,13 @@ namespace :pl do
         puts "===================================="
         puts "Packaging for #{platform}"
         puts "===================================="
-        stdout, stderr, exitstatus = Pkg::Util::Execution.capture3(%(bash controller.sh debian #{platform}))
+        stdout, stderr, exitstatus = Pkg::Util::Execution.capture3(%(bash controller.sh debian #{platform} #{staging_path}))
         Pkg::Util::Execution.success?(exitstatus) or raise "Error running packaging: #{stdout}\n#{stderr}"
         puts "#{stdout}\n#{stderr}"
         FileUtils.cp(Dir.glob("*#{platform}*.deb"), "#{pkg_path}/#{platform_path}")
       end
       FileUtils.cp_r(pkg_path, nested_output)
+      FileUtils.rm_r(staging_path)
     end
   end
 
