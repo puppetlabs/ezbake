@@ -134,13 +134,6 @@ if options.sources.empty?
 end
 options.dist = "#{options.operating_system}#{options.os_version}" if options.dist.nil?
 
-if options.debug
-  puts "=========================="
-  puts "OPTIONS HASH"
-  puts options
-  puts "=========================="
-end
-
 fpm_opts = Array('')
 shared_opts = Array('')
 termini_opts = Array('')
@@ -347,6 +340,10 @@ fpm_opts << "#{options.sources.join(' ')}"
 termini_opts << "#{options.termini_sources.join(' ')}"
 
 if options.debug
+  puts "=========================="
+  puts "OPTIONS HASH"
+  puts options
+  puts "=========================="
   puts "=========================="
   puts "FPM COMMAND"
   puts "FPM_EDITOR=\"sed -i 's/%dir %attr(-/%attr(-/'\" fpm #{fpm_opts.join(' ')}"
