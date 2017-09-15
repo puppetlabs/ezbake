@@ -117,7 +117,7 @@ fail "--dist is required!" if options.output_type == 'deb' && options.dist.nil?
 if options.sources.empty?
   options.sources = case options.operating_system
                     when :fedora, :sles, :el
-                      if options.operating_system == :el && options.os_version < 7 || options.operating_system == :sles && options.os_version <= 12 #sysv rpm platforms
+                      if options.operating_system == :el && options.os_version < 7 || options.operating_system == :sles && options.os_version < 12 #sysv rpm platforms
                         ['etc', 'opt', 'var']
                       else
                         ['etc', 'opt', 'usr', 'var']
