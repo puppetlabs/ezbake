@@ -122,18 +122,20 @@ params+=('--logrotate')
 params+=('--enterprise-build')
 <% end -%>
 
-# pull in rpm dependencies
 if [[ "$os" = 'el' || "$os" = 'sles' || "$os" = 'fedora' ]]; then
+        # pull in rpm dependencies
         <%EZBake::Config[:redhat][:additional_dependencies].each do |dep| -%>
                 params+=("--additional-dependency")
                 params+=("<%= dep -%>")
         <% end -%>
-# if we aren't an rpm, pull in deb dependencies
+        : # Need something in case there are no additional dependencies
 else
+        # if we aren't an rpm, pull in deb dependencies
         <%EZBake::Config[:debian][:additional_dependencies].each do |dep| -%>
                 params+=("--additional-dependency")
                 params+=("<%= dep -%>")
         <% end -%>
+        : # Need something in case there are no additional dependencies
 fi
 
 
