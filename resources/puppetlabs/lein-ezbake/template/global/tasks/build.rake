@@ -10,7 +10,7 @@ namespace :pl do
     nested_output = '../../../output'
     pkg_path = '../pkg'
     staging_path = 'pkg_artifacts'
-    FileUtils.mv(Dir.glob("pkg/*.gz").join(''), FileUtils.pwd)
+    FileUtils.cp(Dir.glob("pkg/*.gz").join(''), FileUtils.pwd)
     # unpack the tarball we made during the build step
     stdout, stderr, exitstatus = Pkg::Util::Execution.capture3(%(tar xf #{Dir.glob("*.gz").join('')}))
     Pkg::Util::Execution.success?(exitstatus) or raise "Error unpacking tarball: #{stderr}"
