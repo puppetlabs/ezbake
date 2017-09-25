@@ -1,3 +1,11 @@
+## 1.6.2 - 2017-09-25
+This is a bugfix release.
+
+Bugfix:
+  * We were generating invalid bash (empty if block) if there were no additional
+    dependencies specified.
+  * We weren't keeping the output tarball with the packaging artifacts.
+
 ## 1.6.1 - 2017-09-15
 This is a bugfix and maintenance release.
 
