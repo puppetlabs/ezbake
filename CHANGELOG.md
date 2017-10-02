@@ -1,3 +1,11 @@
+## 1.6.3 - 2017-10-02
+This is a bugfix release.
+
+Bugfix:
+  * We were incorrectly setting the package release to the package version if
+    it was not a SNAPSHOT build. The release is now set to 1 unless we have a
+    SNAPSHOT build. Behavior for SNAPSHOT builds is unchanged.
+
 ## 1.6.2 - 2017-09-25
 This is a bugfix release.
 
