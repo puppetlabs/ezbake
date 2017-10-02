@@ -459,7 +459,7 @@ Additional uberjar dependencies:
     (format "%s.%s"
             (str/replace lein-version #".*-" "0.1")
             (get-timestamp-string))
-    lein-version))
+    "1"))
 
 ;; TODO: this is a horrible, horrible hack; I can't yet see a good way to
 ;; let the packaging library know what the version number is without faking
