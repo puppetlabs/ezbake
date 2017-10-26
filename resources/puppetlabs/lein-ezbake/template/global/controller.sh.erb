@@ -35,6 +35,8 @@ if [ ! -d "$basepath/old_sles" ]; then
         DESTDIR="$basepath/old_sles" bash install.sh sysv_init_suse
 fi
 
+<%- rpm_paths = [ "$basepath/systemd_el", "$basepath/old_el", "$basepath/old_sles" ] -%>
+
 # things are only different if we have docs, deb docs get
 # installed in an unversioned folder but rpm docs get installed
 # in a versioned folder.
@@ -127,6 +129,30 @@ if [[ "$os" = 'el' || "$os" = 'sles' || "$os" = 'fedora' ]]; then
         <%EZBake::Config[:redhat][:additional_dependencies].each do |dep| -%>
                 params+=("--additional-dependency")
                 params+=("<%= dep -%>")
+        <% end -%>
+        # get rpm install trigger scripts
+        <% EZBake::Config[:redhat][:postinst_install_triggers].each do |package, scripts|
+             rpm_paths.each do |path| -%>
+              cat > <%=path %>/<%=package%>_postinst_triggers <<EOM
+              if [ "\$1" -eq 1 ] ; then
+                 "<%= scripts.join("\n") %>"
+                 :
+              fi
+EOM
+            <% end -%>
+            params+=("--rpm-trigger" "'<%=package%>: $dir/<%=package%>_postinst_triggers'")
+        <% end -%>
+        # get rpm upgrade trigger scripts
+        <% EZBake::Config[:redhat][:postinst_upgrade_triggers].each do |package, scripts|
+             rpm_paths.each do |path| -%>
+             cat > <%=path %>/<%=package%>_postinst_triggers <<EOM
+              if [ "\$1" -gt 1 ] ; then
+                 "<%= scripts.join("\n") %>"
+                 :
+              fi
+EOM
+               <% end -%>
+            params+=("--rpm-trigger" "'<%=package%>: $dir/<%=package%>_postinst_triggers'")
         <% end -%>
         : # Need something in case there are no additional dependencies
 else

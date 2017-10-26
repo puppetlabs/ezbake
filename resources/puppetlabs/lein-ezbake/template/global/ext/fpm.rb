@@ -28,6 +28,7 @@ options.logrotate = false
 options.termini = false
 options.termini_chdir = 'termini'
 options.termini_sources = ['opt']
+options.rpm_triggers = []
 
 OptionParser.new do |opts|
   opts.on('-o', '--operating-system OS', [:fedora, :el, :sles, :debian, :ubuntu], 'Select operating system (fedora, el, sles, debian, ubuntu)') do |o|
@@ -89,6 +90,9 @@ OptionParser.new do |opts|
   end
   opts.on('--termini-sources <SOURCES>', Array, 'sources for the termini build, defaults to "opt"') do |c|
     options.termini_chdir = c
+  end
+  opts.on('--rpm-trigger TRIGGER', 'TRIGGER for the rpm packages, in the format package:file_containing_script') do |t|
+    options.rpm_triggers << t
   end
   opts.on_tail("-h", "--help", "Show this message") do
     puts opts
@@ -200,6 +204,10 @@ if options.output_type == 'rpm'
 
   options.additional_dirs.each do |dir|
     fpm_opts << "--directories #{dir}"
+  end
+
+  options.rpm_triggers.each do |trigger|
+    fpm_opts << "--rpm-trigger-after-install #{trigger}"
   end
 
   if options.logrotate
