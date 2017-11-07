@@ -35,6 +35,17 @@ module EZBake
                           :additional_install => [{{{debian-install}}}],
                           :pre_start_action => [{{{debian-pre-start-action}}}],
                           :post_start_action => [{{{debian-post-start-action}}}],
+                          :interested_install_triggers => {
+                                                 {{#debian-interested-install-triggers}}
+                                                   "{{{interest-name}}}" => [{{{scripts}}}],
+                                                 {{/debian-interested-install-triggers}}
+                                                 },
+                          :interested_upgrade_triggers => {
+                                                 {{#debian-interested-upgrade-triggers}}
+                                                   "{{{interest-name}}}" => [{{{scripts}}}],
+                                                 {{/debian-interested-upgrade-triggers}}
+                                                 },
+                          :activated_triggers => [{{{debian-activated-triggers}}}],
                           },
       :redhat         => {
                           :additional_dependencies => [{{{redhat-deps}}}],
