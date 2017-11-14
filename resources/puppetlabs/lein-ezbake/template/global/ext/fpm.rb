@@ -200,6 +200,7 @@ if options.output_type == 'rpm'
 
   options.additional_dirs.each do |dir|
     fpm_opts << "--directories #{dir}"
+    fpm_opts << "--rpm-attr 700,#{options.user},#{options.group}:#{dir}"
   end
 
   if options.logrotate
