@@ -118,6 +118,10 @@ fi
 params+=('--logrotate')
 <% end -%>
 
+<% EZBake::Config[:replaces_pkgs].each do |package, version| -%>
+params+=('--replaces' "<%= package -%>,<%= version -%>")
+<% end %>
+
 <% if EZBake::Config[:is_pe_build] -%>
 params+=('--enterprise-build')
 <% end -%>
