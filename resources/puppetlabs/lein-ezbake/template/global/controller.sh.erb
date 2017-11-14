@@ -169,6 +169,15 @@ else
                 params+=("--additional-dependency")
                 params+=("<%= dep -%>")
         <% end -%>
+        <%EZBake::Config[:debian][:interested_install_triggers].each do |interest_name, _| -%>
+                params+=("--deb-interest-trigger" "<%=interest_name-%>")
+        <% end -%>
+        <%EZBake::Config[:debian][:interested_upgrade_triggers].each do |interest_name, _| -%>
+                params+=("--deb-interest-trigger" "<%=interest_name-%>")
+        <% end -%>
+        <%EZBake::Config[:debian][:activated_triggers].each do |activated_name| -%>
+                params+=("--deb-activate-trigger" "<%=activated_name-%>")
+        <% end -%>
         : # Need something in case there are no additional dependencies
 fi
 
