@@ -1,24 +1,3 @@
-## 1.7.0 - 2017-11-08
-This is a feature and maintenance release.
-
-Feature:
-  * (EZ-111) Add support for RPM triggers. You can now add postinstall triggers
-    that run on either installs or upgrades via the
-    `redhat-postinst-install-triggers` or `redhat-postinst-upgrade-triggers`
-    variables under `:lein-ezbake` in your project.clj. These variables are
-    arrays of hashes in the format [ { :package "package", :scripts ["script 1", "script2"] } ]
-  * (EZ-113) Add support for Debian triggers. This adds support for activate
-    triggers via the `debian-activated-triggers` variable. This variable takes
-    an array of trigger names. This also adds support for interest triggers for
-    either install or upgrade via the `debian-interested-install-triggers` and
-    `debian-interested-upgrade-triggers` variables. These variables are arrays 
-    of hashes in the format [ { :interest-name "trigger", :scripts ["script1", "script2"] } ]
-    All of these variables are set under `:lein-ezbake` in your project.clj.
-
-Maintenance:
-  * Update the build_defaults to use the 1.0.x branch of the packaging repo 
-    (github.com/puppetlabs/packaging) to add support for the new puppet5 repos.
-
 ## 1.6.3 - 2017-10-02
 This is a bugfix release.
 

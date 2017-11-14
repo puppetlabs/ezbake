@@ -55,14 +55,6 @@
   [{:package schema/Str
     :version schema/Str}])
 
-(def RPMTriggers
-  [{:package schema/Str
-    :scripts [schema/Str]}])
-
-(def DEBTriggers
-  [{:interest-name schema/Str
-    :scripts [schema/Str]}])
-
 (def LocalProjectVars
   {(schema/optional-key :user) schema/Str
    (schema/optional-key :group) schema/Str
@@ -79,11 +71,6 @@
    (schema/optional-key :open-file-limit) schema/Int
    (schema/optional-key :main-namespace) schema/Str
    (schema/optional-key :java-args) schema/Str
-   (schema/optional-key :redhat-postinst-install-triggers) RPMTriggers
-   (schema/optional-key :redhat-postinst-upgrade-triggers) RPMTriggers
-   (schema/optional-key :debian-interested-install-triggers) DEBTriggers
-   (schema/optional-key :debian-interested-upgrade-triggers) DEBTriggers
-   (schema/optional-key :debian-activated-triggers) [schema/Str]
    (schema/optional-key :logrotate-enabled) schema/Bool})
 
 (def UberjarInfo
@@ -493,16 +480,6 @@ Additional uberjar dependencies:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; File templates
 
-;; create rpm trigger hash
-(defn extract-rpm-package-scripts
-  [{:keys [package scripts]}]
-  {:package package :scripts (quoted-list scripts)})
-
-;; create debian trigger hash
-(defn extract-deb-package-scripts
-  [{:keys [interest-name scripts]}]
-  {:interest-name interest-name :scripts (quoted-list scripts)})
-
 (defn make-template-map
   "Construct the map of variables to pass on to the ezbake.rb template"
   [lein-project build-target config-files system-config-files cli-app-files bin-files terminus-files upstream-ezbake-configs additional-uberjars]
@@ -511,68 +488,63 @@ Additional uberjar dependencies:
                    :version version
                    :files (quoted-list files)})
         get-quoted-ezbake-values (fn [platform variable]
-                                         (quoted-list
-                                         (get-ezbake-value (get-ezbake-vars lein-project)
+                                   (quoted-list
+                                    (get-ezbake-value (get-ezbake-vars lein-project)
                                                       upstream-ezbake-configs
                                                       build-target
                                                       platform
                                                       variable)))]
-    {:project                            (:name lein-project)
-     :packaging-version                  (generate-package-version-from-version (:version lein-project))
-     :packaging-release                  (generate-package-release-from-version (:version lein-project))
-     :real-name                          (get-real-name (:name lein-project))
-     :user                               (get-local-ezbake-var lein-project :user
+    {:project                   (:name lein-project)
+     :packaging-version         (generate-package-version-from-version (:version lein-project))
+     :packaging-release         (generate-package-release-from-version (:version lein-project))
+     :real-name                 (get-real-name (:name lein-project))
+     :user                      (get-local-ezbake-var lein-project :user
                                                       (:name lein-project))
-     :group                              (get-local-ezbake-var lein-project :group
+     :group                     (get-local-ezbake-var lein-project :group
                                                       (:name lein-project))
-     :uberjar-name                       (:uberjar-name lein-project)
-     :config-files                       (quoted-list (map remove-erb-extension config-files))
-     :system-config-files                (quoted-list (map remove-erb-extension system-config-files))
-     :cli-app-files                      (quoted-list (map remove-erb-extension cli-app-files))
-     :cli-defaults-file                  (remove-erb-extension cli-defaults-filename)
-     :bin-files                          (quoted-list bin-files)
-     :create-dirs                        (quoted-list (get-local-ezbake-var lein-project
+     :uberjar-name              (:uberjar-name lein-project)
+     :config-files              (quoted-list (map remove-erb-extension config-files))
+     :system-config-files       (quoted-list (map remove-erb-extension system-config-files))
+     :cli-app-files             (quoted-list (map remove-erb-extension cli-app-files))
+     :cli-defaults-file         (remove-erb-extension cli-defaults-filename)
+     :bin-files                 (quoted-list bin-files)
+     :create-dirs               (quoted-list (get-local-ezbake-var lein-project
                                                                    :create-dirs []))
-     :debian-deps                        (get-quoted-ezbake-values :debian :dependencies)
-     :debian-build-deps                  (get-quoted-ezbake-values :debian :build-dependencies)
-     :debian-preinst                     (get-quoted-ezbake-values :debian :preinst)
-     :debian-prerm                       (get-quoted-ezbake-values :debian :prerm)
-     :debian-postinst                    (get-quoted-ezbake-values :debian :postinst)
-     :debian-install                     (get-quoted-ezbake-values :debian :install)
-     :debian-pre-start-action            (get-quoted-ezbake-values :debian :pre-start-action)
-     :debian-post-start-action           (get-quoted-ezbake-values :debian :post-start-action)
-     :debian-activated-triggers          (quoted-list (get-local-ezbake-var lein-project :debian-activated-triggers []))
-     :debian-interested-install-triggers (map  extract-deb-package-scripts (get-local-ezbake-var lein-project :debian-interested-install-triggers []))
-     :debian-interested-upgrade-triggers (map  extract-deb-package-scripts (get-local-ezbake-var lein-project :debian-interested-upgrade-triggers []))
-     :redhat-deps                        (get-quoted-ezbake-values :redhat :dependencies)
-     :redhat-build-deps                  (get-quoted-ezbake-values :redhat :build-dependencies)
-     :redhat-preinst                     (get-quoted-ezbake-values :redhat :preinst)
-     :redhat-postinst                    (get-quoted-ezbake-values :redhat :postinst)
-     :redhat-install                     (get-quoted-ezbake-values :redhat :install)
-     :redhat-pre-start-action            (get-quoted-ezbake-values :redhat :pre-start-action)
-     :redhat-post-start-action           (get-quoted-ezbake-values :redhat :post-start-action)
-     :terminus-map                       termini
-     :replaces-pkgs                      (get-local-ezbake-var lein-project :replaces-pkgs [])
-     :redhat-postinst-install-triggers   (map extract-rpm-package-scripts (get-local-ezbake-var lein-project :redhat-postinst-install-triggers []))
-     :redhat-postinst-upgrade-triggers   (map extract-rpm-package-scripts (get-local-ezbake-var lein-project :redhat-postinst-upgrade-triggers []))
-     :start-after                        (quoted-list (get-local-ezbake-var lein-project :start-after []))
-     :reload-timeout                     (get-local-ezbake-var lein-project :reload-timeout "120")
-     :start-timeout                      (get-local-ezbake-var lein-project :start-timeout "300")
-     :stop-timeout                       (get-local-ezbake-var lein-project :stop-timeout "60")
-     :open-file-limit                    (get-local-ezbake-var lein-project :open-file-limit "nil")
-     :is-pe-build                        (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))
-     :main-namespace                     (get-local-ezbake-var lein-project
+     :debian-deps               (get-quoted-ezbake-values :debian :dependencies)
+     :debian-build-deps         (get-quoted-ezbake-values :debian :build-dependencies)
+     :debian-preinst            (get-quoted-ezbake-values :debian :preinst)
+     :debian-prerm              (get-quoted-ezbake-values :debian :prerm)
+     :debian-postinst           (get-quoted-ezbake-values :debian :postinst)
+     :debian-install            (get-quoted-ezbake-values :debian :install)
+     :debian-pre-start-action   (get-quoted-ezbake-values :debian :pre-start-action)
+     :debian-post-start-action  (get-quoted-ezbake-values :debian :post-start-action)
+     :redhat-deps               (get-quoted-ezbake-values :redhat :dependencies)
+     :redhat-build-deps         (get-quoted-ezbake-values :redhat :build-dependencies)
+     :redhat-preinst            (get-quoted-ezbake-values :redhat :preinst)
+     :redhat-postinst           (get-quoted-ezbake-values :redhat :postinst)
+     :redhat-install            (get-quoted-ezbake-values :redhat :install)
+     :redhat-pre-start-action   (get-quoted-ezbake-values :redhat :pre-start-action)
+     :redhat-post-start-action  (get-quoted-ezbake-values :redhat :post-start-action)
+     :terminus-map              termini
+     :replaces-pkgs             (get-local-ezbake-var lein-project :replaces-pkgs [])
+     :start-after               (quoted-list (get-local-ezbake-var lein-project :start-after []))
+     :reload-timeout            (get-local-ezbake-var lein-project :reload-timeout "120")
+     :start-timeout             (get-local-ezbake-var lein-project :start-timeout "300")
+     :stop-timeout              (get-local-ezbake-var lein-project :stop-timeout "60")
+     :open-file-limit           (get-local-ezbake-var lein-project :open-file-limit "nil")
+     :is-pe-build               (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))
+     :main-namespace            (get-local-ezbake-var lein-project
                                                       :main-namespace
                                                       "puppetlabs.trapperkeeper.main")
-     :java-args                          (get-local-ezbake-var lein-project :java-args
+     :java-args                 (get-local-ezbake-var lein-project :java-args
                                                       "-Xmx192m")
      ; Convert to string so ruby doesn't barf on the hyphens
-     :bootstrap-source                   (name (get-local-ezbake-var lein-project
+     :bootstrap-source          (name (get-local-ezbake-var lein-project
                                                             :bootstrap-source
                                                             :bootstrap-cfg))
-     :logrotate-enabled                  (get-local-ezbake-var lein-project :logrotate-enabled
+     :logrotate-enabled         (get-local-ezbake-var lein-project :logrotate-enabled
                                                       true)
-     :additional-uberjars                (quoted-list additional-uberjars)}))
+     :additional-uberjars       (quoted-list additional-uberjars)}))
 
 ;; TODO: this is wonky; we're basically doing some templating here and it
 ;; might make more sense to use an actual template for it.  However, I'm a bit
