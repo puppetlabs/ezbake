@@ -13,3 +13,19 @@ if [ $1 = 'configure' -a -n $2 ] ; then
     invoke-rc.d <%= EZBake::Config[:project] %> try-restart || :
   fi
 fi
+
+# Run trigger scripts on install if defined
+if [ $1 = triggered ] && [ -z $2 ]; then
+  <% EZBake::Config[:debian][:interested_install_triggers].each do |_, scripts| -%>
+    <%= scripts.join("\n") %>
+  <% end -%>
+  : # in case there are no install triggers
+fi
+
+# Run trigger scripts on upgrade if defined
+if [ $1 = triggered ] && [ -n $2 ]; then
+  <% EZBake::Config[:debian][:interested_upgrade_triggers].each do |_, scripts| -%>
+    <%= scripts.join("\n") %>
+  <% end -%>
+  : # in case there are no upgrade triggers
+fi

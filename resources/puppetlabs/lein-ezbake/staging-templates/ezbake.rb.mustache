@@ -35,6 +35,17 @@ module EZBake
                           :additional_install => [{{{debian-install}}}],
                           :pre_start_action => [{{{debian-pre-start-action}}}],
                           :post_start_action => [{{{debian-post-start-action}}}],
+                          :interested_install_triggers => {
+                                                 {{#debian-interested-install-triggers}}
+                                                   "{{{interest-name}}}" => [{{{scripts}}}],
+                                                 {{/debian-interested-install-triggers}}
+                                                 },
+                          :interested_upgrade_triggers => {
+                                                 {{#debian-interested-upgrade-triggers}}
+                                                   "{{{interest-name}}}" => [{{{scripts}}}],
+                                                 {{/debian-interested-upgrade-triggers}}
+                                                 },
+                          :activated_triggers => [{{{debian-activated-triggers}}}],
                           },
       :redhat         => {
                           :additional_dependencies => [{{{redhat-deps}}}],
@@ -44,6 +55,16 @@ module EZBake
                           :additional_install => [{{{redhat-install}}}],
                           :pre_start_action => [{{{redhat-pre-start-action}}}],
                           :post_start_action => [{{{redhat-post-start-action}}}],
+                          :postinst_install_triggers => {
+                                                 {{#redhat-postinst-install-triggers}}
+                                                   "{{{package}}}" => [{{{scripts}}}],
+                                                 {{/redhat-postinst-install-triggers}}
+                                                },
+                          :postinst_upgrade_triggers => {
+                                                 {{#redhat-postinst-upgrade-triggers}}
+                                                   "{{{package}}}" => [{{{scripts}}}],
+                                                 {{/redhat-postinst-upgrade-triggers}}
+                                                },
                           },
       :main_namespace => '{{{main-namespace}}}',
       :java_args      => '{{{java-args}}}',
