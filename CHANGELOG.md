@@ -1,3 +1,13 @@
+## 1.6.5 - 2017-11-14
+This is a bugfix release.
+
+Bugfix:
+  * Pass `replaces-pkgs` from ezbake config to FPM packaging
+  * Pass `create-dirs` from ezbake config to FPM packaging
+
+## 1.6.4 - 2017-11-10
+This release was incorrectly published as 1.6.4. Do not use this release.
+
 ## 1.6.3 - 2017-10-02
 This is a bugfix release.
 
