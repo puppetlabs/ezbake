@@ -288,10 +288,17 @@ end
 shared_opts << "--url http://puppet.com"
 shared_opts << "--architecture all"
 
-# looks like fpm does the needed to update the version to be what debian wants
 options.replaces.each do |pkg, version|
-  fpm_opts << "--replaces '#{pkg} #{version}-1'"
-  fpm_opts << "--conflicts '#{pkg} #{version}-1'"
+  if options.output_type == 'rpm'
+    fpm_opts << "--replaces '#{pkg} #{version}-1'"
+    fpm_opts << "--conflicts '#{pkg} #{version}-1'"
+  elsif options.output_type == 'deb'
+    # why debian, why.
+    fpm_opts << "--replaces '#{pkg} (<< #{version}-1puppetlabs1)'"
+    fpm_opts << "--conflicts '#{pkg} (<< #{version}-1puppetlabs1)'"
+    fpm_opts << "--replaces '#{pkg} (<< #{version}-1#{options.dist})'"
+    fpm_opts << "--conflicts '#{pkg} (<< #{version}-1#{options.dist})'"
+  end
 end
 
 if options.is_pe
