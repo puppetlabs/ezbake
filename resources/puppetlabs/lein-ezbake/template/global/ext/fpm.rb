@@ -290,8 +290,8 @@ shared_opts << "--architecture all"
 
 options.replaces.each do |pkg, version|
   if options.output_type == 'rpm'
-    fpm_opts << "--replaces '#{pkg} #{version}-1'"
-    fpm_opts << "--conflicts '#{pkg} #{version}-1'"
+    fpm_opts << "--replaces '#{pkg} <= #{version}-1'"
+    fpm_opts << "--conflicts '#{pkg} <= #{version}-1'"
   elsif options.output_type == 'deb'
     # why debian, why.
     fpm_opts << "--replaces '#{pkg} (<< #{version}-1puppetlabs1)'"
