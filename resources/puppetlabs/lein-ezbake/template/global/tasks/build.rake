@@ -1,3 +1,5 @@
+require 'json'
+
 namespace :pl do
   desc "do a local build"
   task :local_build => "pl:fetch" do
@@ -93,12 +95,34 @@ namespace :pl do
         "--form file0=@#{Dir.pwd}/BUILD_PROPERTIES",
         "--form file1=@#{Dir.pwd}/PROJECT_BUNDLE",
       ]
+
+      parameter_json = {
+        :parameter => [
+          {
+            :name => "BUILD_PROPERTIES",
+            :file => "file0"
+          },
+          {
+            :name => "PROJECT_BUNDLE",
+            :file => "file1"
+          },
+          {
+            :name => "COWS",
+            :value => "#{Pkg::Config.cows}"
+          },
+          {
+            :name => "MOCKS",
+            :value => "#{Pkg::Config.final_mocks}"
+          }
+        ]
+      }
+
       if Pkg::Config.build_pe
         Pkg::Util.check_var('PE_VER', ENV['PE_VER'])
-        curl_opts << %(--form json='{"parameter": [{"name":"PE_VER", "value":"#{ENV['PE_VER']}"},{"name":"BUILD_PROPERTIES", "file":"file0"},{"name":"PROJECT_BUNDLE", "file":"file1"}]}')
-      else
-        curl_opts << %(--form json='{"parameter": [{"name":"BUILD_PROPERTIES", "file":"file0"},{"name":"PROJECT_BUNDLE", "file":"file1"}]}')
+        parameter_json[:parameter] << { :name => "PE_VER", :value => "#{ENV['PE_VER']}" }
       end
+
+      curl_opts << %(--form json='#{parameter_json.to_json}')
       if args[:auth_string] =~ /:/
         curl_opts << "--user #{args[:auth_string]}"
         Pkg::Util::Net.curl_form_data("#{args[:job_url]}/build", curl_opts)
