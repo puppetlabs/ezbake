@@ -1,3 +1,11 @@
+## 1.6.6 - 2017-11-20
+This is a bugfix release.
+
+Bugfix:
+  * Generate valid replaces/conflicts in RPM and deb packaging
+  * Pass MOCK and COW environment variables through to the jenkins job during
+    a `lein ezbake build`.
+
 ## 1.6.5 - 2017-11-14
 This is a bugfix release.
 
