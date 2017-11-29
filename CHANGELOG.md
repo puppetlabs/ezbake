@@ -1,3 +1,10 @@
+## 1.6.7 - 2017-11-29
+This is a bugfix release.
+
+Bugfix:
+  * If `repo-target` is unspecified debian artifacts should end up under
+    `deb/<platform>` instead of `deb/<platform>/main`.
+
 ## 1.6.6 - 2017-11-20
 This is a bugfix release.
 
