@@ -1,3 +1,14 @@
+## 1.7.1 - 2017-11-29
+This is a bugfix release.
+
+Bugfix:
+  * Generate valid replaces/conflicts in RPM and deb packaging
+  * Pass MOCK and COW environment variables through to the jenkins job during
+    a `lein ezbake build`.
+  * If `repo-target` is unspecified debian artifacts should end up under
+    `deb/<platform>` instead of `deb/<platform>/main`.
+
+
 ## 1.7.0 - 2017-11-14
 This is a feature release.
 
@@ -14,6 +25,21 @@ Feature:
     `debian-interested-upgrade-triggers` variables. These variables are arrays 
     of hashes in the format [ { :interest-name "trigger", :scripts ["script1", "script2"] } ]
     All of these variables are set under `:lein-ezbake` in your project.clj.
+
+## 1.6.7 - 2017-11-29
+This is a bugfix release.
+
+Bugfix:
+  * If `repo-target` is unspecified debian artifacts should end up under
+    `deb/<platform>` instead of `deb/<platform>/main`.
+
+## 1.6.6 - 2017-11-20
+This is a bugfix release.
+
+Bugfix:
+  * Generate valid replaces/conflicts in RPM and deb packaging
+  * Pass MOCK and COW environment variables through to the jenkins job during
+    a `lein ezbake build`.
 
 ## 1.6.5 - 2017-11-14
 This is a bugfix release.
