@@ -1,3 +1,14 @@
+## 1.7.1 - 2017-11-29
+This is a bugfix release.
+
+Bugfix:
+  * Generate valid replaces/conflicts in RPM and deb packaging
+  * Pass MOCK and COW environment variables through to the jenkins job during
+    a `lein ezbake build`.
+  * If `repo-target` is unspecified debian artifacts should end up under
+    `deb/<platform>` instead of `deb/<platform>/main`.
+
+
 ## 1.7.0 - 2017-11-14
 This is a feature release.
 
