@@ -48,17 +48,21 @@ namespace :pl do
         end
       end
       Pkg::Config.cows.split(" ").each do |cow|
-        # carry forward defaults from Packaging::Deb::Repo
-        repo = Pkg::Config.apt_repo_name || 'main'
+        # So you might think, from looking at
+        # https://github.com/puppetlabs/packaging/blob/551be049ae0261f0dd1b632993d4fbe1ada63d9c/lib/packaging/deb/repo.rb#L72
+        # that we want the repo to default to 'main' if unset. However, looking
+        # deeper into that method we need repo to be '' if apt_repo_name is unset
+        # https://github.com/puppetlabs/packaging/blob/551be049ae0261f0dd1b632993d4fbe1ada63d9c/lib/packaging/deb/repo.rb#L106
+        repo = Pkg::Config.apt_repo_name || ''
         platform = cow.split('-')[1..-2].join('-')
 
         # Keep on keepin' on with hardcoded paths in packaging
         # Hopefully this goes away with artifactory.
         #  --MMR, 2017-08-30
-        if Pkg::Config.build_pe
-          platform_path = "pe/deb/#{platform}"
-        else
-          platform_path = "deb/#{platform}/#{repo}"
+        platform_path = "pe/deb/#{platform}"
+        unless Pkg::Config.build_pe
+          # get rid of the trailing slash if repo = ''
+          platform_path = "deb/#{platform}/#{repo}".sub(/\/$/, '')
         end
 
         FileUtils.mkdir_p("#{pkg_path}/#{platform_path}") unless File.directory?("#{pkg_path}/#{platform_path}")
