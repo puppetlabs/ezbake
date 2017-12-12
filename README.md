@@ -194,15 +194,15 @@ lein with-profile ezbake ezbake stage
 This will create an ephemeral git repository at `./target/staging` with staged
 templates ready for consumption by the build step. If the project being staged
 has a SNAPSHOT version, then a snapshot build will be deployed to the project's
-configured snapshots repository (typically our internal nexus repository
-server at `nexus.delivery.puppetlabs.net`), in order to ensure our builds are
+configured snapshots repository (typically our internal artifact repository
+server at `artifactory.delivery.puppetlabs.net`), in order to ensure our builds are
 reproducible. This can be avoided by setting the `EZBAKE_NODEPLOY` environment
 variable to any value. (If you set this environment variable in a build
 pipeline, you will be severely punished by the Angel of Build Reproducibility.)
 
 If the project being staged has a SNAPSHOT version, then a snapshot build will
 be deployed to the project's configured snapshots repository (typically our
-internal nexus repository server at `nexus.delivery.puppetlabs.net`), in order
+internal artifact repository server at `artifactory.delivery.puppetlabs.net`), in order
 to ensure our builds are reproducible. This can be avoided by setting the
 `EZBAKE_NODEPLOY` environment variable to any value.
 
