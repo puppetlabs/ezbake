@@ -1,3 +1,12 @@
+## 1.7.2 - 2017-12-12
+This is a maintenance release.
+
+Maintenance:
+  * Use internal artifactory server instead of internal nexus server.
+  * Update to [packaging](https://github.com/puppetlabs/packaging) 1.0.x to pick up
+    changes to make it more straightforward to ship to the platform 5 repos,
+    and to pick up the branch that's most actively maintained.
+
 ## 1.7.1 - 2017-11-29
 This is a bugfix release.
 
