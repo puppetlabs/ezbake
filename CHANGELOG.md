@@ -1,3 +1,10 @@
+## 1.7.3 - 2017-12-15
+This is a maintenance release.
+
+Maintenance:
+  * Set `build_tar: FALSE` in foss build defaults in order to not attempt tar
+    signing when undesired.
+
 ## 1.7.2 - 2017-12-12
 This is a maintenance release.
 
