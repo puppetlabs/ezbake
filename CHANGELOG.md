@@ -1,3 +1,9 @@
+## 1.7.4 - 2017-12-18
+This is a maintenance release.
+
+Maintenance:
+  * Add "repo_name" and "nonfinal_repo_name" as targets for Packaging 1.0.x
+
 ## 1.7.3 - 2017-12-15
 This is a maintenance release.
 
