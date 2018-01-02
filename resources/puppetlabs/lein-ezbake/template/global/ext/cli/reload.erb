@@ -17,7 +17,7 @@ fi
 init_restart_file "$restartfile" || exit $?
 
 initial="$(head -n 1 "$restartfile")"
-pid="$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)"
+pid="$(pgrep -f "<%= EZBake::Config[:uberjar_name] %>.* -m <%= EZBake::Config[:main_namespace] %>")"
 kill -HUP $pid >/dev/null 2>&1
 if [ $? -ne 0 ]; then
     echo "Service not running so cannot be reloaded" 1>&2

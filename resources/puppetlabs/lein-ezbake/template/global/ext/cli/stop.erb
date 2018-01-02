@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set +e
 
-pid="$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)"
+pid="$(pgrep -f "<%= EZBake::Config[:uberjar_name] %>.* -m <%= EZBake::Config[:main_namespace] %>")"
 realname="<%= EZBake::Config[:real_name] %>"
 PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
 

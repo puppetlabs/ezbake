@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set +e
 
-pid="$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)"
+pid="$(pgrep -f "<%= EZBake::Config[:uberjar_name] %>.* -m <%= EZBake::Config[:main_namespace] %>")"
 
 restartfile="/opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>/restartcounter"
 start_timeout="${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}"
