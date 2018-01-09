@@ -1,3 +1,10 @@
+## 1.7.5 - 2018-01-09
+This is a bugfix release.
+
+Bugfix:
+  * (SERVER-2068) Improve logic for determining the process ID for stop/start/
+    reload commands to make it less likely to pick up an incorrect process.
+
 ## 1.7.4 - 2017-12-18
 This is a maintenance release.
 
