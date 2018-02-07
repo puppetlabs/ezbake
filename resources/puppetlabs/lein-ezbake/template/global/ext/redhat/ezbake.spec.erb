@@ -223,7 +223,13 @@ fi
 <% end -%>
 
 %post
+# Unconditional post-install tasks
 %{_app_prefix}/scripts/install.sh postinst_redhat
+
+# Only run these on initial install, not ugrades
+if [ "$1" = "1" ]; then
+  %{_app_prefix}/scripts/install.sh postinst_redhat_install
+fi
 %if %{_with_systemd}
 # Reload the systemd units
 systemctl daemon-reload >/dev/null 2>&1 || :
