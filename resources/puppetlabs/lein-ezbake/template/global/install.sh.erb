@@ -327,7 +327,7 @@ function task_preinst_deb {
 <% end -%>
 }
 
-# Debian based post-installation tasks.
+# Debian based unconditional post-installation tasks.
 function task_postinst_deb {
     task postinst_permissions
 <% EZBake::Config[:debian][:additional_postinst].each do |cmd| -%>
@@ -335,10 +335,26 @@ function task_postinst_deb {
 <% end -%>
 }
 
-# RPM based post-installation tasks.
+# Debian based install post-installation tasks.
+function task_postinst_deb_install {
+    : # Null command in case additional_postinst_install is empty
+<% EZBake::Config[:debian][:additional_postinst_install].each do |cmd| -%>
+    <%= cmd %>
+<% end -%>
+}
+
+# RPM based unconditional post-installation tasks.
 function task_postinst_redhat {
     : # Null command in case additional_postinst is empty
 <% EZBake::Config[:redhat][:additional_postinst].each do |cmd| -%>
+    <%= cmd %>
+<% end -%>
+}
+
+# RPM based install post-installation tasks.
+function task_postinst_redhat_install {
+    : # Null command in case additional_postinst_install is empty
+<% EZBake::Config[:redhat][:additional_postinst_install].each do |cmd| -%>
     <%= cmd %>
 <% end -%>
 }

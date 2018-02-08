@@ -2,6 +2,11 @@
 
 /opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] -%>/scripts/install.sh postinst_deb
 
+# Set some configuration from the project on install
+if [ -z "$2" ]; then
+  /opt/puppetlabs/server/apps/<%= EZBake::Config[:real_name] -%>/scripts/install.sh postinst_deb_install
+fi
+
 # On upgrade, we should restart the service if it's running
 if [ $1 = 'configure' -a -n $2 ] ; then
   if [ -d '/run/systemd/system' ] ; then
