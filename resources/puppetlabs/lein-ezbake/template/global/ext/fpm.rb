@@ -178,7 +178,7 @@ if options.output_type == 'rpm'
     options.systemd_sles = 1
     options.sles = 1
     options.certs_package = 'ca-certificates-mozilla'
-    options.java = 'java-1_8_0-openjdk-headless'
+    options.java = 'java-1.7.0-openjdk' # for sles12 before SP1 we need java7
   elsif options.operating_system == :sles #old sles
     options.sysvinit = 1
     options.old_sles = 1
@@ -280,7 +280,7 @@ elsif options.output_type == 'deb'
   if options.dist != "#{options.operating_system}#{options.os_version}"
     options.release = "#{options.release}#{options.dist}"
   end
-  options.java = 'openjdk-8-jre-headless'
+  options.java = '"openjdk-7-jre-headless | openjdk-8-jre-headless"'
 
   fpm_opts << '--deb-build-depends cdbs'
   fpm_opts << '--deb-build-depends bc'

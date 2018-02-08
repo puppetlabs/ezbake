@@ -52,11 +52,12 @@
 %global _old_sles      1
 %endif
 
-# java 1.8.0 is available starting in fedora 20, el 6 and sles-12sp1
-%if 0%{?suse_version}   >= 1210
-%global open_jdk          java-1_8_0-openjdk-headless
-%else
+# java 1.8.0 is available starting in fedora 20 and el 6
+# SLES 12 still only has java 1.7.0, until sp1
+%if 0%{?fedora} >= 20 || 0%{?rhel} >= 6
 %global open_jdk          java-1.8.0-openjdk-headless
+%else
+%global open_jdk          java-1.7.0-openjdk
 %endif
 
 # Use the alternate locations for things.
