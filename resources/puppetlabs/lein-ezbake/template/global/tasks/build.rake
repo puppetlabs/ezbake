@@ -156,7 +156,7 @@ namespace :pl do
         jenkins = 'jenkins-master-prod-1'
         stream = 'platform'
       end
-      job_url = "https://#{jenkins}.delivery.puppetlabs.net/job/#{stream}_various-packaging-jobs_packaging-os-clj_lein-ezbake-generic"
+      job_url = "https://#{jenkins}.delivery.puppetlabs.net/job/#{stream}_various-packaging-jobs-legacy_packaging-os-clj_lein-ezbake-generic"
 
       begin
         auth = Pkg::Util.check_var('JENKINS_USER_AUTH', ENV['JENKINS_USER_AUTH'])
