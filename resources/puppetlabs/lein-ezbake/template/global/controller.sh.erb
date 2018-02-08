@@ -74,7 +74,7 @@ case $os in
         # there's no differences in packaging for deb vs ubuntu
         # if that changes we'll need to fix this
         debian|ubuntu)
-                if [ "$os_dist" = 'trusty' ]; then
+                if [[ "$os_dist" = 'trusty' || "$os_dist" = 'wheezy' ]]; then
                         dir="$basepath/sysvinit_deb"
                 else
                         dir="$basepath/systemd_deb"

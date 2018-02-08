@@ -135,7 +135,7 @@ if options.sources.empty?
                         ['etc', 'opt', 'usr', 'var']
                       end
                     when :debian, :ubuntu
-                      if options.dist == 'trusty' #trusty is the only sysv deb we build for right now
+                      if options.dist == 'trusty' || options.dist == 'wheezy'  #trusty and wheezy are the  sysv debs we build for
                         ['etc', 'opt', 'var']
                       else
                         ['etc', 'lib', 'opt', 'usr', 'var']
