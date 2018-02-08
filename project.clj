@@ -11,8 +11,8 @@
                  [prismatic/schema "1.0.4"]
                  [puppetlabs/typesafe-config "0.1.3" :exclusions [org.clojure/clojure]]]
 
-  :repositories [["releases" "http://nexus.delivery.puppetlabs.net/content/repositories/releases/"]
-                 ["snapshots" "http://nexus.delivery.puppetlabs.net/content/repositories/snapshots/"]]
+  :repositories [["releases" "https://artifactory.delivery.puppetlabs.net/artifactory/clojure-releases__local/"]
+                 ["snapshots" "https://artifactory.delivery.puppetlabs.net/artifactory/clojure-snapshots__local/"]]
 
   :deploy-repositories [["releases" {:url "https://clojars.org/repo"
                                      :username :env/clojars_jenkins_username

@@ -7,7 +7,7 @@ Now that EZBake is a lein plugin, all projects that are
 using EZBake for their builds should now be referencing a specific,
 fixed version number of the plugin in their project.clj.  (e.g., '0.2.3').
 These version numbers reference official, stable, final, immutable, released
-versions of EZBake that are deployed to our nexus server.  Therefore,
+versions of EZBake that are deployed to our artifact server.  Therefore,
 we no longer need to worry about any correlation between the build process
 for individual projects and the branching strategy of EZBake itself.
 

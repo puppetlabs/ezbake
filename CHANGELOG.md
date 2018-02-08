@@ -1,8 +1,153 @@
+## 1.7.5 - 2018-01-09
+This is a bugfix release.
+
+Bugfix:
+  * (SERVER-2068) Improve logic for determining the process ID for stop/start/
+    reload commands to make it less likely to pick up an incorrect process.
+
+## 1.7.4 - 2017-12-18
+This is a maintenance release.
+
+Maintenance:
+  * Add "repo_name" and "nonfinal_repo_name" as targets for Packaging 1.0.x
+
+## 1.7.3 - 2017-12-15
+This is a maintenance release.
+
+Maintenance:
+  * Set `build_tar: FALSE` in foss build defaults in order to not attempt tar
+    signing when undesired.
+
+## 1.7.2 - 2017-12-12
+This is a maintenance release.
+
+Maintenance:
+  * Use internal artifactory server instead of internal nexus server.
+  * Update to [packaging](https://github.com/puppetlabs/packaging) 1.0.x to pick up
+    changes to make it more straightforward to ship to the platform 5 repos,
+    and to pick up the branch that's most actively maintained.
+
+## 1.7.1 - 2017-11-29
+This is a bugfix release.
+
+Bugfix:
+  * Generate valid replaces/conflicts in RPM and deb packaging
+  * Pass MOCK and COW environment variables through to the jenkins job during
+    a `lein ezbake build`.
+  * If `repo-target` is unspecified debian artifacts should end up under
+    `deb/<platform>` instead of `deb/<platform>/main`.
+
+
+## 1.7.0 - 2017-11-14
+This is a feature release.
+
+Feature:
+  * (EZ-111) Add support for RPM triggers. You can now add postinstall triggers
+    that run on either installs or upgrades via the
+    `redhat-postinst-install-triggers` or `redhat-postinst-upgrade-triggers`
+    variables under `:lein-ezbake` in your project.clj. These variables are
+    arrays of hashes in the format [ { :package "package", :scripts ["script 1", "script2"] } ]
+  * (EZ-113) Add support for Debian triggers. This adds support for activate
+    triggers via the `debian-activated-triggers` variable. This variable takes
+    an array of trigger names. This also adds support for interest triggers for
+    either install or upgrade via the `debian-interested-install-triggers` and
+    `debian-interested-upgrade-triggers` variables. These variables are arrays 
+    of hashes in the format [ { :interest-name "trigger", :scripts ["script1", "script2"] } ]
+    All of these variables are set under `:lein-ezbake` in your project.clj.
+
+## 1.6.7 - 2017-11-29
+This is a bugfix release.
+
+Bugfix:
+  * If `repo-target` is unspecified debian artifacts should end up under
+    `deb/<platform>` instead of `deb/<platform>/main`.
+
+## 1.6.6 - 2017-11-20
+This is a bugfix release.
+
+Bugfix:
+  * Generate valid replaces/conflicts in RPM and deb packaging
+  * Pass MOCK and COW environment variables through to the jenkins job during
+    a `lein ezbake build`.
+
+## 1.6.5 - 2017-11-14
+This is a bugfix release.
+
+Bugfix:
+  * Pass `replaces-pkgs` from ezbake config to FPM packaging
+  * Pass `create-dirs` from ezbake config to FPM packaging
+
+## 1.6.4 - 2017-11-10
+This release was incorrectly published as 1.6.4. Do not use this release.
+
+## 1.6.3 - 2017-10-02
+This is a bugfix release.
+
+Bugfix:
+  * We were incorrectly setting the package release to the package version if
+    it was not a SNAPSHOT build. The release is now set to 1 unless we have a
+    SNAPSHOT build. Behavior for SNAPSHOT builds is unchanged.
+
+## 1.6.2 - 2017-09-25
+This is a bugfix release.
+
+Bugfix:
+  * We were generating invalid bash (empty if block) if there were no additional
+    dependencies specified.
+  * We weren't keeping the output tarball with the packaging artifacts.
+
+## 1.6.1 - 2017-09-15
+This is a bugfix and maintenance release.
+
+Bugfix:
+  * There was a bad version check that caused sles 12 packages to not get init
+    scripts. This has been fixed.
+  * We were attempting to reuse packaging artifacts but were deleting them after
+    each platform was packaged. Moved the delete to after all platforms ran.
+
+Maintenance:
+  * Clean up debug output to accurately represent the options hash.
+  * Update `help` output to print correct platforms
+  * Print the URL for where the packages are going to be staged at the end of
+    the `build` step.
+
+## 1.6.0 - 2017-09-13
+This is a feature and maintenance release.
+
+Feature:
+  * Added `local-build` task to allow building ezbake projects on infrastructure
+    outside of Puppet. There is more information available in the README but 
+    this addition enables package building on any machine/VM/container/etc with
+    the necessary dependencies installed.
+  * Changes to `build` task to let it use new infrastructure and CI systems.
+    These changes should be transparent with the exception of needing to pass 
+    jenkins authorization at runtime. This should be passed in the
+    JENKINS_USER_AUTH environment variable as either '<job token>' or
+    '<ldap username>:<personal auth token>'.
+  * Added `legacy-build` task to preserve the `build` task from previous versions
+    of ezbake.
+
+Maintenance:
+  * Document installation has been moved into the install.sh script. We were
+    previously installing the docs with `%doc` entries and the doc control file.
+    The `install.sh` script now installs the docs in the os-specific location to
+    enable us to more easily change how we are packaging.
+
+## 1.5.2 - 2017-08-29
+Maintenance:
+  * Removes Ubuntu Yakkety and Ubuntu Precise from the default COW list as those
+    platforms are EOL.
+
 ## 1.1.11 - 2017-08-29
 This is a maintenance release.
 
 Maintenance:
   * Remove EOL Ubuntu platforms (precise, wily) from the default COW list.
+
+## 1.5.1 - 2017-7-13
+Bugs:
+  * Get dependencies from requirements which do not have version numbers
+    associated with it, as well parent dependencies.
 
 ## 1.1.10 - 2017-07-13
 This is a feature release.
@@ -14,11 +159,74 @@ Feature:
     differences between packages built with ezbake.
     This file is also created during the `stage` and `build` actions.
 
+## 1.5.0 - 2017-6-30
+This is a feature release.
+
+Feature:
+  * (RE-8861) Generate metadata files when building projects.
+    Adds a new `manifest` command that creates an 'ext/build_metadata.json' file
+    containing dependencies and related metadata to aid in tracking down
+    differences between packages built with ezbake.
+    This file is also created during the `stage` and `build` actions.
+
+## 1.4.0 - 2017-5-18
+This is a feature, maintenance, and bug fix release.
+
+Feature:
+  * (RE-8726) Add support for specifying nonfinal vs. final repo targets and
+    names.
+
+Maintenance:
+  * (RE-4844) Merge together content from the FOSS and PE ezbake templates.
+
+Bugs:
+  * (EZ-109) Eliminate some unnecessarily duplicated strings from the
+    ezbake.manifest file.
+  * (EZ-110) Retain any qualifying attributes (e.g., exclusions) when expanding
+    a SNAPSHOT version for a coordinate, allowing exclusions to be reflected 
+    properly in the resulting ezbake.manifest file.
+  * (EZ-110) For an `additional-uberjar`, build the immediate jar into the final
+    uberjar even when the project has defined its own `uberjar` profile.
+
+## 1.3.0 - 2017-5-3
+This is a feature release
+  * (SERVER-1772) Add support for building and installing additional uberjars.
+    An `:additional-uberjars` EZBake setting has been added which allows projects
+    to specify a list of versioned dependencies that will be built and installed
+    next to the projects own uberjar.
+  * (SERVER-1772) Support installing a `cli-defaults.sh` file which can be
+    configured by EZBake projects and supply defaults for bash variables in a
+    project's cli scripts
+  * (EZ-108) Add support for `EZBAKE_ALLOW_UNREPRODUCIBLE_BUILDS` environment
+    variable that when defined, will allow staging with undeployed SNAPSHOT
+    versions
+
 ## 1.1.9 - 2017-4-24
   * (maint) Resolve SNAPSHOT dependencies to a deployed snapshot artifact
   * (maint) Deploy the project to the snapshots repo when it has a SNAPSHOT version
   * (maint) List deployed SNAPSHOT artifact versions in the ezbake.manifest and project_data.yaml
   * (EZBAKE-108) Environment vars to turn off snapshot deployment & resolution.
+
+## 1.2.1 - 2017-4-20
+  * (SERVER-1782) Fix for the openjdk8 package name in SLES-12
+
+## 1.2.0 - 2017-4-12
+This release removes Java7 support and changes the way that snapshots are deployed
+
+Feature:
+  * Remove Java 7 compatibility. Builds now assume Java (openjdk) 8
+  * Change EZBake's stage command to:
+      * Deploy an artifact to the configured snapshots repository when staging a project with
+        a snapshot version.
+      * List the deployed snapshot artifact's version as the project's version number in the
+        ezbake.manifest & project_data.yaml files.
+      * Resolve all dependencies with 'SNAPSHOT' versions to get a deployed snapshot artifact
+        from the repository and list that artifact's version number in the ezbake.manifest &
+        project_data.yaml. If no deployed snapshot artifacts can be found for the listed
+        snapshot version, then an error is thrown and staging is aborted, to prevent
+        unreproducible builds.
+      * List each dependency's group as well as its name in the ezbake.manifest &
+        project_data.yaml
 
 ## 1.1.8 - 2017-3-22
   * (SERVER-1763) Adds ca-certificates as a build dependency
@@ -69,7 +277,7 @@ Maintenance:
   * (EZ-90) Add 'start' app subcommand
   * (EZ-99) Add 'stop' app subcommand and modify service 'stop' command to use it
   * (EZ-100) Add timeout EzBake and defaults config settings for 'reload' and 'stop'
-
+  
 ## 0.5.1 - 2016-09-13
 * Update to use the new Puppet GPG key for package signing
 
