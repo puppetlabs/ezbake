@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set +e
 
-pid="$(pgrep -f <%= EZBake::Config[:uberjar_name] %>)"
+pid="$(pgrep -f "<%= EZBake::Config[:uberjar_name] %>.* -m <%= EZBake::Config[:main_namespace] %>")"
 
 restartfile="/opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>/restartcounter"
 start_timeout="${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}"
@@ -9,6 +9,8 @@ start_timeout="${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}"
 realname="<%= EZBake::Config[:real_name] %>"
 rundir="/var/run/puppetlabs/${realname}"
 PIDFILE="${rundir}/${realname}.pid"
+
+cli_defaults=${INSTALL_DIR}/cli/cli-defaults.sh
 
 if [ ! -e "${INSTALL_DIR}/ezbake-functions.sh" ]; then
     echo "Unable to find ${INSTALL_DIR}/ezbake-functions.sh script, failing start." 1>&2
@@ -47,9 +49,19 @@ rm -f "$PIDFILE"
 
 init_restart_file "$restartfile" || exit $?
 
+CLASSPATH=${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %>
+
+if [ -e "$cli_defaults" ]; then
+  . $cli_defaults
+  if [ $? -ne 0 ]; then
+    echo "Unable to initialize cli defaults, failing start." 1>&2
+    exit 1
+  fi
+fi
+
 ${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom \
   -XX:OnOutOfMemoryError="kill -9 %p" \
-  -cp ${INSTALL_DIR}/<%= EZBake::Config[:uberjar_name] %> \
+  -cp "${CLASSPATH}" \
   clojure.main \
   -m <%= EZBake::Config[:main_namespace] %> \
   --config "${CONFIG}" \

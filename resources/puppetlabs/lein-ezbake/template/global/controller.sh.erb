@@ -1,0 +1,185 @@
+#!/bin/bash
+
+set -ex
+
+################
+# Usage: controller.sh <os> <version> <basepath>
+# The controller script does all of the jar compilation
+# and setup needed to build packages for <os>
+# The os string should be one of el, sles, debian, ubuntu,
+# or fedora
+# The version should be the numerical OS version for el,
+# sles, and fedora and the codename for debian/ubuntu.
+# The resulting artifacts will be stored in <basepath>
+################
+build_os=$1
+build_ver=$2
+basepath=$3
+
+if [ ! -d "$basepath" ]; then
+  mkdir -p $basepath
+fi
+if [ ! -d "$basepath/base" ]; then
+        DESTDIR="$basepath/base" bash install.sh install_redhat
+fi
+if [ ! -d "$basepath/systemd_el" ]; then
+        cp -r "$basepath/base" "$basepath/systemd_el"
+        DESTDIR="$basepath/systemd_el" bash install.sh systemd_redhat
+fi
+if [ ! -d "$basepath/old_el" ]; then
+        cp -r "$basepath/base" "$basepath/old_el"
+        DESTDIR="$basepath/old_el" bash install.sh sysv_init_redhat
+fi
+if [ ! -d "$basepath/old_sles" ]; then
+        cp -r "$basepath/base" "$basepath/old_sles"
+        DESTDIR="$basepath/old_sles" bash install.sh sysv_init_suse
+fi
+
+<%- rpm_paths = [ "$basepath/systemd_el", "$basepath/old_el", "$basepath/old_sles" ] -%>
+
+# things are only different if we have docs, deb docs get
+# installed in an unversioned folder but rpm docs get installed
+# in a versioned folder.
+if [ -d ext/docs ]; then
+        if [ ! -d "$basepath/base_deb" ]; then
+                DESTDIR="$basepath/base_deb" bash install.sh install_deb
+                if [ ! -d "$basepath/systemd_deb" ]; then
+                        cp -r "$basepath/base_deb" "$basepath/systemd_deb"
+                        DESTDIR="$basepath/systemd_deb" bash install.sh systemd_deb
+                fi
+                if [ ! -d "$basepath/sysvinit_deb" ]; then
+                        cp -r "$basepath/base_deb" "$basepath/sysvinit_deb"
+                        DESTDIR="$basepath/sysvinit_deb" bash install.sh sysv_init_deb
+                fi
+        fi
+else
+        if [ ! -d "$basepath/systemd_deb" ]; then
+                cp -r "$basepath/base" "$basepath/systemd_deb"
+                DESTDIR="$basepath/systemd_deb" bash install.sh systemd_deb
+        fi
+        if [ ! -d "$basepath/sysvinit_deb" ]; then
+                cp -r "$basepath/base" "$basepath/sysvinit_deb"
+                DESTDIR="$basepath/sysvinit_deb" bash install.sh sysv_init_deb
+        fi
+fi
+
+os=$build_os
+if [ "$os" = "debian" ]; then
+        os_dist=$build_ver
+else
+        os_version=$build_ver
+fi
+
+case $os in
+        # there's no differences in packaging for deb vs ubuntu
+        # if that changes we'll need to fix this
+        debian|ubuntu)
+                if [[ "$os_dist" = 'trusty' || "$os_dist" = 'wheezy' ]]; then
+                        dir="$basepath/sysvinit_deb"
+                else
+                        dir="$basepath/systemd_deb"
+                fi
+                ;;
+        el)
+                if [ "$os_version" -gt '6' ]; then
+                        dir="$basepath/systemd_el"
+                else
+                        dir="$basepath/old_el"
+                fi
+                ;;
+        sles)
+                if [ "$os_version" -gt '11' ]; then
+                        dir="$basepath/systemd_el"
+                else
+                        dir="$basepath/old_sles"
+                fi
+                ;;
+        *)
+                echo "I have no idea what I'm doing with $os, teach me?" >&2
+                exit 1
+                ;;
+esac
+
+# bash will eat your spaces, so let's array. see http://mywiki.wooledge.org/BashFAQ/050 for more fun.
+params=("--user" "<%= EZBake::Config[:user] -%>" "--group" "<%= EZBake::Config[:group] -%>" "--chdir" "$dir" "--realname" "<%= EZBake::Config[:real_name] -%>" "--operating-system" "$os" "--name" "<%= EZBake::Config[:project] -%>" "--package-version" "<%= EZBake::Config[:version] -%>" "--release" "<%= EZBake::Config[:release] -%>")
+if [ -n "$os_version" ]; then params+=("--os-version" "$os_version"); fi
+if [ -n "$os_dist" ]; then params+=("--dist" "$os_dist"); fi
+
+<% unless EZBake::Config[:terminus_info].empty? -%>
+DESTDIR="$basepath/termini" bash install.sh termini
+params+=('--build-termini')
+params+=('--termini-chdir' "$basepath/termini")
+<% end -%>
+
+<% if EZBake::Config[:logrotate_enabled]-%>
+if [[ "$dir" =~ old_ ]]; then
+        DESTDIR=$dir bash install.sh logrotate_legacy
+else
+        DESTDIR=$dir bash install.sh logrotate
+fi
+params+=('--logrotate')
+<% end -%>
+
+<% EZBake::Config[:replaces_pkgs].each do |package, version| -%>
+params+=('--replaces' "<%= package -%>,<%= version -%>")
+<% end %>
+
+<% EZBake::Config[:create_dirs].each do |directory| -%>
+params+=('--create-dir' '<%= directory -%>')
+<% end %>
+
+<% if EZBake::Config[:is_pe_build] -%>
+params+=('--enterprise-build')
+<% end -%>
+
+if [[ "$os" = 'el' || "$os" = 'sles' || "$os" = 'fedora' ]]; then
+        # pull in rpm dependencies
+        <%EZBake::Config[:redhat][:additional_dependencies].each do |dep| -%>
+                params+=("--additional-dependency")
+                params+=("<%= dep -%>")
+        <% end -%>
+        # get rpm install trigger scripts
+        <% EZBake::Config[:redhat][:postinst_install_triggers].each do |package, scripts|
+             rpm_paths.each do |path| -%>
+              cat > <%=path %>/<%=package%>_postinst_triggers <<EOM
+              if [ "\$1" -eq 1 ] ; then
+                 "<%= scripts.join("\n") %>"
+                 :
+              fi
+EOM
+            <% end -%>
+            params+=("--rpm-trigger" "'<%=package%>: $dir/<%=package%>_postinst_triggers'")
+        <% end -%>
+        # get rpm upgrade trigger scripts
+        <% EZBake::Config[:redhat][:postinst_upgrade_triggers].each do |package, scripts|
+             rpm_paths.each do |path| -%>
+             cat > <%=path %>/<%=package%>_postinst_triggers <<EOM
+              if [ "\$1" -gt 1 ] ; then
+                 "<%= scripts.join("\n") %>"
+                 :
+              fi
+EOM
+               <% end -%>
+            params+=("--rpm-trigger" "'<%=package%>: $dir/<%=package%>_postinst_triggers'")
+        <% end -%>
+        : # Need something in case there are no additional dependencies
+else
+        # if we aren't an rpm, pull in deb dependencies
+        <%EZBake::Config[:debian][:additional_dependencies].each do |dep| -%>
+                params+=("--additional-dependency")
+                params+=("<%= dep -%>")
+        <% end -%>
+        <%EZBake::Config[:debian][:interested_install_triggers].each do |interest_name, _| -%>
+                params+=("--deb-interest-trigger" "<%=interest_name-%>")
+        <% end -%>
+        <%EZBake::Config[:debian][:interested_upgrade_triggers].each do |interest_name, _| -%>
+                params+=("--deb-interest-trigger" "<%=interest_name-%>")
+        <% end -%>
+        <%EZBake::Config[:debian][:activated_triggers].each do |activated_name| -%>
+                params+=("--deb-activate-trigger" "<%=activated_name-%>")
+        <% end -%>
+        : # Need something in case there are no additional dependencies
+fi
+
+
+ruby $PWD/ext/fpm.rb "${params[@]}"

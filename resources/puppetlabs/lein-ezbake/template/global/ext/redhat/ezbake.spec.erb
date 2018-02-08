@@ -26,6 +26,7 @@
 %global _systemd_el    0
 %global _systemd_sles  0
 %global _old_el        0
+%global _old_sles      0
 %global _sles          0
 %global _certs_package  ca-certificates
 
@@ -34,8 +35,6 @@
 %global _systemd_el   1
 %endif
 
-# We do not support any sles version less than 12, as there is not a sufficient
-# version of OpenJDK available to test against.
 %if 0%{?suse_version}   >= 1210
 %global _with_systemd   1
 %global _systemd_sles   1
@@ -48,8 +47,13 @@
 %global _old_el        1
 %endif
 
+%if 0%{?suse_version} && 0%{?suse_version} < 1210
+%global _with_sysvinit 1
+%global _old_sles      1
+%endif
+
 # java 1.8.0 is available starting in fedora 20 and el 6
-# SLES 12 still only has java 1.7.0
+# SLES 12 still only has java 1.7.0, until sp1
 %if 0%{?fedora} >= 20 || 0%{?rhel} >= 6
 %global open_jdk          java-1.8.0-openjdk-headless
 %else
@@ -70,7 +74,11 @@ BuildRoot:        %{_tmppath}/%{realname}-%{version}-%{release}-root-%(%{__id_u}
 
 Summary:          Puppet Labs - <%= EZBake::Config[:project] %>
 Vendor:           Puppet Labs <info@puppetlabs.com>
+<% if EZBake::Config[:is_pe_build] -%>
+License:          PL Commercial
+<% else %>
 License:          ASL 2.0
+<% end-%>
 
 URL:              http://puppetlabs.com
 Source0:          %{name}-%{realversion}.tar.gz
@@ -88,7 +96,11 @@ Conflicts:        <%=package-%> <= <%=version-%>-1
 AutoReq:          0
 AutoProv:         0
 
+<% if EZBake::Config[:is_pe_build] -%>
+BuildRequires:    puppet-agent
+<% else %>
 BuildRequires:    ruby
+<% end -%>
 BuildRequires:    /usr/sbin/useradd
 %if %{_with_systemd}
 BuildRequires:    systemd
@@ -96,9 +108,14 @@ BuildRequires:    systemd
 %if %{_old_el}
 Requires:         chkconfig
 %endif
+%if %{_old_sles}
+Requires:         aaa_base
+%endif
 
+<% if !EZBake::Config[:is_pe_build] -%>
 # Required to get trustanchors for java
 BuildRequires: %{_certs_package}
+<% end -%>
 
 %if %{_systemd_el}
 Requires(post):   systemd
@@ -110,7 +127,12 @@ Requires(postun): systemd
 %{?systemd_requires}
 %endif
 
+<% if EZBake::Config[:is_pe_build] -%>
+Requires:         pe-java
+Requires:         pe-puppet-enterprise-release
+<% else %>
 Requires:         %{open_jdk}
+<% end -%>
 Requires:         bash
 # net-tools is required for netstat usage in service unit file
 # See: https://tickets.puppetlabs.com/browse/SERVER-338
@@ -134,6 +156,10 @@ Requires:         <%= dep %>
 Group: Development/Libraries
 Summary: Termini for <%= EZBake::Config[:project] %>
 Requires: puppet-agent
+<% EZBake::Config[:terminus_info].each do |proj_name, info| -%>
+Obsoletes: <%= proj_name -%>-terminus < <%= info[:version].gsub('-', '.') %>
+Provides:  <%= proj_name -%>-terminus >= <%= info[:version].gsub('-', '.') %>
+<% end -%>
 
 %description termini
 Termini for <%= EZBake::Config[:project] %>
@@ -156,7 +182,11 @@ env EZ_VERBOSE=1 DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix
 %if %{_with_systemd}
 env EZ_VERBOSE=1 DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} defaultsdir=%{_sysconfdir}/sysconfig unitdir=%{_unitdir} bash install.sh systemd_redhat
 %else
+%if %{_old_el}
 env EZ_VERBOSE=1 DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} defaultsdir=%{_sysconfdir}/sysconfig initdir=%{_initrddir} bash install.sh sysv_init_redhat
+%elseif %{_old_sles}
+env EZ_VERBOSE=1 DESTDIR=%{buildroot} prefix=%{_prefix} app_prefix=%{_app_prefix} app_data=%{_app_data} confdir=%{_sysconfdir} bindir=%{_app_bindir} symbindir=%{_sym_bindir} rundir=%{_app_rundir} defaultsdir=%{_sysconfdir}/sysconfig initdir=%{_initrddir} bash install.sh sysv_init_suse
+%endif
 %endif
 
 <% if EZBake::Config[:logrotate_enabled]-%>
@@ -194,7 +224,13 @@ fi
 <% end -%>
 
 %post
+# Unconditional post-install tasks
 %{_app_prefix}/scripts/install.sh postinst_redhat
+
+# Only run these on initial install, not ugrades
+if [ "$1" = "1" ]; then
+  %{_app_prefix}/scripts/install.sh postinst_redhat_install
+fi
 %if %{_with_systemd}
 # Reload the systemd units
 systemctl daemon-reload >/dev/null 2>&1 || :
@@ -239,7 +275,7 @@ fi
 %if %{_with_sysvinit}
 # Remove the rundir if this is an uninstall (as opposed to an upgrade)...
 if [ "$1" = "0" ]; then
-    rm -rf %{_app_rundir} || :
+    rm -rf %{_app_rundir}
 fi
 
 # Only restart it if it is running
@@ -255,9 +291,6 @@ fi
 <%- EZBake::Config[:create_dirs].each do |dir| -%>
 %dir %attr(0700, <%= EZBake::Config[:user] %>, <%= EZBake::Config[:group] %>) <%= dir %>
 <%- end -%>
-<% if File.exists?("ext/docs") -%>
-%doc ext/docs
-<% end -%>
 %{_app_prefix}
 %if %{_with_systemd}
 %{_unitdir}/%{name}.service

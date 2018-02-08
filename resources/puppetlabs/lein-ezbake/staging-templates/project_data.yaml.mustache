@@ -11,11 +11,15 @@ files:
   - ext
   - "*.md"
   - {{{uberjar-name}}}
+{{#additional-uberjars}}
+  - {{uberjar}}
+{{/additional-uberjars}}
   - version
   - Rakefile
   - Makefile.erb
   - puppet
   - install.sh.erb
+  - ext/fpm.rb
 templates:
   - source: ext/redhat/ezbake.spec.erb
     target: ext/redhat/{{{project}}}.spec
@@ -33,12 +37,15 @@ templates:
     target: ext/{{{project}}}.logrotate-legacy.conf
   - source: ext/ezbake.tmpfiles.conf.erb
     target: ext/{{{project}}}.tmpfiles.conf
+  - ext/redhat/preinst.erb
+  - ext/redhat/postinst.erb
+  - ext/redhat/prerm.erb
+  - ext/redhat/postrm.erb
   - ext/redhat/init.erb
   - ext/redhat/init.suse.erb
   - ext/debian/changelog.erb
   - ext/debian/control.erb
   - ext/debian/dirs.erb
-  - ext/debian/docs.erb
   - ext/debian/postrm.erb
   - ext/debian/preinst.erb
   - ext/debian/prerm.erb
@@ -48,15 +55,21 @@ templates:
   - ext/bin/*.erb
   - ext/cli/apps/*.erb
   - ext/cli/*.erb
+  - ext/cli_defaults/*.erb
   - ext/default.erb
   - ext/ezbake-functions.sh.erb
   - Makefile.erb
   - install.sh.erb
+  - controller.sh.erb
 tar_excludes:
   - .gitignore
 build_pe: {{{is-pe-build}}}
 apt_repo_name: {{{repo-name}}}
+apt_nonfinal_repo_name: {{{nonfinal-repo-name}}}
 yum_repo_name: {{{repo-name}}}
+yum_nonfinal_repo_name: {{{nonfinal-repo-name}}}
+repo_name: {{{repo-name}}}
+nonfinal_repo_name: {{{nonfinal-repo-name}}}
 gem_files:
 gem_require_path:
 gem_test_files:

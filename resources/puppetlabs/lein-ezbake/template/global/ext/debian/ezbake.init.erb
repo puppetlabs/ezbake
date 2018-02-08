@@ -113,15 +113,15 @@ do_restart()
 {
     do_stop
     if [ "$?" -eq 0 ]; then
-        do_start
-        case "$?" in
-            0) log_end_msg 0 ;;
-            1) log_end_msg 1 ;; # Old process is still running
-            *) log_end_msg 1 ;; # Failed to start
-        esac
+      do_start
+      case "$?" in
+          0) log_end_msg 0 ;;
+          1) log_end_msg 1 ;; # Old process is still running
+          *) log_end_msg 1 ;; # Failed to start
+      esac
     else
-        # Failed to stop
-        log_end_msg 1
+      # Failed to stop
+      log_end_msg 1
     fi
 }
 

@@ -1,6 +1,8 @@
 module EZBake
   Config = {
       :project        => '{{{project}}}',
+      :version        => '{{{packaging-version}}}',
+      :release        => '{{{packaging-release}}}',
       :real_name      => '{{{real-name}}}',
       :user           => '{{{user}}}',
       :group          => '{{{group}}}',
@@ -9,11 +11,14 @@ module EZBake
       :stop_timeout   => '{{{stop-timeout}}}',
       :open_file_limit => {{{open-file-limit}}},
       :uberjar_name   => '{{{uberjar-name}}}',
+      :additional_uberjars => [{{{additional-uberjars}}}],
       :config_files   => [{{{config-files}}}],
       :system_config_files   => [{{{system-config-files}}}],
       :cli_app_files  => [{{{cli-app-files}}}],
+      :cli_defaults_file => '{{{cli-defaults-file}}}',
       :bin_files      => [{{{bin-files}}}],
       :create_dirs    => [{{{create-dirs}}}],
+      :is_pe_build    => {{{is-pe-build}}},
       :terminus_info  => {
                           {{#terminus-map}}
                             "{{{name}}}" => {
@@ -27,18 +32,41 @@ module EZBake
                           :additional_build_dependencies => [{{{debian-build-deps}}}],
                           :additional_preinst => [{{{debian-preinst}}}],
                           :additional_postinst => [{{{debian-postinst}}}],
+                          :additional_postinst_install => [{{{debian-postinst-install}}}],
                           :additional_install => [{{{debian-install}}}],
                           :pre_start_action => [{{{debian-pre-start-action}}}],
                           :post_start_action => [{{{debian-post-start-action}}}],
+                          :interested_install_triggers => {
+                                                 {{#debian-interested-install-triggers}}
+                                                   "{{{interest-name}}}" => [{{{scripts}}}],
+                                                 {{/debian-interested-install-triggers}}
+                                                 },
+                          :interested_upgrade_triggers => {
+                                                 {{#debian-interested-upgrade-triggers}}
+                                                   "{{{interest-name}}}" => [{{{scripts}}}],
+                                                 {{/debian-interested-upgrade-triggers}}
+                                                 },
+                          :activated_triggers => [{{{debian-activated-triggers}}}],
                           },
       :redhat         => {
                           :additional_dependencies => [{{{redhat-deps}}}],
                           :additional_build_dependencies => [{{{redhat-build-deps}}}],
                           :additional_preinst => [{{{redhat-preinst}}}],
                           :additional_postinst => [{{{redhat-postinst}}}],
+                          :additional_postinst_install => [{{{redhat-postinst-install}}}],
                           :additional_install => [{{{redhat-install}}}],
                           :pre_start_action => [{{{redhat-pre-start-action}}}],
                           :post_start_action => [{{{redhat-post-start-action}}}],
+                          :postinst_install_triggers => {
+                                                 {{#redhat-postinst-install-triggers}}
+                                                   "{{{package}}}" => [{{{scripts}}}],
+                                                 {{/redhat-postinst-install-triggers}}
+                                                },
+                          :postinst_upgrade_triggers => {
+                                                 {{#redhat-postinst-upgrade-triggers}}
+                                                   "{{{package}}}" => [{{{scripts}}}],
+                                                 {{/redhat-postinst-upgrade-triggers}}
+                                                },
                           },
       :main_namespace => '{{{main-namespace}}}',
       :java_args      => '{{{java-args}}}',

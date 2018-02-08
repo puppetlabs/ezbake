@@ -30,12 +30,10 @@ Error(s) occurred while parsing command-line arguments: Unknown option: "--resta
 
 ## Using
 
-To get started using EZBake, please add it to the `:plugins` key in your
-`project.clj`:
+To get started using EZBake, please add the following to the value for the
+`:plugins` key in your `project.clj`:
 
-```clojure
-{:plugins [[puppetlabs/lein-ezbake "0.2.3"]]}
-```
+[![Clojars Project](http://clojars.org/puppetlabs/lein-ezbake/latest-version.svg)](http://clojars.org/puppetlabs/lein-ezbake)
 
 Before you can get started using it, however, there may be some additional
 configuration necessary.
@@ -133,12 +131,50 @@ Note that the symble `:ezbake` is not strictly necessary here.
 
 #### Composite
 
-Composite ezbake projects usually do not define their own services but rather
+Composite EZBake projects usually do not define their own services but rather
 provide a list of dependencies which themselves define TK services.  Because of
 this it is not strictly necessary to define a profile such as `:ezbake` shown
 above; although it is conceivable that such a composite project may define its
 own services, it is unlikely and ill-advised because no one likes blurred lines
 in architectural diagrams. Just look at the Leaning Tower of Pisa.
+
+#### Additional Uberjars
+
+Some projects might have a use case for automatically fetching a versioned
+jar from an external repository that needs to be placed into the package and be
+available after installation.
+
+The `:additional-uberjars` setting can be set to a list of project coordinates
+that will be resolved and have uberjars built from them. For example:
+
+```clojure
+{:lein-ezbake {
+  :additional-uberjars [[puppetlabs/puppetserver "2.7.2"]]
+...}}
+```
+
+This would result in a puppetserver uberjar being built, and the jar being placed in the
+same directory as your project's own uberjar after installation.
+
+The filename of the built uberjar is determined by what value `:uberjar-name`
+is set to in its `project.clj`
+
+EZBake will attempt to resolve the coordinates of these external uberjars using
+the repositories specified in the `:repositories` key of your project.clj
+
+#### cli-defaults.sh
+`cli-defaults.sh` is intended to be a file from which default shell script
+variables can be defined by a project, and be loaded by EZBake's `cli-app`
+script. That is, the script which is run when commands like
+`service my-project start` are called.
+
+This differs from the `default` files, which also get loaded by `cli-app`, in
+that a project has no control over what goes into `default`. `cli-defaults.sh`
+is under the control of your project.
+
+For `cli-defaults.sh` to be used, it simply needs to exist at
+`resources/ext/cli_defaults/cli-defaults.sh.erb` in your project. Since it is
+an erb template, it will have access to the variables in `ezbake.rb`
 
 ### Running
 
@@ -156,11 +192,17 @@ lein with-profile ezbake ezbake stage
 ```
 
 This will create an ephemeral git repository at `./target/staging` with staged
-templates ready for consumption by the build step.
+templates ready for consumption by the build step. If the project being staged
+has a SNAPSHOT version, then a snapshot build will be deployed to the project's
+configured snapshots repository (typically our internal artifact repository
+server at `artifactory.delivery.puppetlabs.net`), in order to ensure our builds are
+reproducible. This can be avoided by setting the `EZBAKE_NODEPLOY` environment
+variable to any value. (If you set this environment variable in a build
+pipeline, you will be severely punished by the Angel of Build Reproducibility.)
 
 If the project being staged has a SNAPSHOT version, then a snapshot build will
 be deployed to the project's configured snapshots repository (typically our
-internal nexus repository server at `nexus.delivery.puppetlabs.net`), in order
+internal artifact repository server at `artifactory.delivery.puppetlabs.net`), in order
 to ensure our builds are reproducible. This can be avoided by setting the
 `EZBAKE_NODEPLOY` environment variable to any value.
 
@@ -180,8 +222,12 @@ lein with-profile ezbake ezbake build
 ```
 
 This will do everything the `stage` action does and then call the external
-builder defined for this project. Currently, the only builder supported is
-[Puppetlabs' Packaging tool](https://github.com/puppetlabs/packaging).
+builder defined for this project. Currently, this is tied to internal
+infrastructure at Puppet. If you want to run an ezbake build on your own
+infrastructure, see the `local-build` option below. Starting in version 1.6.0
+`build` requires jenkins authorization to be passed in at runtime. This should
+be set in the `JENKINS_USER_AUTH` environment variable to either '<job token>'
+or '<ldap username>:<personal auth token>'.
 
 #### `build` for PE
 
@@ -203,6 +249,37 @@ packages. The `:pe` profile may define different values for `:lein-ezbake` or fo
 anything that might be found in the `:ezbake` profile. This is primarily useful
 for projects that need to build their PE and FOSS packages from the same
 repository.
+
+#### `local-build`
+
+```shell
+lein with-profile ezbake ezbake local-build
+```
+
+This will do everything the `stage` action does and then call the local builder
+defined for this project. This will build .deb and .rpm packages for the project
+on your local machine using [FPM](https://github.com/jordansissel/fpm). To
+build successfully you'll need the FPM gem installed. You'll also need java
+and leiningen. To build RPMs you'll want to be on some sort of RPM-based system
+as you need RPM build tools. To build RPMs for SLES you'll need to have 
+the systemd-rpm-macros rpm installed. Building .debs doesn't require anything
+special.
+
+Packages will end up in the output directory. RPM targets can be overwritten
+by setting the `MOCK` environment variable and deb targets can be overwritten
+by setting the `COW` environment variable. These variables should be
+space-separated lists of rpm(MOCK) and deb(COW) platforms.
+
+#### `legacy-build`
+
+```shell
+lein with-profile ezbake ezbake legacy-build
+```
+
+This will behave exactly like the `build` task in versions of ezbake prior to
+1.6.0.  This will do everything the `stage` action does and then call the external
+builder defined for this project. Currently, the only builder supported is
+[Puppetlabs' Packaging tool](https://github.com/puppetlabs/packaging).
 
 #### `manifest`
 
