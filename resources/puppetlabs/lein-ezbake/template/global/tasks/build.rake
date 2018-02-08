@@ -100,6 +100,9 @@ namespace :pl do
         "--form file1=@#{Dir.pwd}/PROJECT_BUNDLE",
       ]
 
+      platform_version = ENV['PLATFORM_VERSION']
+      platform_version ||= 'PC1'
+
       parameter_json = {
         :parameter => [
           {
@@ -117,6 +120,10 @@ namespace :pl do
           {
             :name => "MOCKS",
             :value => "#{Pkg::Config.final_mocks}"
+          },
+          {
+            :name => "PLATFORM_VERSION",
+            :value => platform_version
           }
         ]
       }
