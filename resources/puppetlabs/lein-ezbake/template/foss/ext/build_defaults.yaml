@@ -6,6 +6,7 @@ cows: 'base-jessie-i386.cow base-xenial-i386.cow base-stretch-i386.cow'
 pbuild_conf: '/etc/pbuilderrc'
 packager: 'puppetlabs'
 gpg_key: '7F438280EF8D349F'
+sign_tar: FALSE
 # a space separated list of mock configs
 final_mocks: 'pl-el-6-i386 pl-el-7-x86_64 pl-sles-12-x86_64'
 yum_host: 'yum.puppetlabs.com'
@@ -13,8 +14,6 @@ yum_repo_path: '/opt/repository/yum/'
 build_gem: FALSE
 build_dmg: FALSE
 build_ips: FALSE
-build_tar: FALSE
-sign_tar: FALSE
 apt_host: 'apt.puppetlabs.com'
 apt_repo_url: 'http://apt.puppetlabs.com'
 apt_repo_path: '/opt/repository/incoming'
