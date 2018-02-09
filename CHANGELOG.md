@@ -1,3 +1,17 @@
+## 1.1.12 - 2018-02-12
+This release backports changes from the master branch to the legacy branch
+while maintaining support for Java 7 and Debian Wheezy. This includes all
+changes added in releases 1.2.0 - 1.7.5 except for the java and platform removals.
+
+Additionally, this release includes a few bug fixes.
+
+Bugfix:
+ * Remove the default that was incorrectly preventing source tarballs from being
+   shipped.
+ * (CPR-515) Allow specification of postinstall actions that should only happen
+   on initial install. This allows packages to do some initial configuration
+   without overwriting customizations on upgrade.
+
 ## 1.7.5 - 2018-01-09
 This is a bugfix release.
 
