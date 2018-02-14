@@ -1,3 +1,15 @@
+## 1.8.0 - 2018-02-14
+This is a feature and bugfix release.
+
+Feature:
+  * (CPR-515) Add support for setting postinstall actions that should happen on
+    initial install only.
+
+Bugfix:
+  * Reverts commit setting `build_tar: FALSE` in foss build defaults. This fix
+    was masking a bug in github.com/puppetlabs/packaging which has since been
+    fixed.
+
 ## 1.7.5 - 2018-01-09
 This is a bugfix release.
 
