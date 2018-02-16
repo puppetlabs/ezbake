@@ -6,7 +6,6 @@ require 'ostruct'
 
 options = OpenStruct.new
 # settin' some defaults
-options.certs_package = 'ca-certificates'
 options.systemd = 0
 options.sysvinit = 0
 options.systemd_el = 0
@@ -177,7 +176,6 @@ if options.output_type == 'rpm'
     options.systemd = 1
     options.systemd_sles = 1
     options.sles = 1
-    options.certs_package = 'ca-certificates-mozilla'
     options.java = 'java-1_8_0-openjdk-headless'
   elsif options.operating_system == :sles #old sles
     options.sysvinit = 1
@@ -330,7 +328,6 @@ if options.is_pe
   fpm_opts << "--depends pe-puppet-enterprise-release"
 else
   fpm_opts << "--depends #{options.java}"
-  fpm_opts << "--depends #{options.certs_package}" if options.output_type == 'rpm'
 end
 
 fpm_opts << "--depends bash"
