@@ -368,6 +368,29 @@ termini_opts.flatten!
 fpm_opts << "#{options.sources.join(' ')}"
 termini_opts << "#{options.termini_sources.join(' ')}"
 
+# FPM prepends %dir to the %files list entries if the file is a directory
+# https://github.com/jordansissel/fpm/blob/a996a8a404f012a4cdc95bce4b1e32b1982839e6/templates/rpm.erb#L249-L250
+# This prevents us from recursively setting ownership/group on files within a directory
+#
+# There's a bit more we have to work around here. We want to recursively set owner
+# and group for everything in the app data dir, but we also want to set the file
+# mode for the data dir. Since FPM doesn't let us add multiple attributes for the
+# same file, we're going to use the editor to add a second line in to the spec
+# file setting up the mode for the top-level directory
+#
+# This sed command will take
+#    %dir %attr(-, puppet, puppet) /opt/puppetlabs/server/data/app_name
+#
+# and convert it into
+#    %attr(-, puppet, puppet) /opt/puppetlabs/server/data/app_name
+#    %dir %attr (770, puppet, puppet) /opt/puppetlabs/server/data/app_name
+#
+# We should either open a issue/PR/etc to make this allowable in fpm, or we
+# should refactor how we're building this package to explicitly set the root/root
+# ownership for everything we need and set the default user/group attributes to
+# be owned by the app user/group. But, in the interim we have this.
+fpm_editor = 'FPM_EDITOR="sed -i \'s/%dir %attr(-\(.*\)/%attr(-\1\n%dir %attr(770\1/\'"'
+
 if options.debug
   puts "=========================="
   puts "OPTIONS HASH"
@@ -375,17 +398,13 @@ if options.debug
   puts "=========================="
   puts "=========================="
   puts "FPM COMMAND"
-  puts "FPM_EDITOR=\"sed -i 's/%dir %attr(-/%attr(-/'\" fpm #{fpm_opts.join(' ')}"
+  puts "#{fpm_editor} fpm #{fpm_opts.join(' ')}"
   puts "=========================="
   puts "#{Dir.pwd}"
 end
 
-# TODO: Find a better way to recursively set directory attributes for rpms.
-# This is bad and I am bad for doing it.
-# MMR - 2017-08-03
-
 # fpm sends all output to stdout
-out, _, stat = Open3.capture3("FPM_EDITOR=\"sed -i 's/%dir %attr(-/%attr(-/'\" fpm #{fpm_opts.join(' ')}")
+out, _, stat = Open3.capture3("#{fpm_editor} fpm #{fpm_opts.join(' ')}")
 fail "Error trying to run FPM for #{options.dist}!\n#{out}" unless stat.success?
 
 puts "#{out}"
