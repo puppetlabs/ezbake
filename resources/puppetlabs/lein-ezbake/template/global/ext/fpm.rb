@@ -205,6 +205,10 @@ if options.output_type == 'rpm'
     fpm_opts << "--depends systemd"
   end
 
+  if options.systemd_sles == 1
+    fpm_opts << "--rpm-tag '%{?systemd_requires}'"
+  end
+
   fpm_opts << "--config-files /etc/puppetlabs/#{options.realname}"
   fpm_opts << "--config-files /etc/sysconfig/#{options.name}"
 
