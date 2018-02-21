@@ -221,14 +221,6 @@ if options.output_type == 'rpm'
     fpm_opts << "--rpm-trigger-after-install #{trigger}"
   end
 
-  options.deb_interest_triggers.each do |trigger|
-    fpm_opts << "--deb-interest #{trigger}"
-  end
-
-   options.deb_activate_triggers.each do |trigger|
-    fpm_opts << "--deb-activate #{trigger}"
-  end
-
   if options.logrotate
     fpm_opts << "--config-files /etc/logrotate.d/#{options.name}"
   end
@@ -295,6 +287,13 @@ elsif options.output_type == 'deb'
   end
   fpm_opts << '--deb-priority optional'
   fpm_opts << '--category utils'
+  options.deb_interest_triggers.each do |trigger|
+    fpm_opts << "--deb-interest #{trigger}"
+  end
+
+   options.deb_activate_triggers.each do |trigger|
+    fpm_opts << "--deb-activate #{trigger}"
+  end
 end
 
 # generic options!
