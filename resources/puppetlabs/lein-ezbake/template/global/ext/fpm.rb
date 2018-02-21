@@ -30,6 +30,8 @@ options.termini_sources = ['opt']
 options.rpm_triggers = []
 options.deb_interest_triggers = []
 options.deb_activate_triggers = []
+options.description = nil
+options.termini_description = nil
 
 OptionParser.new do |opts|
   opts.on('-o', '--operating-system OS', [:fedora, :el, :sles, :debian, :ubuntu], 'Select operating system (fedora, el, sles, debian, ubuntu)') do |o|
@@ -100,6 +102,12 @@ OptionParser.new do |opts|
   end
   opts.on('--deb-activate-trigger TRIGGER', 'name of the activate TRIGGER for the deb packages') do |t|
     options.deb_activate_triggers << t
+  end
+  opts.on('--description DESCRIPTION', 'description for the package') do |d|
+    options.description = d
+  end
+  opts.on('--termini-description DESCRIPTION', 'description for the termini package') do |d|
+    options.termini_description = d
   end
   opts.on_tail("-h", "--help", "Show this message") do
     puts opts
@@ -298,7 +306,9 @@ end
 
 # generic options!
 fpm_opts << "--name #{options.name}"
+fpm_opts << "--description '#{options.description}'" unless options.description.nil?
 termini_opts << "--name #{options.name}-termini"
+termini_opts << "--description '#{options.termini_description}'" unless options.termini_description.nil?
 shared_opts << "--version #{options.version}"
 shared_opts << "--iteration #{options.release}"
 shared_opts << "--vendor 'Puppet Labs <info@puppetlabs.com>'"
