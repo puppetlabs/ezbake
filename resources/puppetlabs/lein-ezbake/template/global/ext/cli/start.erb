@@ -66,7 +66,8 @@ ${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom \
   -m <%= EZBake::Config[:main_namespace] %> \
   --config "${CONFIG}" \
   --bootstrap-config "${BOOTSTRAP_CONFIG}" \
-  --restart-file "${restartfile}" &
+  --restart-file "${restartfile}" \
+  ${TK_ARGS} &
 
 # $! is the process id of the last backgrounded process, the Java process above.
 pid=$!
