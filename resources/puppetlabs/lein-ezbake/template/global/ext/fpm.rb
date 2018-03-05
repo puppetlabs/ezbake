@@ -6,7 +6,6 @@ require 'ostruct'
 
 options = OpenStruct.new
 # settin' some defaults
-options.certs_package = 'ca-certificates'
 options.systemd = 0
 options.sysvinit = 0
 options.systemd_el = 0
@@ -31,6 +30,8 @@ options.termini_sources = ['opt']
 options.rpm_triggers = []
 options.deb_interest_triggers = []
 options.deb_activate_triggers = []
+options.description = nil
+options.termini_description = nil
 
 OptionParser.new do |opts|
   opts.on('-o', '--operating-system OS', [:fedora, :el, :sles, :debian, :ubuntu], 'Select operating system (fedora, el, sles, debian, ubuntu)') do |o|
@@ -102,6 +103,12 @@ OptionParser.new do |opts|
   opts.on('--deb-activate-trigger TRIGGER', 'name of the activate TRIGGER for the deb packages') do |t|
     options.deb_activate_triggers << t
   end
+  opts.on('--description DESCRIPTION', 'description for the package') do |d|
+    options.description = d
+  end
+  opts.on('--termini-description DESCRIPTION', 'description for the termini package') do |d|
+    options.termini_description = d
+  end
   opts.on_tail("-h", "--help", "Show this message") do
     puts opts
     exit
@@ -160,7 +167,7 @@ if options.output_type == 'rpm'
 
   shared_opts << "--rpm-rpmbuild-define 'rpmversion #{options.version}'"
   fpm_opts << "--rpm-rpmbuild-define '_app_logdir #{options.app_logdir}'"
-  fpm_opts << "--rpm-rpmbuild-define '_app_rundir #{options.app_logdir}'"
+  fpm_opts << "--rpm-rpmbuild-define '_app_rundir #{options.app_rundir}'"
   fpm_opts << "--rpm-rpmbuild-define '_app_prefix #{options.app_prefix}'"
   fpm_opts << "--rpm-rpmbuild-define '_app_data #{options.app_data}'"
 
@@ -177,7 +184,6 @@ if options.output_type == 'rpm'
     options.systemd = 1
     options.systemd_sles = 1
     options.sles = 1
-    options.certs_package = 'ca-certificates-mozilla'
     options.java = 'java-1.7.0-openjdk' # for sles12 before SP1 we need java7
   elsif options.operating_system == :sles #old sles
     options.sysvinit = 1
@@ -207,6 +213,10 @@ if options.output_type == 'rpm'
     fpm_opts << "--depends systemd"
   end
 
+  if options.systemd_sles == 1
+    fpm_opts << "--rpm-tag '%{?systemd_requires}'"
+  end
+
   fpm_opts << "--config-files /etc/puppetlabs/#{options.realname}"
   fpm_opts << "--config-files /etc/sysconfig/#{options.name}"
 
@@ -219,14 +229,6 @@ if options.output_type == 'rpm'
     fpm_opts << "--rpm-trigger-after-install #{trigger}"
   end
 
-  options.deb_interest_triggers.each do |trigger|
-    fpm_opts << "--deb-interest #{trigger}"
-  end
-
-   options.deb_activate_triggers.each do |trigger|
-    fpm_opts << "--deb-activate #{trigger}"
-  end
-
   if options.logrotate
     fpm_opts << "--config-files /etc/logrotate.d/#{options.name}"
   end
@@ -237,20 +239,20 @@ if options.output_type == 'rpm'
   shared_opts << "--rpm-auto-add-directories"
   fpm_opts << "--rpm-auto-add-exclude-directories /etc/puppetlabs"
   shared_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs"
-  fpm_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs/bin" 
-  fpm_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs/server" 
-  fpm_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs/server/apps" 
-  fpm_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs/server/bin" 
-  fpm_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs/server/data" 
-  fpm_opts << "--rpm-auto-add-exclude-directories /usr/lib/systemd" 
-  fpm_opts << "--rpm-auto-add-exclude-directories /usr/lib/systemd/system" 
-  fpm_opts << "--rpm-auto-add-exclude-directories /etc/init.d" 
-  fpm_opts << "--rpm-auto-add-exclude-directories /etc/rc.d" 
-  fpm_opts << "--rpm-auto-add-exclude-directories /etc/logrotate.d" 
-  fpm_opts << "--rpm-auto-add-exclude-directories /etc/rc.d/init.d" 
-  fpm_opts << "--rpm-auto-add-exclude-directories /usr/lib/tmpfiles.d" 
-  fpm_opts << "--rpm-auto-add-exclude-directories /var/log/puppetlabs" 
-  fpm_opts << "--rpm-auto-add-exclude-directories /var/run/puppetlabs" 
+  fpm_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs/bin"
+  fpm_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs/server"
+  fpm_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs/server/apps"
+  fpm_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs/server/bin"
+  fpm_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs/server/data"
+  fpm_opts << "--rpm-auto-add-exclude-directories /usr/lib/systemd"
+  fpm_opts << "--rpm-auto-add-exclude-directories /usr/lib/systemd/system"
+  fpm_opts << "--rpm-auto-add-exclude-directories /etc/init.d"
+  fpm_opts << "--rpm-auto-add-exclude-directories /etc/rc.d"
+  fpm_opts << "--rpm-auto-add-exclude-directories /etc/logrotate.d"
+  fpm_opts << "--rpm-auto-add-exclude-directories /etc/rc.d/init.d"
+  fpm_opts << "--rpm-auto-add-exclude-directories /usr/lib/tmpfiles.d"
+  fpm_opts << "--rpm-auto-add-exclude-directories /var/log/puppetlabs"
+  fpm_opts << "--rpm-auto-add-exclude-directories /var/run/puppetlabs"
   termini_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs/puppet"
   termini_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs/puppet/lib"
   termini_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs/puppet/lib/ruby"
@@ -293,11 +295,20 @@ elsif options.output_type == 'deb'
   end
   fpm_opts << '--deb-priority optional'
   fpm_opts << '--category utils'
+  options.deb_interest_triggers.each do |trigger|
+    fpm_opts << "--deb-interest #{trigger}"
+  end
+
+   options.deb_activate_triggers.each do |trigger|
+    fpm_opts << "--deb-activate #{trigger}"
+  end
 end
 
 # generic options!
 fpm_opts << "--name #{options.name}"
+fpm_opts << "--description '#{options.description}'" unless options.description.nil?
 termini_opts << "--name #{options.name}-termini"
+termini_opts << "--description '#{options.termini_description}'" unless options.termini_description.nil?
 shared_opts << "--version #{options.version}"
 shared_opts << "--iteration #{options.release}"
 shared_opts << "--vendor 'Puppet Labs <info@puppetlabs.com>'"
@@ -330,12 +341,12 @@ if options.is_pe
   fpm_opts << "--depends pe-puppet-enterprise-release"
 else
   fpm_opts << "--depends #{options.java}"
-  fpm_opts << "--depends #{options.certs_package}" if options.output_type == 'rpm'
 end
 
 fpm_opts << "--depends bash"
 fpm_opts << "--depends net-tools"
 fpm_opts << "--depends /usr/bin/which" if options.output_type == 'rpm'
+fpm_opts << "--depends adduser" if options.output_type == 'deb'
 fpm_opts << "--depends procps"
 
 termini_opts << "--depends puppet-agent"
@@ -371,6 +382,29 @@ termini_opts.flatten!
 fpm_opts << "#{options.sources.join(' ')}"
 termini_opts << "#{options.termini_sources.join(' ')}"
 
+# FPM prepends %dir to the %files list entries if the file is a directory
+# https://github.com/jordansissel/fpm/blob/a996a8a404f012a4cdc95bce4b1e32b1982839e6/templates/rpm.erb#L249-L250
+# This prevents us from recursively setting ownership/group on files within a directory
+#
+# There's a bit more we have to work around here. We want to recursively set owner
+# and group for everything in the app data dir, but we also want to set the file
+# mode for the data dir. Since FPM doesn't let us add multiple attributes for the
+# same file, we're going to use the editor to add a second line in to the spec
+# file setting up the mode for the top-level directory
+#
+# This sed command will take
+#    %dir %attr(-, puppet, puppet) /opt/puppetlabs/server/data/app_name
+#
+# and convert it into
+#    %attr(-, puppet, puppet) /opt/puppetlabs/server/data/app_name
+#    %dir %attr (770, puppet, puppet) /opt/puppetlabs/server/data/app_name
+#
+# We should either open a issue/PR/etc to make this allowable in fpm, or we
+# should refactor how we're building this package to explicitly set the root/root
+# ownership for everything we need and set the default user/group attributes to
+# be owned by the app user/group. But, in the interim we have this.
+fpm_editor = 'FPM_EDITOR="sed -i \'s/%dir %attr(-\(.*\)/%attr(-\1\n%dir %attr(770\1/\'"'
+
 if options.debug
   puts "=========================="
   puts "OPTIONS HASH"
@@ -378,17 +412,13 @@ if options.debug
   puts "=========================="
   puts "=========================="
   puts "FPM COMMAND"
-  puts "FPM_EDITOR=\"sed -i 's/%dir %attr(-/%attr(-/'\" fpm #{fpm_opts.join(' ')}"
+  puts "#{fpm_editor} fpm #{fpm_opts.join(' ')}"
   puts "=========================="
   puts "#{Dir.pwd}"
 end
 
-# TODO: Find a better way to recursively set directory attributes for rpms.
-# This is bad and I am bad for doing it.
-# MMR - 2017-08-03
-
 # fpm sends all output to stdout
-out, _, stat = Open3.capture3("FPM_EDITOR=\"sed -i 's/%dir %attr(-/%attr(-/'\" fpm #{fpm_opts.join(' ')}")
+out, _, stat = Open3.capture3("#{fpm_editor} fpm #{fpm_opts.join(' ')}")
 fail "Error trying to run FPM for #{options.dist}!\n#{out}" unless stat.success?
 
 puts "#{out}"
