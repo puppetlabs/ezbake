@@ -2,6 +2,7 @@
 This is a bugfix release.
 
 Bugfix:
+ * (EZ-112) Don't start puppetserver until networking comes online.
  * The `ca-certificates` package should be a build-time dependency not a runtime
    dependency.
  * The rpm parameter for `rundir` was getting set to the logdir instead of the
@@ -11,6 +12,33 @@ Bugfix:
  * Missing dependency on `adduser` for deb packages.
  * Debian triggers were only being added to RPMs.
  * Descriptions were not getting added to packages.
+
+## 1.8.1 - 2018-03-07
+This is a bugfix release.
+
+Bugfix:
+ * (EZ-112) Don't start puppetserver until networking comes online.
+ * The `ca-certificates` package should be a build-time dependency not a runtime
+   dependency.
+ * The rpm parameter for `rundir` was getting set to the logdir instead of the
+   rundir.
+ * File mode for the Application Data Dir was not getting set correctly.
+ * Missing `%?{systemd_requires}` for SLES packages.
+ * Missing dependency on `adduser` for deb packages.
+ * Debian triggers were only being added to RPMs.
+ * Descriptions were not getting added to packages.
+
+## 1.8.0 - 2018-02-14
+This is a feature and bugfix release.
+
+Feature:
+  * (CPR-515) Add support for setting postinstall actions that should happen on
+    initial install only.
+
+Bugfix:
+  * Reverts commit setting `build_tar: FALSE` in foss build defaults. This fix
+    was masking a bug in github.com/puppetlabs/packaging which has since been
+    fixed.
 
 ## 1.1.12 - 2018-02-12
 This release backports changes from the master branch to the legacy branch
