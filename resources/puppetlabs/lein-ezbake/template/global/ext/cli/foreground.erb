@@ -33,6 +33,7 @@ COMMAND="${JAVA_BIN} ${JAVA_ARGS} ${LOG_APPENDER} \
          clojure.main -m <%= EZBake::Config[:main_namespace] %> \
          --config ${CONFIG} --bootstrap-config ${BOOTSTRAP_CONFIG} \
          --restart-file "${restartfile}" \
+         ${TK_ARGS} \
          ${@}"
 
 pushd "${INSTALL_DIR}" &> /dev/null

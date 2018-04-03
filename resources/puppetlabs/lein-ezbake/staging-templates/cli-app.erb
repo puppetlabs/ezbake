@@ -11,6 +11,7 @@ elif [ -r "/etc/sysconfig/<%= EZBake::Config[:project] -%>" ] ; then
 elif [ `uname` == "OpenBSD" ] ; then
     JAVA_BIN=$(javaPathHelper -c <%= EZBake::Config[:project] %>)
     JAVA_ARGS="<%= EZBake::Config[:java_args] %>"
+    TK_ARGS="<%= EZBake::Config[:tk_args] %>"
     USER="_<%= EZBake::Config[:user] %>"
     INSTALL_DIR="/opt/puppetlabs/server/apps/<%= EZBake::Config[:project] %>"
     CONFIG="/etc/puppetlabs/<%= EZBake::Config[:project] %>/conf.d"
