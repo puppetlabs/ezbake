@@ -1,3 +1,10 @@
+## 1.8.2 - 2018-04-16
+This is a feature release.
+
+Feature:
+ * (EZ-20) Added support for TrapperKeeper arguments that can be used to adjust
+ the flags passed to daemons and command line tools by setting `TK_ARGS`.
+
 ## 1.8.1 - 2018-03-07
 This is a bugfix release.
 
