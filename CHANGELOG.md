@@ -1,4 +1,4 @@
-## 1.8.2 - 2018-04-16
+## 1.8.2 - 2018-04-17
 This is a feature release.
 
 Feature:
