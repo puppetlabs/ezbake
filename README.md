@@ -200,12 +200,6 @@ reproducible. This can be avoided by setting the `EZBAKE_NODEPLOY` environment
 variable to any value. (If you set this environment variable in a build
 pipeline, you will be severely punished by the Angel of Build Reproducibility.)
 
-If the project being staged has a SNAPSHOT version, then a snapshot build will
-be deployed to the project's configured snapshots repository (typically our
-internal artifact repository server at `artifactory.delivery.puppetlabs.net`), in order
-to ensure our builds are reproducible. This can be avoided by setting the
-`EZBAKE_NODEPLOY` environment variable to any value.
-
 If the project or any of its dependencies have a SNAPSHOT version, but
 a deployed snapshot artifact matching that version cannot be found in the
 configured repositories (for example, because they have only been installed
