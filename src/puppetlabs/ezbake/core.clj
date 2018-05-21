@@ -447,13 +447,13 @@ Additional uberjar dependencies:
       (str/replace "-" ".")))
 
 (defn generate-git-tag-from-version
-  [lein-version]
+  [lein-version timestamp]
   {:pre [(string? lein-version)]
    :post [(string? %)]}
   (if (.endsWith lein-version "-SNAPSHOT")
     (format "%s.%s"
             (str/replace lein-version "-" ".")
-            (get-timestamp-string))
+            timestamp)
     lein-version))
 
 (defn generate-package-version-from-version
@@ -466,13 +466,13 @@ Additional uberjar dependencies:
     lein-version))
 
 (defn generate-package-release-from-version
-  [lein-version]
+  [lein-version timestamp]
   {:pre [(string? lein-version)]
    :post [(string? %)]}
   (if (.endsWith lein-version "-SNAPSHOT")
     (format "%s.%s"
             (str/replace lein-version #".*-" "0.1")
-            (get-timestamp-string))
+            timestamp)
     "1"))
 
 ;; TODO: this is a horrible, horrible hack; I can't yet see a good way to
@@ -480,14 +480,14 @@ Additional uberjar dependencies:
 ;; up a git tag; it seems like the packaging code is pretty well hard-coded
 ;; to try to pull this info from git.
 (defn create-git-repo
-  [lein-project]
+  [lein-project timestamp]
   (lein-main/info "Creating temporary git repo")
   (exec/exec "git" "init" staging-dir)
   (lein-main/info "Adding all files to git repo")
   (staging-dir-git-cmd "add" "*")
   (lein-main/info "Committing git repo")
   (staging-dir-git-cmd "commit" "-m" "'Temporary git repo to house packaging code'")
-  (let [git-tag (generate-git-tag-from-version (:version lein-project))]
+  (let [git-tag (generate-git-tag-from-version (:version lein-project) timestamp)]
     (lein-main/info "Tagging git repo at" git-tag)
     (staging-dir-git-cmd "tag" "-a" git-tag "-m" "Tag for packaging code")))
 
@@ -506,7 +506,7 @@ Additional uberjar dependencies:
 
 (defn make-template-map
   "Construct the map of variables to pass on to the ezbake.rb template"
-  [lein-project build-target config-files system-config-files cli-app-files bin-files terminus-files upstream-ezbake-configs additional-uberjars]
+  [lein-project build-target config-files system-config-files cli-app-files bin-files terminus-files upstream-ezbake-configs additional-uberjars timestamp]
   (let [termini (for [[name version files] terminus-files]
                   {:name name
                    :version version
@@ -520,7 +520,7 @@ Additional uberjar dependencies:
                                                       variable)))]
     {:project                            (:name lein-project)
      :packaging-version                  (generate-package-version-from-version (:version lein-project))
-     :packaging-release                  (generate-package-release-from-version (:version lein-project))
+     :packaging-release                  (generate-package-release-from-version (:version lein-project) timestamp)
      :real-name                          (get-real-name (:name lein-project))
      :user                               (get-local-ezbake-var lein-project :user
                                                       (:name lein-project))
@@ -598,7 +598,8 @@ Additional uberjar dependencies:
    bin-files
    terminus-files
    upstream-ezbake-configs
-   additional-uberjars]
+   additional-uberjars
+   timestamp]
   (lein-main/info "generating ezbake config file")
   (spit
    (fs/file staging-dir "ezbake.rb")
@@ -612,7 +613,8 @@ Additional uberjar dependencies:
                        bin-files
                        terminus-files
                        upstream-ezbake-configs
-                       additional-uberjars))))
+                       additional-uberjars
+                       timestamp))))
 
 (defn generate-project-data-yaml
   [lein-project build-target additional-uberjars]
@@ -824,7 +826,8 @@ Additional uberjar dependencies:
           terminus-files  (cp-terminus-files dependencies build-target)
           upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)
           additional-uberjar-info (build-additional-uberjars! lein-project)
-          additional-uberjar-filenames (map #(fs/base-name (:uberjar %)) additional-uberjar-info)]
+          additional-uberjar-filenames (map #(fs/base-name (:uberjar %)) additional-uberjar-info)
+          timestamp (get-timestamp-string)]
       (cp-shared-files dependencies get-cli-defaults-files-in)
       (cp-shared-files dependencies get-build-scripts-files-in)
       (if cli-app-files
@@ -840,12 +843,13 @@ Additional uberjar dependencies:
                                     bin-files
                                     terminus-files
                                     upstream-ezbake-configs
-                                    additional-uberjar-filenames)
+                                    additional-uberjar-filenames
+                                    timestamp)
       (let [project-w-deployed-version (assoc lein-project :version deployed-version)]
         (generate-project-data-yaml project-w-deployed-version build-target additional-uberjar-filenames)
         (generate-manifest-file project-w-deployed-version additional-uberjar-info))
       (generate-build-metadata-files lein-project)
-      (create-git-repo lein-project))))
+      (create-git-repo lein-project timestamp))))
 
 (defmethod action "build"
   [_ lein-project build-target]
