@@ -1,3 +1,9 @@
+## 1.8.4 - 2018-06-11
+This is a bugfix release.
+
+Bugfix:
+  * (EZ-124) Use consistent timestamps throughout the `stage` process.
+
 ## 1.8.3 - 2018-04-17
 This is a feature release.
 
