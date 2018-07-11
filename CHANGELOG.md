@@ -1,3 +1,9 @@
+## 1.8.5 - 2018-07-11
+This is a maintenance release.
+
+Maintenance:
+  * Add support for Ubuntu 18.04 (Bionic).
+
 ## 1.8.4 - 2018-06-11
 This is a bugfix release.
 
