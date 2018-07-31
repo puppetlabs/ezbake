@@ -17,10 +17,8 @@ if LEIN_SNAPSHOTS_IN_RELEASE
 end
 
 # Load tasks and variables for packaging automation
-begin
-  load File.join(RAKE_ROOT, 'ext', 'packaging', 'packaging.rake')
-rescue LoadError
-end
+require 'packaging'
+Pkg::Util::RakeUtils.load_packaging_tasks
 
 # We want to use ezbake's package:tar and its dependencies, because it
 # contains all the special java snowflake magicks, so we have to clear the
