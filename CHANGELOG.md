@@ -1,3 +1,10 @@
+## 1.8.6 - 2018-08-14
+This is a maintenance release.
+
+Maintenance:
+  * Add openjdk-10+ support
+  * (RE-10177) Use packaging as a gem
+
 ## 1.8.5 - 2018-07-11
 This is a maintenance release.
 
@@ -97,7 +104,7 @@ Feature:
     triggers via the `debian-activated-triggers` variable. This variable takes
     an array of trigger names. This also adds support for interest triggers for
     either install or upgrade via the `debian-interested-install-triggers` and
-    `debian-interested-upgrade-triggers` variables. These variables are arrays 
+    `debian-interested-upgrade-triggers` variables. These variables are arrays
     of hashes in the format [ { :interest-name "trigger", :scripts ["script1", "script2"] } ]
     All of these variables are set under `:lein-ezbake` in your project.clj.
 
@@ -162,11 +169,11 @@ This is a feature and maintenance release.
 
 Feature:
   * Added `local-build` task to allow building ezbake projects on infrastructure
-    outside of Puppet. There is more information available in the README but 
+    outside of Puppet. There is more information available in the README but
     this addition enables package building on any machine/VM/container/etc with
     the necessary dependencies installed.
   * Changes to `build` task to let it use new infrastructure and CI systems.
-    These changes should be transparent with the exception of needing to pass 
+    These changes should be transparent with the exception of needing to pass
     jenkins authorization at runtime. This should be passed in the
     JENKINS_USER_AUTH environment variable as either '<job token>' or
     '<ldap username>:<personal auth token>'.
@@ -213,7 +220,7 @@ Bugs:
   * (EZ-109) Eliminate some unnecessarily duplicated strings from the
     ezbake.manifest file.
   * (EZ-110) Retain any qualifying attributes (e.g., exclusions) when expanding
-    a SNAPSHOT version for a coordinate, allowing exclusions to be reflected 
+    a SNAPSHOT version for a coordinate, allowing exclusions to be reflected
     properly in the resulting ezbake.manifest file.
   * (EZ-110) For an `additional-uberjar`, build the immediate jar into the final
     uberjar even when the project has defined its own `uberjar` profile.
@@ -301,7 +308,7 @@ Maintenance:
   * (EZ-90) Add 'start' app subcommand
   * (EZ-99) Add 'stop' app subcommand and modify service 'stop' command to use it
   * (EZ-100) Add timeout EzBake and defaults config settings for 'reload' and 'stop'
-  
+
 ## 0.5.1 - 2016-09-13
 * Update to use the new Puppet GPG key for package signing
 
