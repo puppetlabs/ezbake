@@ -2,8 +2,8 @@
 This is a maintenance release.
 
 Maintenance:
-  * Add openjdk-10+ support
-  * (RE-10177) Use packaging as a gem
+  * Add openjdk-10+ support.
+  * (RE-10177) Use packaging as a gem.
 
 ## 1.8.5 - 2018-07-11
 This is a maintenance release.
