@@ -1,3 +1,9 @@
+## 1.1.14 - 2018-08-15
+This is a maintenance release.
+
+Maintenance:
+  * (RE-10177) Use packaging as a gem
+
 ## 1.1.13 - 2018-03-07
 This is a bugfix release.
 
