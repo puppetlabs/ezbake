@@ -1,8 +1,15 @@
+## 1.1.15 - 2018-08-22
+This is a bugfix release.
+
+Bugfix:
+  * (EZ-125) bundle install prior to calling packaging rake tasks.
+  * Include Gemfile in resulting package builds.
+
 ## 1.1.14 - 2018-08-15
 This is a maintenance release.
 
 Maintenance:
-  * (RE-10177) Use packaging as a gem
+  * (RE-10177) Use packaging as a gem.
 
 ## 1.1.13 - 2018-03-07
 This is a bugfix release.
