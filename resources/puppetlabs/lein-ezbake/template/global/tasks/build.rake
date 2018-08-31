@@ -153,7 +153,6 @@ namespace :pl do
 
       begin
         auth = Pkg::Util.check_var('JENKINS_USER_AUTH', ENV['JENKINS_USER_AUTH'])
-        Pkg::Util::RakeUtils.invoke_task("pl:jenkins:trigger_build", auth, job_url)
       rescue
         STDERR.puts "You need to pass the environment variable JENKINS_USER_AUTH"
         STDERR.puts "It should be in the format <LDAP username>:<access token>"
@@ -163,6 +162,13 @@ namespace :pl do
         STDERR.puts "job authentication token see the 'Build Triggers' section of"
         STDERR.puts "#{job_url}/configure. In this case, JENKINS_USER_AUTH should"
         STDERR.puts "be set to only the Authentication Token."
+      end
+
+      begin
+        Pkg::Util::RakeUtils.invoke_task("pl:jenkins:trigger_build", auth, job_url)
+      rescue => e
+        STDERR.puts("\nError triggering job: #{job_url}")
+        STDERR.puts(e)
       end
     end
   end
