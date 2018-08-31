@@ -1,5 +1,18 @@
 require 'json'
 
+def get_auth_info(job_url)
+  <<-DOC
+You need to pass the environment variable JENKINS_USER_AUTH
+It should be in the format <LDAP username>:<access token>
+To find your access token, go to http://<jenkins-url>/me/configure
+These jobs also are configured with an authentication token
+that you can use instead of your personal token. To find the
+job authentication token see the 'Build Triggers' section of
+#{job_url}/configure. In this case, JENKINS_USER_AUTH should
+be set to only the Authentication Token.
+  DOC
+end
+
 namespace :pl do
   desc "do a local build"
   task :local_build => "pl:fetch" do
@@ -154,14 +167,7 @@ namespace :pl do
       begin
         auth = Pkg::Util.check_var('JENKINS_USER_AUTH', ENV['JENKINS_USER_AUTH'])
       rescue
-        STDERR.puts "You need to pass the environment variable JENKINS_USER_AUTH"
-        STDERR.puts "It should be in the format <LDAP username>:<access token>"
-        STDERR.puts "To find your access token, go to http://<jenkins-url>/me/configure"
-        STDERR.puts "These jobs also are configured with an authentication token"
-        STDERR.puts "that you can use instead of your personal token. To find the"
-        STDERR.puts "job authentication token see the 'Build Triggers' section of"
-        STDERR.puts "#{job_url}/configure. In this case, JENKINS_USER_AUTH should"
-        STDERR.puts "be set to only the Authentication Token."
+        STDERR.puts(get_auth_info(job_url))
       end
 
       begin
