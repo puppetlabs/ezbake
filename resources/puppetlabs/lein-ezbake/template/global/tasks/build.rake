@@ -142,11 +142,20 @@ namespace :pl do
       curl_opts << %(--form json='#{parameter_json.to_json}')
       if args[:auth_string] =~ /:/
         curl_opts << "--user #{args[:auth_string]}"
-        Pkg::Util::Net.curl_form_data("#{args[:job_url]}/build", curl_opts)
+        curl_url = "#{args[:job_url]}/build"
       #assume we're using a token
       else
-        Pkg::Util::Net.curl_form_data("#{args[:job_url]}/build?token=#{args[:auth_string]}", curl_opts)
+        curl_url = "#{args[:job_url]}/build?token=#{args[:auth_string]}"
       end
+
+      output, _ = Pkg::Util::Net.curl_form_data(curl_url, curl_opts)
+      http_response = output.scan(/^HTTP.*$/).last
+
+      # Print an error unless it looks like we curl'd successfully
+      unless http_response =~ /2\d\d/
+        raise "HTTP response: #{http_response}\n\n#{get_auth_info(args[:job_url])}"
+      end
+
       Pkg::Util::Net.print_url_info(args[:job_url])
       package_url = "#{Pkg::Config.builds_server}/#{Pkg::Config.project}/#{Pkg::Config.ref}"
       puts "After the build job is completed, packages will be available at:"
