@@ -1,3 +1,13 @@
+## 1.1.16 - 2018-09-11
+This is a bugfix and maintenance release.
+
+Bugfix:
+  * Only produce authentication error message if JENKINS_USER_AUTH is unset.
+
+Maintenance:
+  * (RE-109140) Detect if job creation fails and print helpful message.
+  * Move authentication message to get_auth_info method.
+
 ## 1.1.15 - 2018-08-22
 This is a bugfix release.
 
