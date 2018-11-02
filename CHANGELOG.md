@@ -1,3 +1,11 @@
+## 1.1.17 - 2018-11-05
+This is a maintenance release.
+
+Maintenance:
+  * Add fpm to Gemfile that gets included in package builds.
+  * Hard-code `rubylibdir` variable in install script to avoid calling puppet's
+    ruby, which doesn't include bundled dependencies.
+
 ## 1.1.16 - 2018-09-11
 This is a bugfix and maintenance release.
 
