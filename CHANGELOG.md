@@ -1,3 +1,7 @@
+## 1.8.10 - 2018-11-06
+This release includes no changes from 1.8.9.
+The ezbake release pipeline was accidentally kicked off, causing an extra tag.
+
 ## 1.8.9 - 2018-11-02
 This is a maintenance release.
 
