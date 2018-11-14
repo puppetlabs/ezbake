@@ -264,6 +264,16 @@ by setting the `MOCK` environment variable and deb targets can be overwritten
 by setting the `COW` environment variable. These variables should be
 space-separated lists of rpm(MOCK) and deb(COW) platforms.
 
+#### `docker-build`
+
+```shell
+lein with-profile ezbake ezbake docker-build
+```
+
+This will build a container image using the settings in the `:docker` section
+of the `:lein-ezbake` config in `project.clj`. See [Building container images](#building-container-images)
+below for more detail.
+
 #### `legacy-build`
 
 ```shell
@@ -536,6 +546,33 @@ After building packages it is often necessary to install those packages in live
 environments on the OSes supported by the ezbake templates. For this purpose
 [Puppetlabs' Beaker](https://github.com/puppetlabs/beaker) is the, uh, choice
 tool of discerning developers.
+
+### Building container images
+
+EZBake can also be used to build docker images. The command `lein ezbake
+docker-build` can be used to build an image using config specified in
+`<config-dir>/docker`. The result will be an image derived from the
+`openjdk:8-jre-alpine` base image, with an entrypoint set to the correct java
+invocation to run the service. Config files will be located in `/config/conf.d`
+and the bootstrap file in `/config/bootstrap.cfg`. The project uberjar and any
+additional uberjars will be in `/src`.
+
+Some variables can be set under the `:docker` key in `project.clj`:
+
+```clojure
+{:lein-ezbake {
+  :config-dir "config"
+  :vars {
+    :docker {
+      ; Specify ports to be exposed in the container
+      :ports [8140]
+      ; Tag the image with a specific name. Defaults to the project name
+      :image-name "myproject"
+      ; Override the base image. Defaults to openjdk:8-jre-alpine
+      :base-image "openjdk:8-jre-alpine"}}}}
+```
+
+This feature is currently **experimental**.
 
 ## Maintainers
 

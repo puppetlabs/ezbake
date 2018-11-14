@@ -1,0 +1,12 @@
+FROM {{{base-image}}}
+
+COPY *.jar /src/
+COPY Dockerfile /Dockerfile
+COPY ext/config/docker /config
+
+VOLUME /ssl
+
+{{{expose-ports}}}
+
+ENTRYPOINT java -Djava.security.egd=/dev/urandom -XX:OnOutOfMemoryError="kill -9 %p" -cp "{{{classpath}}}" clojure.main -m puppetlabs.trapperkeeper.main --config /config/conf.d --bootstrap-config /config/bootstrap.cfg
+

@@ -63,6 +63,11 @@
   [{:interest-name schema/Str
     :scripts [schema/Str]}])
 
+(def DockerConfig
+  {(schema/optional-key :base-image) schema/Str
+   (schema/optional-key :image-name) schema/Str
+   (schema/optional-key :ports) [schema/Int]})
+
 (def LocalProjectVars
   {(schema/optional-key :user) schema/Str
    (schema/optional-key :group) schema/Str
@@ -85,7 +90,8 @@
    (schema/optional-key :debian-interested-install-triggers) DEBTriggers
    (schema/optional-key :debian-interested-upgrade-triggers) DEBTriggers
    (schema/optional-key :debian-activated-triggers) [schema/Str]
-   (schema/optional-key :logrotate-enabled) schema/Bool})
+   (schema/optional-key :logrotate-enabled) schema/Bool
+   (schema/optional-key :docker) DockerConfig})
 
 (def UberjarInfo
   {:uberjar File
@@ -791,6 +797,21 @@ Additional uberjar dependencies:
     (io/make-parents (fs/file staging-dir "ext" "build_metadata.json"))
     (spit (fs/file staging-dir "ext" "build_metadata.json") json-string)))
 
+(defn generate-dockerfile
+  [lein-project additional-uberjars]
+  (let [template (slurp (get-staging-template-file "Dockerfile.mustache"))
+        docker-config (get-in lein-project [:lein-ezbake :vars :docker])
+        uberjar-name (get lein-project :uberjar-name
+                          (format "%s-%s-standalone.jar" (:name lein-project) (:version lein-project)))
+        classpath (->> (cons uberjar-name additional-uberjars)
+                       (map #(str "/src/" %))
+                       (str/join ":"))]
+    (->> (stencil/render-string template {:classpath classpath
+                                          :expose-ports (if-let [ports (seq (:ports docker-config))]
+                                                                (apply print-str "EXPOSE" ports))
+                                          :base-image (get docker-config :base-image "openjdk:8-jre-alpine")})
+         (spit (fs/file staging-dir "Dockerfile")))))
+
 (defmethod action "manifest"
   [_ lein-project build-target]
   (generate-build-metadata-files lein-project))
@@ -808,7 +829,8 @@ Additional uberjar dependencies:
                              #(deputils/expand-snapshot-versions
                                 lein-project % {:reproducible? reproducible?}))]
     (let [template-dir (get-template-file build-target)
-          uberjar-name (:uberjar-name lein-project)]
+          uberjar-name (get lein-project :uberjar-name
+                            (format "%s-%s-standalone.jar" (:name lein-project) (:version lein-project)))]
       (uberjar/uberjar lein-project)
       (fs/copy+ (format "%s/%s" "target" uberjar-name)
                 (format "%s/%s" staging-dir uberjar-name))
@@ -849,7 +871,15 @@ Additional uberjar dependencies:
         (generate-project-data-yaml project-w-deployed-version build-target additional-uberjar-filenames)
         (generate-manifest-file project-w-deployed-version additional-uberjar-info))
       (generate-build-metadata-files lein-project)
+      (generate-dockerfile lein-project additional-uberjar-filenames)
       (create-git-repo lein-project timestamp))))
+
+(defmethod action "docker-build"
+  [_ lein-project build-target]
+  (action "stage" lein-project build-target)
+  (let [image-name (get-in lein-project [:lein-ezbake :vars :docker :image-name] (:name lein-project))
+        docker-call ["docker" "build" "." "-t" image-name]]
+    (exec/lazy-sh docker-call {:dir staging-dir})))
 
 (defmethod action "build"
   [_ lein-project build-target]
