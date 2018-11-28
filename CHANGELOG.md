@@ -1,3 +1,9 @@
+## 1.9.0 - 2018-11-28
+This is a feature release.
+
+Feature:
+  * (EZ-127) Add docker-build to build an image from a clojure repo
+
 ## 1.8.10 - 2018-11-06
 This release includes no changes from 1.8.9.
 The ezbake release pipeline was accidentally kicked off, causing an extra tag.
