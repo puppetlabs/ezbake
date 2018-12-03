@@ -70,6 +70,7 @@
 
 (def LocalProjectVars
   {(schema/optional-key :user) schema/Str
+   (schema/optional-key :numeric-uid-gid) schema/Int
    (schema/optional-key :group) schema/Str
    (schema/optional-key :bootstrap-source) BootstrapSource
    (schema/optional-key :create-dirs) [schema/Str]
@@ -530,6 +531,7 @@ Additional uberjar dependencies:
      :real-name                          (get-real-name (:name lein-project))
      :user                               (get-local-ezbake-var lein-project :user
                                                       (:name lein-project))
+     :numeric-uid-gid                    (get-local-ezbake-var lein-project :numeric-uid-gid "nil")
      :group                              (get-local-ezbake-var lein-project :group
                                                       (:name lein-project))
      :uberjar-name                       (:uberjar-name lein-project)

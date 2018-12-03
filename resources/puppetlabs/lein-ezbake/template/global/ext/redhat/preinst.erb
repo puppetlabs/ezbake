@@ -2,12 +2,25 @@
 # install.sh source based installation methodology.
 #
 # Add <%= EZBake::Config[:group] %> group
-getent group <%= EZBake::Config[:group] %> > /dev/null || \
+if getent group <%= EZBake::Config[:group] %> > /dev/null; then
+  : noop
+<% unless EZBake::Config[:numeric_uid_gid].nil? -%>
+elif ! getent group <%= EZBake::Config[:numeric_uid_gid] %> > /dev/null; then
+  groupadd -r --gid <%= EZBake::Config[:numeric_uid_gid] %> <%= EZBake::Config[:group] %> || :
+<% end -%>
+else
   groupadd -r <%= EZBake::Config[:group] %> || :
+fi
+
 # Add <%= EZBake::Config[:user] %> user
 if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
   usermod --gid <%= EZBake::Config[:group] %> --home %{_app_data} \
   --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
+<% unless EZBake::Config[:numeric_uid_gid].nil? -%>
+  elif ! getent passwd <%= EZBake::Config[:numeric_uid_gid] %> > /dev/null; then
+  useradd -r --uid <%= EZBake::Config[:numeric_uid_gid] %> --gid <%= EZBake::Config[:group] %> --home %{_app_data} --shell $(which nologin) \
+    --comment "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
+<% end %>
 else
   useradd -r --gid <%= EZBake::Config[:group] %> --home %{_app_data} --shell $(which nologin) \
     --comment "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
