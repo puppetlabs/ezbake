@@ -1,3 +1,12 @@
+## 1.9.1 - 2018-12-10
+This is a maintenance release.
+
+Maintenance:
+  * (EZ-128) Add `numeric-uid-gid` option to allow for specifying a reserved
+    uid/gid for the 'puppet' user. This option only affects rpm packaging.
+  * (EZ-129) Set `TasksMax` to 4915, since later versions of systemd set
+    `TasksMax` to 512, which is not enough for certain applications.
+
 ## 1.9.0 - 2018-11-28
 This is a feature release.
 
