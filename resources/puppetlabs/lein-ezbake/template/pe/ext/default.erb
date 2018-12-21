@@ -8,6 +8,9 @@ JAVA_BIN="/opt/puppetlabs/server/bin/java"
 # Modify this if you'd like to change the memory allocation, enable JMX, etc
 JAVA_ARGS="<%= EZBake::Config[:java_args] %>"
 
+# Modify this as you would JAVA_ARGS but for non-service related subcommands
+JAVA_ARGS_CLI="<%= EZBake::Config[:java_args_cli] %>"
+
 # Modify this if you'd like TrapperKeeper specific arguments
 TK_ARGS="<%= EZBake::Config[:tk_args] %>"
 
