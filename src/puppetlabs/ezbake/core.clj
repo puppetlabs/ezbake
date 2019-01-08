@@ -85,6 +85,7 @@
    (schema/optional-key :open-file-limit) schema/Int
    (schema/optional-key :main-namespace) schema/Str
    (schema/optional-key :java-args) schema/Str
+   (schema/optional-key :java-args-cli) schema/Str
    (schema/optional-key :tk-args) schema/Str
    (schema/optional-key :redhat-postinst-install-triggers) RPMTriggers
    (schema/optional-key :redhat-postinst-upgrade-triggers) RPMTriggers
@@ -577,6 +578,8 @@ Additional uberjar dependencies:
                                                       "puppetlabs.trapperkeeper.main")
      :java-args                          (get-local-ezbake-var lein-project :java-args
                                                       "-Xmx192m")
+     :java-args-cli                      (get-local-ezbake-var lein-project :java-args-cli
+                                                      "")
      :tk-args                            (get-local-ezbake-var lein-project :tk-args
                                                        "" )
      ; Convert to string so ruby doesn't barf on the hyphens
