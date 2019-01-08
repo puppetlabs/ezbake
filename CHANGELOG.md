@@ -1,3 +1,12 @@
+## 1.9.2 - 2019-01-08
+This is a maintenance release.
+
+Maintenance:
+  * (EZ-112) Use `nss-lookup` rather than `network-online` to ensure networking
+    is online before starting a service.
+  * (SERVER-2399) Add `java-args-cli` variable to allow for configuring
+    non-service-related commands.
+
 ## 1.9.1 - 2018-12-10
 This is a maintenance release.
 
