@@ -19,7 +19,7 @@ else
     useradd_options+=('--uid' '<%= EZBake::Config[:numeric_uid_gid] %>')
   fi
 <% end -%>
-  useradd "${useradd_options[@]}" <%= EZBake::Config[:user] %> || :
+  luseradd "${useradd_options[@]}" <%= EZBake::Config[:user] %> || :
 fi
 <% if defined?(additional_preinst)
 additional_preinst.split(',').each do |cmd| -%>

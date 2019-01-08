@@ -16,7 +16,7 @@ if [ "$1" = install ] || [ "$1" = upgrade ]; then
         --home /opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %> \
         --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
     else
-      useradd -r --gid <%= EZBake::Config[:group] %> \
+      luseradd -r --gid <%= EZBake::Config[:group] %> \
         --home /opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>  --shell $(which nologin) \
         --comment "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
     fi

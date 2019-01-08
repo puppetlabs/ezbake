@@ -215,7 +215,7 @@ if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
   usermod --gid <%= EZBake::Config[:group] %> --home %{_app_data} \
   --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
 else
-  useradd -r --gid <%= EZBake::Config[:group] %> --home %{_app_data} --shell $(which nologin) \
+  luseradd -r --gid <%= EZBake::Config[:group] %> --home %{_app_data} --shell $(which nologin) \
     --comment "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
 fi
 <% EZBake::Config[:redhat][:additional_preinst].each do |cmd| -%>
