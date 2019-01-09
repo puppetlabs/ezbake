@@ -1,3 +1,9 @@
+## 1.9.3 - 2019-01-09
+This is a bugfix release.
+
+Bugfix:
+  * Don't override `JAVA_ARGS_CLI` command line settings when loading defaults.
+
 ## 1.9.2 - 2019-01-08
 This is a maintenance release.
 
