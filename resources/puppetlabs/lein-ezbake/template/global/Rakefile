@@ -1,5 +1,6 @@
 require 'rake'
 require './ezbake.rb'
+require 'libuser'
 
 puts "EZBAKE PROJECT NAME: #{EZBake::Config[:project]}"
 
