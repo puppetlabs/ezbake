@@ -100,7 +100,7 @@ BuildRequires:    puppet-agent
 <% else %>
 BuildRequires:    ruby
 <% end -%>
-BuildRequires:    /usr/sbin/luseradd
+BuildRequires:    /usr/sbin/useradd
 %if %{_with_systemd}
 BuildRequires:    systemd
 %endif
@@ -140,6 +140,8 @@ Requires:         /usr/bin/which
 
 # procps is required for pgrep, used in several of the init scripts
 Requires:         procps
+# Require libuser for the 'luseradd/lusermod/etc' versions of the user utilities
+Requires:         libuser
 <% EZBake::Config[:redhat][:additional_build_dependencies].each do |dep| %>
 BuildRequires:    <%= dep %>
 <% end %>

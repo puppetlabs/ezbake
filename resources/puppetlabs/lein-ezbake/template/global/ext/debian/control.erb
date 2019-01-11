@@ -23,9 +23,9 @@ Architecture: all
      additional_dependencies_string = ", #{EZBake::Config[:debian][:additional_dependencies].join(', ')}"
 end-%>
 <% if EZBake::Config[:is_pe_build] -%>
-Depends: ${misc:Depends}, pe-java, pe-puppet-enterprise-release, net-tools, adduser, procps<%= additional_dependencies_string -%>
+Depends: ${misc:Depends}, pe-java, pe-puppet-enterprise-release, net-tools, libuser, procps<%= additional_dependencies_string -%>
 <% else -%>
-Depends: ${misc:Depends}, openjdk-8-jre-headless | openjdk-11-jre-headless, net-tools, adduser, procps<%= additional_dependencies_string -%>
+Depends: ${misc:Depends}, openjdk-8-jre-headless | openjdk-11-jre-headless, net-tools, libuser, procps<%= additional_dependencies_string -%>
 <% end %>
 Replaces: <%= EZBake::Config[:replaces_pkgs].map {|package, version| "#{package} (<< #{version}-1#{Pkg::Config.packager}1)" }.join(",") %>
 Conflicts: <%= EZBake::Config[:replaces_pkgs].map {|package, version| "#{package} (<< #{version}-1#{Pkg::Config.packager}1)" }.join(",") %>
