@@ -1,8 +1,16 @@
+## 1.9.4 - 2019-01-11
+This is a bugfix release.
+
+Bugfix:
+  * Don't override `JAVA_ARGS_CLI` command line settings when loading defaults
+    for PE projects.
+
 ## 1.9.3 - 2019-01-09
 This is a bugfix release.
 
 Bugfix:
   * Don't override `JAVA_ARGS_CLI` command line settings when loading defaults.
+    Edit: This was only added for FOSS projects.
 
 ## 1.9.2 - 2019-01-08
 This is a maintenance release.
