@@ -140,6 +140,8 @@ Requires:         /usr/bin/which
 
 # procps is required for pgrep, used in several of the init scripts
 Requires:         procps
+# Require libuser for the 'luseradd/lusermod/etc' versions of the user utilities
+Requires:         libuser
 <% EZBake::Config[:redhat][:additional_build_dependencies].each do |dep| %>
 BuildRequires:    <%= dep %>
 <% end %>
@@ -209,13 +211,13 @@ rm -rf $RPM_BUILD_ROOT
 #
 # Add <%= EZBake::Config[:group] %> group
 getent group <%= EZBake::Config[:group] %> > /dev/null || \
-  groupadd -r <%= EZBake::Config[:group] %> || :
+  lgroupadd -r <%= EZBake::Config[:group] %> || :
 # Add <%= EZBake::Config[:user] %> user
-if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
-  usermod --gid <%= EZBake::Config[:group] %> --home %{_app_data} \
+if getent lpasswd <%= EZBake::Config[:user] %> > /dev/null; then
+  lusermod --gid <%= EZBake::Config[:group] %> --home %{_app_data} \
   --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
 else
-  useradd -r --gid <%= EZBake::Config[:group] %> --home %{_app_data} --shell $(which nologin) \
+  luseradd -r --gid <%= EZBake::Config[:group] %> --home %{_app_data} --shell $(which nologin) \
     --comment "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
 fi
 <% EZBake::Config[:redhat][:additional_preinst].each do |cmd| -%>
