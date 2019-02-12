@@ -1,3 +1,11 @@
+## 1.9.5 - 2019-02-12
+This is a maintenance release.
+
+Maintenance:
+  * Update comments to reflect that we only support JRE 8 in some of our products.
+  * (PE-24606) Use `luseradd` instead of `useradd` to fix systemd-tmpfiles-setup failure during reboot due to ldap dependencies of the puppet userid/groups.
+
+
 ## 1.9.4 - 2019-01-11
 This is a bugfix release.
 
