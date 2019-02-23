@@ -1,3 +1,9 @@
+## 1.9.6 - 2019-02-25
+This is a maintenance release.
+
+Maintenance:
+  * (RE-12081) Add support for el-8-x86_64.
+
 ## 1.9.5 - 2019-02-12
 This is a maintenance release.
 
