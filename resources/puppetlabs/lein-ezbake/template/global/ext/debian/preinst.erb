@@ -13,12 +13,12 @@ if [ "$1" = install ] || [ "$1" = upgrade ]; then
     # Add <%= EZBake::Config[:user] %> user
     if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
       lusermod --gid <%= EZBake::Config[:group] %> \
-        --home /opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %> \
-        --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
+        -d /opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %> \
+        -c "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
     else
       luseradd -r --gid <%= EZBake::Config[:group] %> \
-        --home /opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>  --shell $(which nologin) \
-        --comment "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
+        -d /opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>  --shell $(which nologin) \
+        -c "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
     fi
 
 <% EZBake::Config[:debian][:additional_preinst].each do |cmd| -%>

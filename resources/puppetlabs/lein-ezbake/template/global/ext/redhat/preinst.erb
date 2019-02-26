@@ -3,17 +3,17 @@
 #
 # Add <%= EZBake::Config[:group] %> group
 <% if EZBake::Config[:numeric_uid_gid].nil? -%>
-getent group <%= EZBake::Config[:group] %> >/dev/null || lgroupadd --system --force <%= EZBake::Config[:group] %>
+getent group <%= EZBake::Config[:group] %> >/dev/null || lgroupadd -r <%= EZBake::Config[:group] %>
 <% else -%>
-getent group <%= EZBake::Config[:group] %> >/dev/null || lgroupadd --system --force --gid <%= EZBake::Config[:numeric_uid_gid] %> <%= EZBake::Config[:group] %>
+getent group <%= EZBake::Config[:group] %> >/dev/null || lgroupadd -r --gid <%= EZBake::Config[:numeric_uid_gid] %> <%= EZBake::Config[:group] %>
 <% end -%>
 
 # Add <%= EZBake::Config[:user] %> user
 if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
-  lusermod --gid <%= EZBake::Config[:group] %> --home %{_app_data} \
-  --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
+  lusermod --gid <%= EZBake::Config[:group] %> -d %{_app_data} \
+  -c "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
 else
-  useradd_options=('--system' '--gid' '<%= EZBake::Config[:group] %>' '--home' '%{_app_data}' '--shell' "$(which nologin)" '--comment' '<%= EZBake::Config[:project] %> daemon')
+  useradd_options=('-r' '--gid' '<%= EZBake::Config[:group] %>' '-d' '%{_app_data}' '--shell' "$(which nologin)" '-c' '<%= EZBake::Config[:project] %> daemon')
 <% unless EZBake::Config[:numeric_uid_gid].nil? -%>
   if ! getent passwd <%= EZBake::Config[:numeric_uid_gid] %> > /dev/null; then
     useradd_options+=('--uid' '<%= EZBake::Config[:numeric_uid_gid] %>')
