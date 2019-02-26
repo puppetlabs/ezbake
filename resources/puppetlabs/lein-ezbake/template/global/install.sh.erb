@@ -296,7 +296,7 @@ function task_service_account {
     getent group <%= EZBake::Config[:group] %> > /dev/null || \
         lgroupadd -r <%= EZBake::Config[:group] %> || :
     # Add or update <%= EZBake::Config[:user] %> user
-    if getent lpasswd <%= EZBake::Config[:user] %> > /dev/null; then
+    if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
         lusermod --gid <%= EZBake::Config[:group] %> --home "${app_data}" \
             --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
     else
