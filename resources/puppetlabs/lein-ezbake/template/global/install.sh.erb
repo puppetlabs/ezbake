@@ -305,6 +305,26 @@ function task_service_account {
     fi
 }
 
+# This function is a copy of the one above, except using adduser commands
+# instead of libuser commands. There is a bug in libuser1, a dependency of
+# libuser, on debian 8 (jessie) and ubuntu 16.04 (xenial), so we have to use
+# this for debian instead. See
+# https://bugs.launchpad.net/ubuntu/+source/system-config-samba/+bug/1718202
+# for more info.
+function task_service_account_adduser {
+    # Add <%= EZBake::Config[:group] %> group
+    getent group <%= EZBake::Config[:group] %> > /dev/null || \
+        groupadd -r <%= EZBake::Config[:group] %> || :
+    # Add or update <%= EZBake::Config[:user] %> user
+    if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
+        usermod --gid <%= EZBake::Config[:group] %> -d "${app_data}" \
+            -c "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
+    else
+        useradd -r --gid <%= EZBake::Config[:group] %> -d "${app_data}" --shell $(which nologin) \
+            -c "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
+    fi
+}
+
 # RPM based pre-installation tasks.
 # Note: Any changes to this section may require synchronisation with the
 # packaging, due to the fact that we can't access this script from the pre
@@ -321,7 +341,7 @@ function task_preinst_redhat {
 # packaging, due to the fact that we can't access this script from the pre
 # section of an rpm/deb.
 function task_preinst_deb {
-    task service_account
+    task service_account_adduser
 <% EZBake::Config[:debian][:additional_preinst].each do |preinst| -%>
     <%= preinst %>
 <% end -%>
