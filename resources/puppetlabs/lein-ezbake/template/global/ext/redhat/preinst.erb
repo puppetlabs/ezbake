@@ -1,6 +1,30 @@
 # Note: changes to this section of the spec may require synchronisation with the
 # install.sh source based installation methodology.
 #
+%if %{_sles}
+# There is no libuser package for sles, so we must use adduser commands.
+# Add <%= EZBake::Config[:group] %> group
+<% if EZBake::Config[:numeric_uid_gid].nil? -%>
+getent group <%= EZBake::Config[:group] %> >/dev/null || groupadd -r <%= EZBake::Config[:group] %>
+<% else -%>
+getent group <%= EZBake::Config[:group] %> >/dev/null || groupadd -r --gid <%= EZBake::Config[:numeric_uid_gid] %> <%= EZBake::Config[:group] %>
+<% end -%>
+
+# Add <%= EZBake::Config[:user] %> user
+if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
+  usermod --gid <%= EZBake::Config[:group] %> -d %{_app_data} \
+  -c "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
+else
+  useradd_options=('-r' '--gid' '<%= EZBake::Config[:group] %>' '-d' '%{_app_data}' '--shell' "$(which nologin)" '-c' '<%= EZBake::Config[:project] %> daemon')
+<% unless EZBake::Config[:numeric_uid_gid].nil? -%>
+  if ! getent passwd <%= EZBake::Config[:numeric_uid_gid] %> > /dev/null; then
+    useradd_options+=('--uid' '<%= EZBake::Config[:numeric_uid_gid] %>')
+  fi
+<% end -%>
+  useradd "${useradd_options[@]}" <%= EZBake::Config[:user] %> || :
+fi
+%else
+# For el and any other rpm platforms, we can use libuser commands.
 # Add <%= EZBake::Config[:group] %> group
 <% if EZBake::Config[:numeric_uid_gid].nil? -%>
 getent group <%= EZBake::Config[:group] %> >/dev/null || lgroupadd -r <%= EZBake::Config[:group] %>
@@ -21,6 +45,7 @@ else
 <% end -%>
   luseradd "${useradd_options[@]}" <%= EZBake::Config[:user] %> || :
 fi
+%endif
 <% if defined?(additional_preinst)
 additional_preinst.split(',').each do |cmd| -%>
 <%= cmd %>

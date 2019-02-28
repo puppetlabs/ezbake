@@ -50,6 +50,7 @@
 %if 0%{?suse_version} && 0%{?suse_version} < 1210
 %global _with_sysvinit 1
 %global _old_sles      1
+%gloabl _sles          1
 %endif
 
 # java 1.8.0 is available starting in fedora 20, el 6 and sles-12sp1
@@ -141,7 +142,10 @@ Requires:         /usr/bin/which
 # procps is required for pgrep, used in several of the init scripts
 Requires:         procps
 # Require libuser for the 'luseradd/lusermod/etc' versions of the user utilities
+# except on sles, since libuser isn't available for sles
+%if !%{_sles}
 Requires:         libuser
+%endif
 <% EZBake::Config[:redhat][:additional_build_dependencies].each do |dep| %>
 BuildRequires:    <%= dep %>
 <% end %>
@@ -209,6 +213,21 @@ rm -rf $RPM_BUILD_ROOT
 # Note: changes to this section of the spec may require synchronisation with the
 # install.sh source based installation methodology.
 #
+# There is no libuser package for sles, so we must use adduser commands.
+%if %{_sles}
+# Add <%= EZBake::Config[:group] %> group
+getent group <%= EZBake::Config[:group] %> > /dev/null || \
+  groupadd -r <%= EZBake::Config[:group] %> || :
+# Add <%= EZBake::Config[:user] %> user
+if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
+  usermod --gid <%= EZBake::Config[:group] %> -d %{_app_data} \
+  -c "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
+else
+  useradd -r --gid <%= EZBake::Config[:group] %> -d %{_app_data} --shell $(which nologin) \
+    -c "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
+fi
+# For el and any other rpm platforms, we can use libuser commands.
+%else
 # Add <%= EZBake::Config[:group] %> group
 getent group <%= EZBake::Config[:group] %> > /dev/null || \
   lgroupadd -r <%= EZBake::Config[:group] %> || :
@@ -220,6 +239,8 @@ else
   luseradd -r --gid <%= EZBake::Config[:group] %> -d %{_app_data} --shell $(which nologin) \
     -c "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
 fi
+%endif
+
 <% EZBake::Config[:redhat][:additional_preinst].each do |cmd| -%>
 <%= cmd %>
 <% end -%>

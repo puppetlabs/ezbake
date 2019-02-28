@@ -68,7 +68,15 @@ function task_all {
 function task_service {
     osdetection
 
-    if [ "$OSFAMILY" = "RedHat" ]; then
+    if [ "$OSFAMILY" = "Suse" ]; then
+        unitdir=${unitdir_redhat}
+        defaultsdir=${defaultsdir_redhat}
+        if [ $MAJREV -lt 12 ]; then
+            task install_source_sles_sysv
+        else
+            task install_source_sles_systemd
+        fi
+    elif [ "$OSFAMILY" = "RedHat" ]; then
         unitdir=${unitdir_redhat}
         defaultsdir=${defaultsdir_redhat}
         if [ $MAJREV -lt 7 ]; then
@@ -104,6 +112,26 @@ function task_install_source_rpm_sysv {
 # Source based install for Redhat based + systemd setups
 function task_install_source_rpm_systemd {
     task preinst_redhat
+    task install_redhat
+    task systemd_redhat
+    task logrotate
+    task postinst_redhat
+    task postinst_permissions
+}
+
+# Source based install for SLES based + sysv setups
+function task_install_source_sles_sysv {
+    task preinst_sles
+    task install_redhat
+    task sysv_init_redhat
+    task logrotate_legacy
+    task postinst_redhat
+    task postinst_permissions
+}
+
+# Source based install for SLES based + systemd setups
+function task_install_source_sles_systemd {
+    task preinst_sles
     task install_redhat
     task systemd_redhat
     task logrotate
@@ -306,9 +334,9 @@ function task_service_account {
 }
 
 # This function is a copy of the one above, except using adduser commands
-# instead of libuser commands. There is a bug in libuser1, a dependency of
-# libuser, on debian 8 (jessie) and ubuntu 16.04 (xenial), so we have to use
-# this for debian instead. See
+# instead of libuser commands. There is no libuser package for sles and there
+# is a bug in libuser1, a dependency of libuser, on debian 8 (jessie) and ubuntu
+# 16.04 (xenial), so we have to use this for debian instead. See
 # https://bugs.launchpad.net/ubuntu/+source/system-config-samba/+bug/1718202
 # for more info.
 function task_service_account_adduser {
@@ -331,6 +359,17 @@ function task_service_account_adduser {
 # section of an rpm/deb.
 function task_preinst_redhat {
     task service_account
+<% EZBake::Config[:redhat][:additional_preinst].each do |preinst| -%>
+    <%= preinst %>
+<% end -%>
+}
+
+# Sles pre-installation tasks.
+# Note: Any changes to this section may require synchronisation with the
+# packaging, due to the fact that we can't access this script from the pre
+# section of an rpm/deb.
+function task_preinst_sles {
+    task service_account_adduser
 <% EZBake::Config[:redhat][:additional_preinst].each do |preinst| -%>
     <%= preinst %>
 <% end -%>
