@@ -294,13 +294,13 @@ function task_systemd_deb {
 function task_service_account {
     # Add <%= EZBake::Config[:group] %> group
     getent group <%= EZBake::Config[:group] %> > /dev/null || \
-        lgroupadd -r <%= EZBake::Config[:group] %> || :
+        groupadd -r <%= EZBake::Config[:group] %> || :
     # Add or update <%= EZBake::Config[:user] %> user
-    if getent lpasswd <%= EZBake::Config[:user] %> > /dev/null; then
-        lusermod --gid <%= EZBake::Config[:group] %> --home "${app_data}" \
+    if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
+        usermod --gid <%= EZBake::Config[:group] %> --home "${app_data}" \
             --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
     else
-        luseradd -r --gid <%= EZBake::Config[:group] %> --home "${app_data}" --shell $(which nologin) \
+        useradd -r --gid <%= EZBake::Config[:group] %> --home "${app_data}" --shell $(which nologin) \
             --comment "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :
     fi
 }
