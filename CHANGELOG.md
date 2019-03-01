@@ -1,3 +1,10 @@
+## 1.9.7 - 2019-03-04
+This is a bugfix release.
+
+Bugfix:
+  * (RE-12082) Return to using `adduser` commands instead of `libuser` commands.
+    This reverts the work done for PE-24606 in the 1.9.5 release.
+
 ## 1.9.6 - 2019-02-25
 This is a maintenance release.
 
