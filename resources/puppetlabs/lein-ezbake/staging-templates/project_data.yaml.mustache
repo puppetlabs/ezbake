@@ -22,8 +22,6 @@ files:
   - install.sh.erb
   - ext/fpm.rb
 templates:
-  - source: ext/redhat/ezbake.spec.erb
-    target: ext/redhat/{{{project}}}.spec
   - source: ext/redhat/ezbake.service.erb
     target: ext/redhat/{{{project}}}.service
   - source: ext/default.erb
@@ -44,14 +42,10 @@ templates:
   - ext/redhat/postrm.erb
   - ext/redhat/init.erb
   - ext/redhat/init.suse.erb
-  - ext/debian/changelog.erb
-  - ext/debian/control.erb
-  - ext/debian/dirs.erb
   - ext/debian/postrm.erb
   - ext/debian/preinst.erb
   - ext/debian/prerm.erb
   - ext/debian/postinst.erb
-  - ext/debian/rules.erb
   - ext/config/user/conf.d/*.erb
   - ext/bin/*.erb
   - ext/cli/apps/*.erb
