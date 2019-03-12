@@ -1,3 +1,9 @@
+## 2.0.0 - 2019-03-12
+This is a backwards-incompatible release.
+  * (RE-12093) Remove old rpm and deb artifacts previously used to build packages.
+  * Remove legacy-build action that used the removed artifacts. Packages can only
+  be built using FPM.
+
 ## 1.9.7 - 2019-03-04
 This is a bugfix release.
 
