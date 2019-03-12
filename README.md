@@ -274,17 +274,6 @@ This will build a container image using the settings in the `:docker` section
 of the `:lein-ezbake` config in `project.clj`. See [Building container images](#building-container-images)
 below for more detail.
 
-#### `legacy-build`
-
-```shell
-lein with-profile ezbake ezbake legacy-build
-```
-
-This will behave exactly like the `build` task in versions of ezbake prior to
-1.6.0.  This will do everything the `stage` action does and then call the external
-builder defined for this project. Currently, the only builder supported is
-[Puppetlabs' Packaging tool](https://github.com/puppetlabs/packaging).
-
 #### `manifest`
 
 ```shell

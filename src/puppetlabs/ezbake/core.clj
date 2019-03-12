@@ -894,14 +894,6 @@ Additional uberjar dependencies:
         rake-call ["bundle" "exec" "rake" "pl:jenkins:trigger_build_local_auth"]]
     (exec/lazy-sh rake-call {:dir staging-dir})))
 
-(defmethod action "legacy-build"
-  [_ lein-project build-target]
-  (action "stage" lein-project build-target)
-  (exec/exec "bundle" "install" "--path" ".bundle/gems" "--binstubs" ".bundle/bin" :dir staging-dir)
-  (let [downstream-job nil
-        rake-call ["bundle" "exec" "rake" "pl:jenkins:uber_build[5]"]]
-    (exec/lazy-sh rake-call {:dir staging-dir})))
-
 (defmethod action "local-build"
   [_ lein-project build-target]
   (action "stage" lein-project build-target)
