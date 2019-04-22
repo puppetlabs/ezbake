@@ -1,12 +1,12 @@
 ---
-default_cow: 'base-trusty-amd64.cow'
-cows: 'base-trusty-amd64.cow base-xenial-amd64.cow base-bionic-amd64.cow'
+default_cow: 'base-bionic-amd64.cow'
+cows: 'base-xenial-amd64.cow base-bionic-amd64.cow'
 pbuild_conf: '/etc/pbuilderrc'
 packager: 'puppet'
 gpg_key: '7F438280EF8D349F'
 sign_tar: FALSE
 # a space separated list of mock configs
-final_mocks: 'pupent-el6-x86_64 pupent-el7-x86_64 pupent-el8-x86_64 pupent-sles11-x86_64 pupent-sles12-x86_64'
+final_mocks: 'pupent-el6-x86_64 pupent-el7-x86_64 pupent-el8-x86_64 pupent-sles12-x86_64'
 yum_host: 'yum.puppetlabs.com'
 yum_repo_path: '/opt/repository/yum/'
 build_gem: FALSE
