@@ -1,3 +1,9 @@
+## 2.0.1 - 2019-04-23
+This is a maintenance release.
+
+Maintenance:
+  * Remove ubuntu 14.04 (trusty) and sles 11 from PE build_defaults.
+
 ## 2.0.0 - 2019-03-12
 This is a backwards-incompatible release.
   * (RE-12093) Remove old rpm and deb artifacts previously used to build packages.
