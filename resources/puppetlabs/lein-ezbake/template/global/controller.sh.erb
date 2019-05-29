@@ -6,10 +6,10 @@ set -ex
 # Usage: controller.sh <os> <version> <basepath>
 # The controller script does all of the jar compilation
 # and setup needed to build packages for <os>
-# The os string should be one of el, sles, debian, ubuntu,
+# The os string should be one of el, redhatfips, sles, debian, ubuntu,
 # or fedora
 # The version should be the numerical OS version for el,
-# sles, and fedora and the codename for debian/ubuntu.
+# redhatfips, sles, and fedora and the codename for debian/ubuntu.
 # The resulting artifacts will be stored in <basepath>
 ################
 build_os=$1
@@ -80,7 +80,7 @@ case $os in
                         dir="$basepath/systemd_deb"
                 fi
                 ;;
-        el)
+        el|redhatfips)
                 if [ "$os_version" -gt '6' ]; then
                         dir="$basepath/systemd_el"
                 else
@@ -149,7 +149,7 @@ params+=('--create-dir' '<%= directory -%>')
 params+=('--enterprise-build')
 <% end -%>
 
-if [[ "$os" = 'el' || "$os" = 'sles' || "$os" = 'fedora' ]]; then
+if [[ "$os" = 'el' || "$os" = 'sles' || "$os" = 'fedora' || "$os" = 'redhatfips' ]]; then
         # pull in rpm dependencies
         <%EZBake::Config[:redhat][:additional_dependencies].each do |dep| -%>
                 params+=("--additional-dependency")
