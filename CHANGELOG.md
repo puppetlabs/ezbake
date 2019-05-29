@@ -1,3 +1,9 @@
+## 2.0.3 - 2019-05-29
+This is a maintenance release.
+
+Maintenance:
+  * (RE-12428) Add support for redhatfips-7-x86_64.
+
 ## 2.0.1 - 2019-04-23
 This is a maintenance release.
 
