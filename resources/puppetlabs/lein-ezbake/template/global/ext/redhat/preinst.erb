@@ -21,8 +21,6 @@ else
 <% end -%>
   useradd "${useradd_options[@]}" <%= EZBake::Config[:user] %> || :
 fi
-<% if defined?(additional_preinst)
-additional_preinst.split(',').each do |cmd| -%>
+<% EZBake::Config[:redhat][:additional_preinst].each do |cmd| -%>
 <%= cmd %>
-<% end -%>
 <% end -%>
