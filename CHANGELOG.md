@@ -1,3 +1,11 @@
+## 2.0.4 - 2019-07-02
+This is a bugfix release.
+
+Bugfix:
+  * Fix adding additional preinstall tasks to rpm builds. Previously, any
+    specified preinstall tasks were ignored for rpms.
+  * Set `file` protocol when using the `-Djava.security.egd` flag.
+
 ## 2.0.3 - 2019-05-29
 This is a maintenance release.
 
