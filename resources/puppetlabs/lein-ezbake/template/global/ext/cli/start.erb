@@ -59,7 +59,7 @@ if [ -e "$cli_defaults" ]; then
   fi
 fi
 
-${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=/dev/urandom \
+${JAVA_BIN} ${JAVA_ARGS} -Djava.security.egd=file:/dev/urandom \
   -XX:OnOutOfMemoryError="kill -9 %p" \
   -cp "${CLASSPATH}" \
   clojure.main \
