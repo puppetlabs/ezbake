@@ -515,7 +515,9 @@ Additional uberjar dependencies:
 
 (defn make-template-map
   "Construct the map of variables to pass on to the ezbake.rb template"
-  [lein-project build-target config-files system-config-files cli-app-files bin-files terminus-files upstream-ezbake-configs additional-uberjars timestamp]
+  [lein-project build-target
+   config-files system-config-files cli-app-files bin-files terminus-files
+   upstream-ezbake-configs additional-uberjars timestamp]
   (let [termini (for [[name version files] terminus-files]
                   {:name name
                    :version version
