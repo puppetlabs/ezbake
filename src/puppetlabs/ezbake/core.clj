@@ -190,9 +190,38 @@
       (.substring filename 0 (- (.length filename) 4))
       filename)))
 
-(defn quoted-list
-  [l]
-  (if (empty? l) "" (format "\"%s\"" (str/join "\",\"" l))))
+(defprotocol AsRubyLiteral
+  "Converts item to a corresponding, properly escaped ruby literal.
+  e.g. [\"x\" \"'\"] becomes \"['x', '\\'']\"."
+  (as-ruby-literal [this]))
+
+(extend-protocol AsRubyLiteral
+  ;; No floating point for now since we don't need it and haven't
+  ;; checked the syntax correspondence carefully yet.
+
+  nil (as-ruby-literal [s] "nil")
+
+  Boolean (as-ruby-literal [s] (str s))
+
+  Byte (as-ruby-literal [s] (str s))
+  Short (as-ruby-literal [s] (str s))
+  Integer (as-ruby-literal [s] (str s))
+  Long (as-ruby-literal [s] (str s))
+  BigInteger (as-ruby-literal [s] (str s))
+  clojure.lang.BigInt (as-ruby-literal [s] (str s))
+
+  String
+  (as-ruby-literal [s]
+    (let [esc (-> s
+                  (str/replace "\\" "\\\\")
+                  (str/replace "'" "\\'"))]
+      (str "'" esc "'")))
+
+  clojure.lang.Sequential
+  (as-ruby-literal [s]
+    (str "["
+         (str/join ", " (map as-ruby-literal s))
+         "]")))
 
 (defn cp-template-files
   [template-dir]
@@ -506,12 +535,12 @@ Additional uberjar dependencies:
 ;; create rpm trigger hash
 (defn extract-rpm-package-scripts
   [{:keys [package scripts]}]
-  {:package package :scripts (quoted-list scripts)})
+  {:package (as-ruby-literal package) :scripts (as-ruby-literal scripts)})
 
 ;; create debian trigger hash
 (defn extract-deb-package-scripts
   [{:keys [interest-name scripts]}]
-  {:interest-name interest-name :scripts (quoted-list scripts)})
+  {:interest-name (as-ruby-literal interest-name) :scripts (as-ruby-literal scripts)})
 
 (defn make-template-map
   "Construct the map of variables to pass on to the ezbake.rb template"
@@ -519,80 +548,90 @@ Additional uberjar dependencies:
    config-files system-config-files cli-app-files bin-files terminus-files
    upstream-ezbake-configs additional-uberjars timestamp]
   (let [termini (for [[name version files] terminus-files]
-                  {:name name
-                   :version version
-                   :files (quoted-list files)})
-        get-quoted-ezbake-values (fn [platform variable]
-                                         (quoted-list
-                                         (get-ezbake-value (get-ezbake-vars lein-project)
-                                                      upstream-ezbake-configs
-                                                      build-target
-                                                      platform
-                                                      variable)))]
-    {:project                            (:name lein-project)
-     :packaging-version                  (generate-package-version-from-version (:version lein-project))
-     :packaging-release                  (generate-package-release-from-version (:version lein-project) timestamp)
-     :real-name                          (get-real-name (:name lein-project))
-     :user                               (get-local-ezbake-var lein-project :user
-                                                      (:name lein-project))
-     :numeric-uid-gid                    (get-local-ezbake-var lein-project :numeric-uid-gid "nil")
-     :group                              (get-local-ezbake-var lein-project :group
-                                                      (:name lein-project))
-     :uberjar-name                       (:uberjar-name lein-project)
-     :config-files                       (quoted-list (map remove-erb-extension config-files))
-     :system-config-files                (quoted-list (map remove-erb-extension system-config-files))
-     :cli-app-files                      (quoted-list (map remove-erb-extension cli-app-files))
-     :cli-defaults-file                  (remove-erb-extension cli-defaults-filename)
-     :bin-files                          (quoted-list bin-files)
-     :create-dirs                        (quoted-list (get-local-ezbake-var lein-project
-                                                                   :create-dirs []))
-     :debian-deps                        (get-quoted-ezbake-values :debian :dependencies)
-     :debian-build-deps                  (get-quoted-ezbake-values :debian :build-dependencies)
-     :debian-preinst                     (get-quoted-ezbake-values :debian :preinst)
-     :debian-prerm                       (get-quoted-ezbake-values :debian :prerm)
-     :debian-postinst                    (get-quoted-ezbake-values :debian :postinst)
-     :debian-postinst-install            (get-quoted-ezbake-values :debian :postinst-install)
-     :debian-install                     (get-quoted-ezbake-values :debian :install)
-     :debian-pre-start-action            (get-quoted-ezbake-values :debian :pre-start-action)
-     :debian-post-start-action           (get-quoted-ezbake-values :debian :post-start-action)
-     :debian-activated-triggers          (quoted-list (get-local-ezbake-var lein-project :debian-activated-triggers []))
-     :debian-interested-install-triggers (map  extract-deb-package-scripts (get-local-ezbake-var lein-project :debian-interested-install-triggers []))
-     :debian-interested-upgrade-triggers (map  extract-deb-package-scripts (get-local-ezbake-var lein-project :debian-interested-upgrade-triggers []))
-     :redhat-deps                        (get-quoted-ezbake-values :redhat :dependencies)
-     :redhat-build-deps                  (get-quoted-ezbake-values :redhat :build-dependencies)
-     :redhat-preinst                     (get-quoted-ezbake-values :redhat :preinst)
-     :redhat-postinst                    (get-quoted-ezbake-values :redhat :postinst)
-     :redhat-postinst-install            (get-quoted-ezbake-values :redhat :postinst-install)
-     :redhat-install                     (get-quoted-ezbake-values :redhat :install)
-     :redhat-pre-start-action            (get-quoted-ezbake-values :redhat :pre-start-action)
-     :redhat-post-start-action           (get-quoted-ezbake-values :redhat :post-start-action)
+                  {:name (as-ruby-literal name)
+                   :version (as-ruby-literal version)
+                   ;; The files are JarFileEntries
+                   :files (as-ruby-literal (map #(.getName %1) files))})
+        get-val (fn [platform name]
+                  (get-ezbake-value (get-ezbake-vars lein-project)
+                                    upstream-ezbake-configs
+                                    build-target
+                                    platform
+                                    name))
+        val->ruby #(as-ruby-literal (get-val %1 %2))
+        get-local #(get-local-ezbake-var lein-project %1 %2)
+        local->ruby #(as-ruby-literal (get-local %1 %2))]
+    {:project                            (as-ruby-literal (:name lein-project))
+     :packaging-version                  (-> (:version lein-project)
+                                             generate-package-version-from-version
+                                             as-ruby-literal)
+     :packaging-release                  (-> (:version lein-project)
+                                             (generate-package-release-from-version timestamp)
+                                             as-ruby-literal)
+     :real-name                          (-> (:name lein-project) get-real-name as-ruby-literal)
+     :user                               (local->ruby :user (:name lein-project))
+     :numeric-uid-gid                    (local->ruby :numeric-uid-gid nil)
+     :group                              (local->ruby :group (:name lein-project))
+     :uberjar-name                       (as-ruby-literal (:uberjar-name lein-project))
+     :config-files                       (as-ruby-literal (map remove-erb-extension config-files))
+     :system-config-files                (as-ruby-literal (map remove-erb-extension system-config-files))
+     :cli-app-files                      (as-ruby-literal (map remove-erb-extension cli-app-files))
+     :cli-defaults-file                  (as-ruby-literal (remove-erb-extension cli-defaults-filename))
+     :bin-files                          (as-ruby-literal bin-files)
+     :create-dirs                        (local->ruby :create-dirs [])
+     :debian-deps                        (val->ruby :debian :dependencies)
+     :debian-build-deps                  (val->ruby :debian :build-dependencies)
+     :debian-preinst                     (val->ruby :debian :preinst)
+     ;; debian-prerm currently unused?
+     :debian-prerm                       (val->ruby :debian :prerm)
+     :debian-postinst                    (val->ruby :debian :postinst)
+     :debian-postinst-install            (val->ruby :debian :postinst-install)
+     :debian-install                     (val->ruby :debian :install)
+     :debian-pre-start-action            (val->ruby :debian :pre-start-action)
+     :debian-post-start-action           (val->ruby :debian :post-start-action)
+     :debian-activated-triggers          (local->ruby :debian-activated-triggers [])
+     :debian-interested-install-triggers (map extract-deb-package-scripts
+                                              (get-local :debian-interested-install-triggers []))
+     :debian-interested-upgrade-triggers (map extract-deb-package-scripts
+                                              (get-local :debian-interested-upgrade-triggers []))
+     :redhat-deps                        (val->ruby :redhat :dependencies)
+     :redhat-build-deps                  (val->ruby :redhat :build-dependencies)
+     :redhat-preinst                     (val->ruby :redhat :preinst)
+     :redhat-postinst                    (val->ruby :redhat :postinst)
+     :redhat-postinst-install            (val->ruby :redhat :postinst-install)
+     :redhat-install                     (val->ruby :redhat :install)
+     :redhat-pre-start-action            (val->ruby :redhat :pre-start-action)
+     :redhat-post-start-action           (val->ruby :redhat :post-start-action)
      :terminus-map                       termini
-     :replaces-pkgs                      (get-local-ezbake-var lein-project :replaces-pkgs [])
-     :redhat-postinst-install-triggers   (map extract-rpm-package-scripts (get-local-ezbake-var lein-project :redhat-postinst-install-triggers []))
-     :redhat-postinst-upgrade-triggers   (map extract-rpm-package-scripts (get-local-ezbake-var lein-project :redhat-postinst-upgrade-triggers []))
-     :start-after                        (quoted-list (get-local-ezbake-var lein-project :start-after []))
-     :start-before                       (quoted-list (get-local-ezbake-var lein-project :start-before []))
-     :reload-timeout                     (get-local-ezbake-var lein-project :reload-timeout "120")
-     :start-timeout                      (get-local-ezbake-var lein-project :start-timeout "300")
-     :stop-timeout                       (get-local-ezbake-var lein-project :stop-timeout "60")
-     :open-file-limit                    (get-local-ezbake-var lein-project :open-file-limit "nil")
-     :is-pe-build                        (format "%s" (= (get-local-ezbake-var lein-project :build-type "foss") "pe"))
-     :main-namespace                     (get-local-ezbake-var lein-project
-                                                      :main-namespace
+     :replaces-pkgs                      (for [{:keys [package version]}
+                                               (get-local :replaces-pkgs [])]
+                                           {:package (as-ruby-literal package)
+                                            :version (as-ruby-literal version)})
+     :redhat-postinst-install-triggers   (map extract-rpm-package-scripts
+                                              (get-local :redhat-postinst-install-triggers []))
+     :redhat-postinst-upgrade-triggers   (map extract-rpm-package-scripts
+                                              (get-local :redhat-postinst-upgrade-triggers []))
+     :start-before                       (local->ruby :start-before [])
+     :start-after                        (local->ruby :start-after [])
+     :reload-timeout                     (-> (get-local :reload-timeout 120)
+                                             str as-ruby-literal)
+     :start-timeout                      (-> (get-local :start-timeout 300)
+                                             str as-ruby-literal)
+     :stop-timeout                       (-> (get-local :stop-timeout 60)
+                                             str as-ruby-literal)
+     :open-file-limit                    (as-ruby-literal (get-local :open-file-limit nil))
+     :is-pe-build                        (-> (= "pe" (get-local :build-type "foss"))
+                                             as-ruby-literal)
+     :main-namespace                     (local->ruby :main-namespace
                                                       "puppetlabs.trapperkeeper.main")
-     :java-args                          (get-local-ezbake-var lein-project :java-args
+     :java-args                          (local->ruby :java-args
                                                       "-Xmx192m")
-     :java-args-cli                      (get-local-ezbake-var lein-project :java-args-cli
-                                                      "")
-     :tk-args                            (get-local-ezbake-var lein-project :tk-args
-                                                       "" )
-     ; Convert to string so ruby doesn't barf on the hyphens
-     :bootstrap-source                   (name (get-local-ezbake-var lein-project
-                                                            :bootstrap-source
-                                                            :bootstrap-cfg))
-     :logrotate-enabled                  (get-local-ezbake-var lein-project :logrotate-enabled
-                                                      true)
-     :additional-uberjars                (quoted-list additional-uberjars)}))
+     :java-args-cli                      (local->ruby :java-args-cli "")
+     :tk-args                            (local->ruby :tk-args "" )
+     :bootstrap-source                   (-> (get-local :bootstrap-source :bootstrap-cfg)
+                                             name as-ruby-literal)
+     :logrotate-enabled                  (local->ruby :logrotate-enabled true)
+     :additional-uberjars                (as-ruby-literal additional-uberjars)}))
 
 ;; TODO: this is wonky; we're basically doing some templating here and it
 ;; might make more sense to use an actual template for it.  However, I'm a bit
