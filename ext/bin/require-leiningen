@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+set -uexo pipefail
+
+script_home="$(cd "$(dirname "$0")" && pwd)"
+
+default=2.9.1
+
+cmdname="$(basename "$0")"
+
+usage() { echo "Usage: $cmdname VERSION INSTALLDIR_IF_NEEDED"; }
+
+misuse() { usage 1>&2; exit 2; }
+
+declare -A known_hash
+known_hash[2.9.1]=32acacc8354627724d27231bed8fa190d7df0356972e2fd44ca144c084ad4fc7
+
+test "$#" -eq 2 || misuse
+
+ver="$1"
+if test "$ver" = default; then
+    ver="$default"
+fi
+
+install="$2"
+hash="${known_hash[$ver]}"
+
+if command -v lein; then
+    curver="$(lein version | cut -d' ' -f2)"
+    if test "$curver" = "$ver"; then
+        exit 0
+    fi
+    if test -x "$install/bin/lein"; then
+       curver="$("$install/bin/lein" version | cut -d' ' -f2)"
+       if test "$curver" = "$ver"; then
+           exit 0
+       fi
+    fi
+fi
+
+if test -z "$hash"; then
+    echo "$cmdname: don't know sha256sum for $ver" 1>&2
+    exit 2
+fi
+
+tmpdir="$(mktemp -d "$cmdname-XXXXXX")"
+tmpdir="$(cd "$tmpdir" && pwd)"
+trap "$(printf 'rm -rf %q' "$tmpdir")" EXIT
+
+cd "$tmpdir"
+curl -O "https://raw.githubusercontent.com/technomancy/leiningen/$ver/bin/lein"
+obshash="$("$script_home/sha256sum" < lein | cut -d' ' -f1)"
+cd ..
+
+if test "$obshash" != "$hash"; then
+    echo "$cmdname: sha256sum $obshash != $hash" 1>&2
+    exit 2
+fi
+
+mkdir -p "$install/bin"
+mv -i "$tmpdir/lein" "$install/bin"
+chmod +x "$install/bin/lein"
