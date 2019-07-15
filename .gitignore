@@ -9,3 +9,5 @@ target
 /template/ext/packaging
 .nrepl-port
 .lein-failures
+Gemfile.lock
+.bundle
