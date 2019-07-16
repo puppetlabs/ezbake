@@ -26,13 +26,13 @@ else
 endif
 
 build: prep
-	  @docker build \
-			--pull \
-			--build-arg vcs_ref=$(vcs_ref) \
-			--build-arg build_date=$(build_date) \
-			--build-arg version=$(version) \
-			--file ezbake/$(dockerfile) \
-			--tag $(NAMESPACE)/ezbake:$(version) $(pwd)/..
+	@docker build \
+		--pull \
+		--build-arg vcs_ref=$(vcs_ref) \
+		--build-arg build_date=$(build_date) \
+		--build-arg version=$(version) \
+		--file ezbake/$(dockerfile) \
+		--tag $(NAMESPACE)/ezbake:$(version) $(pwd)/..
 ifeq ($(IS_LATEST),true)
 	@docker tag $(NAMESPACE)/ezbake:$(version) $(NAMESPACE)/ezbake:latest
 endif
