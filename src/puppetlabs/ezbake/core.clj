@@ -80,6 +80,7 @@
    (schema/optional-key :nonfinal-repo-target) schema/Str
    (schema/optional-key :replaces-pkgs) ReplacesPkgs
    (schema/optional-key :start-after) [schema/Str]
+   (schema/optional-key :start-before) [schema/Str]
    (schema/optional-key :start-timeout) schema/Int
    (schema/optional-key :stop-timeout) schema/Int
    (schema/optional-key :open-file-limit) schema/Int
@@ -568,6 +569,7 @@ Additional uberjar dependencies:
      :redhat-postinst-install-triggers   (map extract-rpm-package-scripts (get-local-ezbake-var lein-project :redhat-postinst-install-triggers []))
      :redhat-postinst-upgrade-triggers   (map extract-rpm-package-scripts (get-local-ezbake-var lein-project :redhat-postinst-upgrade-triggers []))
      :start-after                        (quoted-list (get-local-ezbake-var lein-project :start-after []))
+     :start-before                       (quoted-list (get-local-ezbake-var lein-project :start-before []))
      :reload-timeout                     (get-local-ezbake-var lein-project :reload-timeout "120")
      :start-timeout                      (get-local-ezbake-var lein-project :start-timeout "300")
      :stop-timeout                       (get-local-ezbake-var lein-project :stop-timeout "60")

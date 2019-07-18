@@ -15,6 +15,10 @@
 # Should-Start:      <%= EZBake::Config[:start_after].join(" ") %>
 # Should-Stop:       <%= EZBake::Config[:start_after].join(" ") %>
 <% end -%>
+<% if EZBake::Config[:start_before].any? -%>
+# X-Start-Before:    <%= EZBake::Config[:start_before].join(" ") %>
+# X-Stop-After:      <%= EZBake::Config[:start_before].join(" ") %>
+<% end -%>
 # Short-Description: <%= EZBake::Config[:project] %>
 # Description:       Start <%= EZBake::Config[:project] %> daemon placed in /etc/init.d.
 ### END INIT INFO
