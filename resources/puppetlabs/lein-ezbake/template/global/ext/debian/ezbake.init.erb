@@ -5,7 +5,7 @@
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-<% if EZBake::Config[:start_after] -%>
+<% if EZBake::Config[:start_after].any? -%>
 # Should-Start:      <%= EZBake::Config[:start_after].map {|dep| "#{dep}" }.join(" ") %>
 # Should-Stop:       <%= EZBake::Config[:start_after].map {|dep| "#{dep}" }.join(" ") %>
 <% end -%>
