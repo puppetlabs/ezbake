@@ -10,7 +10,13 @@
 #
 [Unit]
 Description=<%= EZBake::Config[:project] %> Service
+<% if EZBake::Config[:start_before].any? -%>
+Before=<%= EZBake::Config[:start_before].map {|dep| "#{dep}.service" }.join(" ") %>
+<% end -%>
 After=syslog.target network.target nss-lookup.target <%= EZBake::Config[:start_after].map {|dep| "#{dep}.service" }.join(" ") %>
+<% if EZBake::Config[:start_after].any? -%>
+Wants=<%= EZBake::Config[:start_after].map {|dep| "#{dep}.service" }.join(" ") %>
+<% end -%>
 
 [Service]
 Type=forking
