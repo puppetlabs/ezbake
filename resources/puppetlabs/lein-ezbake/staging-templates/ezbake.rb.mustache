@@ -1,86 +1,86 @@
 module EZBake
   Config = {
-      :project        => '{{{project}}}',
-      :version        => '{{{packaging-version}}}',
-      :release        => '{{{packaging-release}}}',
-      :real_name      => '{{{real-name}}}',
-      :user           => '{{{user}}}',
+      :project        => {{{project}}},
+      :version        => {{{packaging-version}}},
+      :release        => {{{packaging-release}}},
+      :real_name      => {{{real-name}}},
+      :user           => {{{user}}},
       :numeric_uid_gid => {{{numeric-uid-gid}}},
-      :group          => '{{{group}}}',
-      :reload_timeout => '{{{reload-timeout}}}',
-      :start_timeout  => '{{{start-timeout}}}',
-      :stop_timeout   => '{{{stop-timeout}}}',
+      :group          => {{{group}}},
+      :reload_timeout => {{{reload-timeout}}},
+      :start_timeout  => {{{start-timeout}}},
+      :stop_timeout   => {{{stop-timeout}}},
       :open_file_limit => {{{open-file-limit}}},
-      :uberjar_name   => '{{{uberjar-name}}}',
-      :additional_uberjars => [{{{additional-uberjars}}}],
-      :config_files   => [{{{config-files}}}],
-      :system_config_files   => [{{{system-config-files}}}],
-      :cli_app_files  => [{{{cli-app-files}}}],
-      :cli_defaults_file => '{{{cli-defaults-file}}}',
-      :bin_files      => [{{{bin-files}}}],
-      :create_dirs    => [{{{create-dirs}}}],
+      :uberjar_name   => {{{uberjar-name}}},
+      :additional_uberjars => {{{additional-uberjars}}},
+      :config_files   => {{{config-files}}},
+      :system_config_files   => {{{system-config-files}}},
+      :cli_app_files  => {{{cli-app-files}}},
+      :cli_defaults_file => {{{cli-defaults-file}}},
+      :bin_files      => {{{bin-files}}},
+      :create_dirs    => {{{create-dirs}}},
       :is_pe_build    => {{{is-pe-build}}},
       :terminus_info  => {
                           {{#terminus-map}}
-                            "{{{name}}}" => {
-                              :files => [{{{files}}}],
-                              :version => "{{{version}}}"
+                            {{{name}}} => {
+                              :files => {{{files}}},
+                              :version => {{{version}}}
                             }
                           {{/terminus-map}}
                           },
       :debian         => {
-                          :additional_dependencies => [{{{debian-deps}}}],
-                          :additional_build_dependencies => [{{{debian-build-deps}}}],
-                          :additional_preinst => [{{{debian-preinst}}}],
-                          :additional_postinst => [{{{debian-postinst}}}],
-                          :additional_postinst_install => [{{{debian-postinst-install}}}],
-                          :additional_install => [{{{debian-install}}}],
-                          :pre_start_action => [{{{debian-pre-start-action}}}],
-                          :post_start_action => [{{{debian-post-start-action}}}],
+                          :additional_dependencies => {{{debian-deps}}},
+                          :additional_build_dependencies => {{{debian-build-deps}}},
+                          :additional_preinst => {{{debian-preinst}}},
+                          :additional_postinst => {{{debian-postinst}}},
+                          :additional_postinst_install => {{{debian-postinst-install}}},
+                          :additional_install => {{{debian-install}}},
+                          :pre_start_action => {{{debian-pre-start-action}}},
+                          :post_start_action => {{{debian-post-start-action}}},
                           :interested_install_triggers => {
                                                  {{#debian-interested-install-triggers}}
-                                                   "{{{interest-name}}}" => [{{{scripts}}}],
+                                                   {{{interest-name}}} => [{{{scripts}}}],
                                                  {{/debian-interested-install-triggers}}
                                                  },
                           :interested_upgrade_triggers => {
                                                  {{#debian-interested-upgrade-triggers}}
-                                                   "{{{interest-name}}}" => [{{{scripts}}}],
+                                                   {{{interest-name}}} => [{{{scripts}}}],
                                                  {{/debian-interested-upgrade-triggers}}
                                                  },
-                          :activated_triggers => [{{{debian-activated-triggers}}}],
+                          :activated_triggers => {{{debian-activated-triggers}}},
                           },
       :redhat         => {
-                          :additional_dependencies => [{{{redhat-deps}}}],
-                          :additional_build_dependencies => [{{{redhat-build-deps}}}],
-                          :additional_preinst => [{{{redhat-preinst}}}],
-                          :additional_postinst => [{{{redhat-postinst}}}],
-                          :additional_postinst_install => [{{{redhat-postinst-install}}}],
-                          :additional_install => [{{{redhat-install}}}],
-                          :pre_start_action => [{{{redhat-pre-start-action}}}],
-                          :post_start_action => [{{{redhat-post-start-action}}}],
+                          :additional_dependencies => {{{redhat-deps}}},
+                          :additional_build_dependencies => {{{redhat-build-deps}}},
+                          :additional_preinst => {{{redhat-preinst}}},
+                          :additional_postinst => {{{redhat-postinst}}},
+                          :additional_postinst_install => {{{redhat-postinst-install}}},
+                          :additional_install => {{{redhat-install}}},
+                          :pre_start_action => {{{redhat-pre-start-action}}},
+                          :post_start_action => {{{redhat-post-start-action}}},
                           :postinst_install_triggers => {
                                                  {{#redhat-postinst-install-triggers}}
-                                                   "{{{package}}}" => [{{{scripts}}}],
+                                                   {{{package}}} => [{{{scripts}}}],
                                                  {{/redhat-postinst-install-triggers}}
                                                 },
                           :postinst_upgrade_triggers => {
                                                  {{#redhat-postinst-upgrade-triggers}}
-                                                   "{{{package}}}" => [{{{scripts}}}],
+                                                   {{{package}}} => [{{{scripts}}}],
                                                  {{/redhat-postinst-upgrade-triggers}}
                                                 },
                           },
-      :main_namespace => '{{{main-namespace}}}',
-      :java_args      => '{{{java-args}}}',
-      :java_args_cli  => '{{{java-args-cli}}}',
-      :tk_args        => '{{{tk-args}}}',
-      :start_after    => [{{{start-after}}}],
-      :start_before   => [{{{start-before}}}],
+      :main_namespace => {{{main-namespace}}},
+      :java_args      => {{{java-args}}},
+      :java_args_cli  => {{{java-args-cli}}},
+      :tk_args        => {{{tk-args}}},
+      :start_before   => {{{start-before}}},
+      :start_after    => {{{start-after}}},
       :replaces_pkgs  => {
                           {{#replaces-pkgs}}
                             "{{package}}" => "{{version}}",
                           {{/replaces-pkgs}}
                           },
-      :bootstrap_source => '{{{bootstrap-source}}}',
+      :bootstrap_source => {{{bootstrap-source}}},
       :logrotate_enabled => {{{logrotate-enabled}}}
   }
 end
