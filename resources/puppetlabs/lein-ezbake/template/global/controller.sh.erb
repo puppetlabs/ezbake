@@ -105,13 +105,13 @@ params=("--user" "<%= EZBake::Config[:user] -%>" "--group" "<%= EZBake::Config[:
 if [ -n "$os_version" ]; then params+=("--os-version" "$os_version"); fi
 if [ -n "$os_dist" ]; then params+=("--dist" "$os_dist"); fi
 
-params+=('--description' 'Puppet Labs <%= EZBake::Config[:project] %>. Contains: <%= Pkg::Config.config[:description] -%>')
+params+=('--description' "$(printf "Puppet Labs <%= EZBake::Config[:project] %>\nContains: <%= Pkg::Config.config[:description] -%>")")
 
 <% unless EZBake::Config[:terminus_info].empty? -%>
 DESTDIR="$basepath/termini" bash install.sh termini
 params+=('--build-termini')
 params+=('--termini-chdir' "$basepath/termini")
-termini_description='Termini for <%= EZBake::Config[:project] %>. Contains terminus for:'
+termini_description='Termini for <%= EZBake::Config[:project] %>\nContains terminus for:'
 
 <% comma_counter = 0 -%>
 <% EZBake::Config[:terminus_info].each do |proj_name, info| -%>
@@ -125,7 +125,7 @@ termini_description='Termini for <%= EZBake::Config[:project] %>. Contains termi
 termini_description+='<%= comma -%><%= proj_name -%> (version <%= info[:version] -%>)'
 <% end -%>
 
-params+=('--termini-description' "$termini_description")
+params+=('--termini-description' "$(printf "$termini_description")")
 <% end -%>
 
 <% if EZBake::Config[:logrotate_enabled]-%>
