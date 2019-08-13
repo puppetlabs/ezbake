@@ -1,3 +1,19 @@
+## 2.1.0 - 2019-08-13
+This is a bugfix and feature release
+
+Feature:
+  * (RE-12609) Add support for `start-before` dependencies for sysv and systemd.
+  * (PDB-4373) Add `as-ruby-literal` function to generate properly escaped ruby to
+    the ezbake.rb mustache template. All formatting that was happening in that template
+    has been moved to `as-ruby-literal`.
+  * Add artifacts for building ezbake docker image. Image is published on commit to puppet/ezbake
+    on dockerhub.
+
+Bugfix:
+  * Update package descriptions to use newlines.
+  * Fix missing `start-after` support for deb-based systemd systems.
+  * Add 'Wants' to systemd 'After' units so we don't fail on split installs.
+
 ## 2.0.4 - 2019-07-02
 This is a bugfix release.
 
