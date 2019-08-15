@@ -18,7 +18,7 @@ namespace :pl do
   task :local_build => "pl:fetch" do
     # If we have a dirty source, bail, because changes won't get reflected in
     # the package builds
-    Pkg::Util::Version.fail_on_dirty_source
+    Pkg::Util::Git.fail_on_dirty_source
 
     Pkg::Util::RakeUtils.invoke_task("package:tar")
     # where we want the packages to be copied to for the local build
