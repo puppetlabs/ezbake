@@ -28,7 +28,6 @@ if [ -e "$cli_defaults" ]; then
 fi
 
 COMMAND="${JAVA_BIN} ${JAVA_ARGS} ${LOG_APPENDER} \
-         -Djava.security.egd=file:/dev/urandom \
          -cp "$CLASSPATH" \
          clojure.main -m <%= EZBake::Config[:main_namespace] %> \
          --config ${CONFIG} --bootstrap-config ${BOOTSTRAP_CONFIG} \
