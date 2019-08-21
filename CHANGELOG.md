@@ -1,3 +1,10 @@
+## 2.1.1 - 2019-08-21
+This is a maintenance release.
+
+Bugfix:
+  * (SERVER-2602) Do not hard-code egd in included subcommand files. Users that would like to manage egd source may do so via `JAVA_ARGS` or their `java.security` file.
+  * Stop calling deprecated method `Pkg::Util::Git.fail_on_dirty_source`.
+
 ## 2.1.0 - 2019-08-13
 This is a bugfix and feature release
 
