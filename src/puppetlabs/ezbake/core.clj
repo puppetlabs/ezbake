@@ -577,7 +577,7 @@ Additional uberjar dependencies:
      :system-config-files                (as-ruby-literal (map remove-erb-extension system-config-files))
      :cli-app-files                      (as-ruby-literal (map remove-erb-extension cli-app-files))
      :cli-defaults-file                  (as-ruby-literal (remove-erb-extension cli-defaults-filename))
-     :bin-files                          (as-ruby-literal bin-files)
+     :bin-files                          (as-ruby-literal (map #(.getName %1) bin-files)) ;; These are JarFileEntries
      :create-dirs                        (local->ruby :create-dirs [])
      :debian-deps                        (val->ruby :debian :dependencies)
      :debian-build-deps                  (val->ruby :debian :build-dependencies)
