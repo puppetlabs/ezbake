@@ -21,6 +21,7 @@ ARG version="2.0.4"
 ARG vcs_ref
 ARG build_date
 
+ENV LANG="en_US.utf8"
 ENV EZBAKE_ALLOW_UNREPRODUCIBLE_BUILDS=true
 ENV EZBAKE_NODEPLOY=true
 ENV EZBAKE_VERSION="$version"
