@@ -1,7 +1,13 @@
+## 2.1.2 - 2019-08-26
+This is a bugfix release.
+
+Bugfix:
+* Extract name from `bin-files`, which are JarFileEntries, before converting to Ruby value.
+
 ## 2.1.1 - 2019-08-21
 This is a maintenance release.
 
-Bugfix:
+Maintenance:
   * (SERVER-2602) Do not hard-code egd in included subcommand files. Users that would like to manage egd source may do so via `JAVA_ARGS` or their `java.security` file.
   * Stop calling deprecated method `Pkg::Util::Git.fail_on_dirty_source`.
 
