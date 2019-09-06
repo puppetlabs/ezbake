@@ -2,7 +2,7 @@
 This is a bugfix release.
 
 Bugfix:
-* Extract name from `bin-files`, which are JarFileEntries, before converting to Ruby value.
+  * Extract name from `bin-files`, which are JarFileEntries, before converting to Ruby value.
 
 ## 2.1.1 - 2019-08-21
 This is a maintenance release.
