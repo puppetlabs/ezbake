@@ -287,6 +287,10 @@ elsif options.output_type == 'deb'
   end
   options.java = 'openjdk-8-jre-headless'
 
+  if options.dist == 'buster' # debian 10 uses java11
+    options.java = 'openjdk-11-jre-headless'
+  end
+
   fpm_opts << '--deb-build-depends cdbs'
   fpm_opts << '--deb-build-depends bc'
   fpm_opts << '--deb-build-depends mawk'
