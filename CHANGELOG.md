@@ -1,8 +1,14 @@
+## 2.1.4 - 2019-09-24
+This is a maintenance release.
+
+Maintenance:
+  * Use Java 11 for Debian 10 (Buster).
+
 ## 2.1.3 - 2019-09-06
 This is a maintenance release.
 
 Maintenance:
-  * (RE-12748) Add support for Debian 10 (Buster)
+  * (RE-12748) Add support for Debian 10 (Buster).
 
 Changed:
   * Set locale to utf8 in ezbake container
