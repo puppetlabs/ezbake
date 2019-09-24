@@ -172,9 +172,10 @@ This differs from the `default` files, which also get loaded by `cli-app`, in
 that a project has no control over what goes into `default`. `cli-defaults.sh`
 is under the control of your project.
 
-For `cli-defaults.sh` to be used, it simply needs to exist at
-`resources/ext/cli_defaults/cli-defaults.sh.erb` in your project. Since it is
-an erb template, it will have access to the variables in `ezbake.rb`
+For `cli-defaults.sh` to be used, it needs to exist at
+`resources/ext/cli_defaults/cli-defaults.sh.erb` in your standalone project. If
+placed in an uberjar, it will not be recognized. Since it is an erb template, it
+will have access to the variables in `ezbake.rb`
 
 ### Running
 
