@@ -1,3 +1,10 @@
+## 2.1.5 - 2019-10-08
+This is a maintenance release.
+
+Maintenance:
+  * Remove redhatfips from default platforms for FOSS projects.
+  * Documentation improvements.
+
 ## 2.1.4 - 2019-09-24
 This is a maintenance release.
 
