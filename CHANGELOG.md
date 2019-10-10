@@ -1,3 +1,9 @@
+## 2.1.6 - 2019-10-10
+This is a maintenance release.
+
+Maintenance:
+  * Add dependency on `rng-tools` for redhatfips platforms.
+
 ## 2.1.5 - 2019-10-08
 This is a maintenance release.
 
