@@ -216,10 +216,6 @@ if options.output_type == 'rpm'
     fpm_opts << "--depends systemd"
   end
 
-  if options.operating_system == :redhatfips
-    fpm_opts << "--depends rng-tools"
-  end
-  
   if options.systemd_sles == 1
     fpm_opts << "--rpm-tag '%{?systemd_requires}'"
   end
