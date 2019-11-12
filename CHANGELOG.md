@@ -4,12 +4,6 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
 
-## [2.1.6] - 2019-10-10
-This is a maintenance release.
-
-Maintenance:
-  * Add dependency on `rng-tools` for redhatfips platforms.
-
 ## [2.1.5] - 2019-10-08
 This is a maintenance release.
 
@@ -756,8 +750,7 @@ This release contains bug fixes and AIO path changes.
 ## 0.1.0 - 2015-01-13
  * Rewrite ezbake to follow leiningen plugin application model.
 
-[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.1.6...HEAD
-[2.1.6]: https://github.com/puppetlabs/ezbake/compare/2.1.5...2.1.6
+[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.1.5...HEAD
 [2.1.5]: https://github.com/puppetlabs/ezbake/compare/2.1.4...2.1.5
 [2.1.4]: https://github.com/puppetlabs/ezbake/compare/2.1.3...2.1.4
 [2.1.3]: https://github.com/puppetlabs/ezbake/compare/2.1.2...2.1.3
