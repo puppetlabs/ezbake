@@ -6,9 +6,10 @@ pid="$(pgrep -f "<%= EZBake::Config[:uberjar_name] %>.* -m <%= EZBake::Config[:m
 restartfile="/opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>/restartcounter"
 start_timeout="${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}"
 
-realname="<%= EZBake::Config[:real_name] %>"
-rundir="/var/run/puppetlabs/${realname}"
-PIDFILE="${rundir}/${realname}.pid"
+real_name="<%= EZBake::Config[:real_name] %>"
+rundir="/var/run/puppetlabs/${real_name}"
+app_logdir=${app_logdir:=/var/log/puppetlabs/${real_name}}
+PIDFILE="${rundir}/${real_name}.pid"
 
 cli_defaults=${INSTALL_DIR}/cli/cli-defaults.sh
 
@@ -60,7 +61,8 @@ if [ -e "$cli_defaults" ]; then
 fi
 
 ${JAVA_BIN} ${JAVA_ARGS} \
-  -XX:OnOutOfMemoryError="kill -9 %p" \
+  -XX:+CrashOnOutOfMemoryError \
+  -XX:ErrorFile="${app_logdir}/${real_name}_err_pid%p.log" \
   -cp "${CLASSPATH}" \
   clojure.main \
   -m <%= EZBake::Config[:main_namespace] %> \
