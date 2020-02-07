@@ -6,6 +6,8 @@ if [ -n "${EZ_VERBOSE}" ]; then
     set -x
 fi
 
+USE_TASKSMAX=${USE_TASKSMAX:-true}
+
 # Warning: This variable API is experimental so these variables may be subject
 # to change in the future.
 prefix=${prefix:=/usr}
@@ -287,6 +289,9 @@ function task_systemd_deb {
     task sysv_init_deb
     install -d -m 0755 "${DESTDIR}${unitdir_debian}"
     install -m 0644 ext/debian/<%= EZBake::Config[:project] %>.service_file "${DESTDIR}${unitdir_debian}/<%= EZBake::Config[:project] %>.service"
+    if [ "$USE_TASKSMAX" == "false" ]; then
+      sed -i "s/^TasksMax/# Don't set TasksMax since the option doesn't exist\n# TasksMax/" "${DESTDIR}${unitdir_debian}/<%= EZBake::Config[:project] %>.service"
+    fi
     install -d -m 0755 "${DESTDIR}${tmpfilesdir}"
     install -m 0644 ext/<%= EZBake::Config[:project] %>.tmpfiles.conf "${DESTDIR}${tmpfilesdir}/<%= EZBake::Config[:project] %>.conf"
 }

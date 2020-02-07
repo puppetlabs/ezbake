@@ -3,6 +3,9 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Bugfix:
+  * (RE-12523) Don't set `TasksMax` in the Debian 8 service file since that option
+    is not supported by the included version of systemd.
 
 ## [2.1.5] - 2019-10-08
 This is a maintenance release.
