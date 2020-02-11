@@ -3,7 +3,14 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+
+## [2.1.6] - 2020-02-11
+This is a bugfix release.
+
 Bugfix:
+  * (EZ-132) Use `-XX:+CrashOnOutOfMemoryError` instead of
+    `-XX:OnOutOfMemoryError="kill -9 %p"`. Additionally, set a new log file for
+    the crash in `-XX:ErrorFile=/var/log/puppetlabs/puppetserver/puppetserver_err_pid%p.log`.
   * (RE-12523) Don't set `TasksMax` in the Debian 8 service file since that option
     is not supported by the included version of systemd.
 
@@ -753,7 +760,8 @@ This release contains bug fixes and AIO path changes.
 ## 0.1.0 - 2015-01-13
  * Rewrite ezbake to follow leiningen plugin application model.
 
-[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.1.5...HEAD
+[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.1.6...HEAD
+[2.1.6]: https://github.com/puppetlabs/ezbake/compare/2.1.5...2.1.6
 [2.1.5]: https://github.com/puppetlabs/ezbake/compare/2.1.4...2.1.5
 [2.1.4]: https://github.com/puppetlabs/ezbake/compare/2.1.3...2.1.4
 [2.1.3]: https://github.com/puppetlabs/ezbake/compare/2.1.2...2.1.3
