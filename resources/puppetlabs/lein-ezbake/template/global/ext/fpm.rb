@@ -346,6 +346,7 @@ end
 if options.is_pe
   fpm_opts << "--depends pe-java"
   fpm_opts << "--depends pe-puppet-enterprise-release"
+  fpm_opts << "--depends pe-bouncy-castle-jars"
 else
   fpm_opts << "--depends #{options.java}"
 end
