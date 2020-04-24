@@ -3,6 +3,8 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Bugfix:
+  * (EZ-135) PE packages should have a dependency on pe-bouncy-castle-jars.
 
 ## [2.1.6] - 2020-02-11
 This is a bugfix release.
