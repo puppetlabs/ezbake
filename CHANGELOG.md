@@ -5,6 +5,8 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 ## [Unreleased]
 Bugfix:
   * (EZ-135) PE packages should have a dependency on pe-bouncy-castle-jars.
+  * Fix adding postinstall steps. Currently `postinst` or `postinst-install` do
+    not make it into packaging scripts for rpm or deb systems.
 
 ## [2.1.6] - 2020-02-11
 This is a bugfix release.
