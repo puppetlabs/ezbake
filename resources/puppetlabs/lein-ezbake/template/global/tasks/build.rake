@@ -5,11 +5,6 @@ def get_auth_info(job_url)
 You need to pass the environment variable JENKINS_USER_AUTH
 It should be in the format <LDAP username>:<access token>
 To find your access token, go to http://<jenkins-url>/me/configure
-These jobs also are configured with an authentication token
-that you can use instead of your personal token. To find the
-job authentication token see the 'Build Triggers' section of
-#{job_url}/configure. In this case, JENKINS_USER_AUTH should
-be set to only the Authentication Token.
   DOC
 end
 
@@ -140,13 +135,12 @@ namespace :pl do
       end
 
       curl_opts << %(--form json='#{parameter_json.to_json}')
-      if args[:auth_string] =~ /:/
-        curl_opts << "--user #{args[:auth_string]}"
-        curl_url = "#{args[:job_url]}/build"
-      #assume we're using a token
-      else
-        curl_url = "#{args[:job_url]}/build?token=#{args[:auth_string]}"
+      unless args[:auth_string] =~ /:/
+        # Old-style bare-token "build?token=<foo>" is no longer supported.
+        raise "JENKINS_USER_AUTH must have the format <LDAP username>:<access token>"
       end
+      curl_opts << "--user #{args[:auth_string]}"
+      curl_url = "#{args[:job_url]}/build"
 
       output, _ = Pkg::Util::Net.curl_form_data(curl_url, curl_opts)
       http_response = output.scan(/^HTTP.*$/).last
