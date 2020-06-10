@@ -7,6 +7,8 @@ Bugfix:
   * (EZ-135) PE packages should have a dependency on pe-bouncy-castle-jars.
   * Fix adding postinstall steps. Currently `postinst` or `postinst-install` do
     not make it into packaging scripts for rpm or deb systems.
+Maintenance: 
+  * (RE-13517) (RE-13502) Remove ubuntu 16.04 (xenial) and el 6 from PE build_defaults.
 
 ## [2.1.6] - 2020-02-11
 This is a bugfix release.
