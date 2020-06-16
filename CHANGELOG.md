@@ -3,12 +3,15 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+
+## [2.1.7] - 2020-06-16
 Bugfix:
   * (EZ-135) PE packages should have a dependency on pe-bouncy-castle-jars.
   * Fix adding postinstall steps. Currently `postinst` or `postinst-install` do
     not make it into packaging scripts for rpm or deb systems.
 Maintenance: 
-  * (RE-13517) (RE-13502) Remove ubuntu 16.04 (xenial) and el 6 from PE build_defaults.
+  * (RE-13517) (RE-13502) Remove ubuntu 16.04 (xenial) and el 6 from PE `build_defaults`.
+  * Update build.rake to match current jenkins security practices.
 
 ## [2.1.6] - 2020-02-11
 This is a bugfix release.
@@ -766,7 +769,8 @@ This release contains bug fixes and AIO path changes.
 ## 0.1.0 - 2015-01-13
  * Rewrite ezbake to follow leiningen plugin application model.
 
-[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.1.6...HEAD
+[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.1.7...HEAD
+[2.1.7]: https://github.com/puppetlabs/ezbake/compare/2.1.6...2.1.7
 [2.1.6]: https://github.com/puppetlabs/ezbake/compare/2.1.5...2.1.6
 [2.1.5]: https://github.com/puppetlabs/ezbake/compare/2.1.4...2.1.5
 [2.1.4]: https://github.com/puppetlabs/ezbake/compare/2.1.3...2.1.4
