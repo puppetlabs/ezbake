@@ -3,6 +3,8 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Bugfix:
+  * (EZ-35) Make use of project build-scripts, in addition to dependency build-scripts.
 
 ## [2.1.7] - 2020-06-16
 Bugfix:

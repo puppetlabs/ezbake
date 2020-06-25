@@ -322,6 +322,13 @@ Additional uberjar dependencies:
     ;; Return just a list of the files
     (mapcat last files)))
 
+(defn cp-project-build-scripts
+  "Copy build-scripts in the project directory into the staging directory"
+  [lein-project]
+  ;; TODO: try all resource-paths, not just first
+  (let [project-resource-path (first (get lein-project :resource-paths))]
+    (fs/copy-dir-into (fs/file project-resource-path build-scripts-prefix) (fs/file staging-dir build-scripts-prefix))))
+
 (schema/defn cp-to-staging-dir :- File
   "Copy a file to the staging directory"
   [config-dir :- File
@@ -900,6 +907,7 @@ Additional uberjar dependencies:
           timestamp (get-timestamp-string)]
       (cp-shared-files dependencies get-cli-defaults-files-in)
       (cp-shared-files dependencies get-build-scripts-files-in)
+      (cp-project-build-scripts lein-project)
       (if cli-app-files
         (cp-cli-wrapper-scripts (:name lein-project)))
       (cp-doc-files lein-project)
