@@ -3,8 +3,12 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+
+## [2.1.8] - 2020-07-10
 Bugfix:
   * (EZ-35) Make use of project build-scripts, in addition to dependency build-scripts.
+  * Revert fix from 2.1.7 adding scripts to the packaging postinst. This is handled
+    in the install.sh script.
 
 ## [2.1.7] - 2020-06-16
 Bugfix:

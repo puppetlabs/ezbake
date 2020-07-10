@@ -34,14 +34,3 @@ if [ $1 = triggered ] && [ -n $2 ]; then
   <% end -%>
   : # in case there are no upgrade triggers
 fi
-
-<% EZBake::Config[:debian][:additional_postinst].each do |cmd| -%>
-  <%= cmd %>
-<% end -%>
-<% unless EZBake::Config[:debian][:additional_postinst_install].empty? -%>
-if [ -z "$2" ]; then
-<% EZBake::Config[:debian][:additional_postinst_install].each do |cmd| -%>
-    <%= cmd %>
-<% end -%>
-fi
-<% end -%>
