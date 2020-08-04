@@ -9,10 +9,6 @@ language: generic
 
 dist: xenial
 
-# Always explicitly set sudo.  Otherwise travis' defaults may vary
-# based on when the repository testing was enabled.
-sudo: required
-
 aliases:
   - &run-tests |
     set -e
@@ -26,30 +22,18 @@ aliases:
 
 jobs:
   include:
-
-    - stage: ❧ ezbake tests
+    - stage: ezbake tests
       env: EZBAKE_TEST_JDK=openjdk8
       script: *run-tests
 
-    - stage: ❧ ezbake tests
+    - stage: ezbake tests
       env: EZBAKE_TEST_JDK=openjdk11
       script: *run-tests
 
-#on_success: ext/travisci/on-success
-
-#notifications:
-#  email: false
-#  slack:
-#    template:
-#      - "<%{compare_url}|%{commit_subject}> | %{author}"
-#      - "%{repository_slug} %{branch} | <%{build_url}|#%{build_number}> %{result} in %{elapsed_time}"
-#    rooms:
-#      secure: IJU0YgGYbKgM7NupaOmE2BYra2mNx7+e5vAYNL+5oaRXolbHCyg0WzfFWilhMK3KEi8oIMKXR4ZzoUZLAqeOQzX7nnsLqC3wjyDHCgxtp4O+5GNKyeLN4ItoI1f2d6qyiiBPkHgVPuLhG3yyQ+wD0dMc9vSYmxfoazqe9HD/9UE=
-
-cache:
-  directories:
-    - /var/cache/apt/archives
-    - $HOME/.m2
-    - $HOME/Library/Caches/Homebrew
-    - ext/travisci/local/jdk
-    - vendor/bundle/ruby
+notifications:
+  # release-new-new
+  slack:
+    rooms:
+      - puppet:G7vAYkGZsWAilzGj4ZrftFF6
+    on_success: change
+    on_failure: always

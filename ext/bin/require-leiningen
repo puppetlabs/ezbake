@@ -47,13 +47,13 @@ tmpdir="$(mktemp -d "$cmdname-XXXXXX")"
 tmpdir="$(cd "$tmpdir" && pwd)"
 trap "$(printf 'rm -rf %q' "$tmpdir")" EXIT
 
-cd "$tmpdir"
-curl -O "https://raw.githubusercontent.com/technomancy/leiningen/$ver/bin/lein"
-obshash="$("$script_home/sha256sum" < lein | cut -d' ' -f1)"
-cd ..
+curl --output "$tmpdir/lein" \
+     "https://raw.githubusercontent.com/technomancy/leiningen/$ver/bin/lein"
 
-if test "$obshash" != "$hash"; then
-    echo "$cmdname: sha256sum $obshash != $hash" 1>&2
+retrieved_hash="$(/usr/bin/sha256sum < "$tmpdir/lein" | cut --delimiter=' ' --fields=1)"
+
+if test "$retrieved_hash" != "$hash"; then
+    echo "$cmdname: sha256sum $retrieved_hash != $hash" 1>&2
     exit 2
 fi
 
