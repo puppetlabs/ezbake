@@ -3,6 +3,9 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Feature:
+  * (EZ-140) Add configuration setting to allow dependencies to be excluded
+    from the search for resources.
 
 ## [2.1.8] - 2020-07-10
 Bugfix:
