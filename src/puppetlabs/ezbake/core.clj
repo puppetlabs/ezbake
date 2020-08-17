@@ -454,9 +454,9 @@ Additional uberjar dependencies:
 
 (defn- prefix-project-name
   [project-name build-target]
-    (if (= build-target "pe")
-      (str "pe-" (name project-name))
-      (name project-name)))
+  (if (= build-target "pe")
+    (str "pe-" (name project-name))
+    (name project-name)))
 
 (defn generate-terminus-list
   [dependencies build-target]
@@ -634,7 +634,7 @@ Additional uberjar dependencies:
      :java-args                          (local->ruby :java-args
                                                       "-Xmx192m")
      :java-args-cli                      (local->ruby :java-args-cli "")
-     :tk-args                            (local->ruby :tk-args "" )
+     :tk-args                            (local->ruby :tk-args "")
      :bootstrap-source                   (-> (get-local :bootstrap-source :bootstrap-cfg)
                                              name as-ruby-literal)
      :logrotate-enabled                  (local->ruby :logrotate-enabled true)
@@ -838,7 +838,7 @@ Additional uberjar dependencies:
                                metadata (if (empty? munged-dependencies)
                                           {"version" version}
                                           {"version" version "dependencies" munged-dependencies})]]
-                         {(str project-name) metadata}))))
+                     {(str project-name) metadata}))))
 
 (defn generate-build-metadata-files
   [lein-project]
