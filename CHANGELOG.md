@@ -8,6 +8,7 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 Feature:
   * (EZ-140) Add configuration setting to allow dependencies to be excluded
     from the search for resources.
+  * (RE-13571) Add support for ubuntu 20.04 (focal).
 
 ## [2.1.8] - 2020-07-10
 Bugfix:
