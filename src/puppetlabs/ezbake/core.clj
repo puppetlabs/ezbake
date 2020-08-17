@@ -454,9 +454,9 @@ Additional uberjar dependencies:
 
 (defn- prefix-project-name
   [project-name build-target]
-    (if (= build-target "pe")
-      (str "pe-" (name project-name))
-      (name project-name)))
+  (if (= build-target "pe")
+    (str "pe-" (name project-name))
+    (name project-name)))
 
 (defn generate-terminus-list
   [dependencies build-target]
@@ -634,7 +634,7 @@ Additional uberjar dependencies:
      :java-args                          (local->ruby :java-args
                                                       "-Xmx192m")
      :java-args-cli                      (local->ruby :java-args-cli "")
-     :tk-args                            (local->ruby :tk-args "" )
+     :tk-args                            (local->ruby :tk-args "")
      :bootstrap-source                   (-> (get-local :bootstrap-source :bootstrap-cfg)
                                              name as-ruby-literal)
      :logrotate-enabled                  (local->ruby :logrotate-enabled true)
@@ -838,7 +838,7 @@ Additional uberjar dependencies:
                                metadata (if (empty? munged-dependencies)
                                           {"version" version}
                                           {"version" version "dependencies" munged-dependencies})]]
-                         {(str project-name) metadata}))))
+                     {(str project-name) metadata}))))
 
 (defn generate-build-metadata-files
   [lein-project]
@@ -880,6 +880,9 @@ Additional uberjar dependencies:
                            (deploy-snapshot lein-project)
                            (:version lein-project))
         reproducible? (not (System/getenv "EZBAKE_ALLOW_UNREPRODUCIBLE_BUILDS"))
+        ;; Do not copy the contents of :resource-paths from the deps in this list.
+        ;; Items should be symbols of the form `namespace/project`, e.g. `puppetlabs/puppetserver`
+        exclude-resources-from (get-in lein-project [:lein-ezbake :exclude-resources-from])
         lein-project (update lein-project :dependencies
                              #(deputils/expand-snapshot-versions
                                 lein-project % {:reproducible? reproducible?}))]
@@ -892,21 +895,24 @@ Additional uberjar dependencies:
       (cp-template-files template-dir)
       (cp-template-files (get-template-file "global")))
     (let [dependencies    (deputils/get-dependencies-with-jars lein-project)
-          config-files    (cp-shared-files dependencies get-config-files-in)
+          non-excluded-deps (remove
+                             (fn [item] (some #(= (:project item) %) exclude-resources-from))
+                             dependencies)
+          config-files    (cp-shared-files non-excluded-deps get-config-files-in)
           config-files    (concat config-files  (cp-project-config-files lein-project))
           system-config-files (cp-system-config-files lein-project)
-          _               (cp-shared-files dependencies get-cli-app-files-in)
+          _               (cp-shared-files non-excluded-deps get-cli-app-files-in)
           cli-app-files   (->> (str/join "/" [staging-dir "ext" "cli"])
                             fs/list-dir
                             (map #(relativize staging-dir %)))
-          bin-files       (cp-shared-files dependencies get-bin-files-in)
-          terminus-files  (cp-terminus-files dependencies build-target)
+          bin-files       (cp-shared-files non-excluded-deps get-bin-files-in)
+          terminus-files  (cp-terminus-files non-excluded-deps build-target)
           upstream-ezbake-configs (get-upstream-ezbake-configs lein-project)
           additional-uberjar-info (build-additional-uberjars! lein-project)
           additional-uberjar-filenames (map #(fs/base-name (:uberjar %)) additional-uberjar-info)
           timestamp (get-timestamp-string)]
-      (cp-shared-files dependencies get-cli-defaults-files-in)
-      (cp-shared-files dependencies get-build-scripts-files-in)
+      (cp-shared-files non-excluded-deps get-cli-defaults-files-in)
+      (cp-shared-files non-excluded-deps get-build-scripts-files-in)
       (cp-project-build-scripts lein-project)
       (if cli-app-files
         (cp-cli-wrapper-scripts (:name lein-project)))
