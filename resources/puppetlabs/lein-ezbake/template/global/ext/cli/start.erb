@@ -60,16 +60,24 @@ if [ -e "$cli_defaults" ]; then
   fi
 fi
 
-${JAVA_BIN} ${JAVA_ARGS} \
-  -XX:+CrashOnOutOfMemoryError \
-  -XX:ErrorFile="${app_logdir}/${real_name}_err_pid%p.log" \
-  -cp "${CLASSPATH}" \
+java_version=$($JAVA_BIN -version 2>&1 | head -1 | awk -F\" '{ print $2 }')
+java_major_version=$(echo $java_version | awk -F. '{ print $1 }')
+
+out_of_memory_flag='-XX:OnOutOfMemoryError="kill -9 %p"'
+if [ "$java_major_version" -ge 11 ]; then
+  out_of_memory_flag="-XX:+CrashOnOutOfMemoryError"
+fi
+
+"$JAVA_BIN" $JAVA_ARGS \
+  "$out_of_memory_flag" \
+  -XX:ErrorFile="$app_logdir/${real_name}_err_pid%p.log" \
+  -cp "$CLASSPATH" \
   clojure.main \
   -m <%= EZBake::Config[:main_namespace] %> \
-  --config "${CONFIG}" \
-  --bootstrap-config "${BOOTSTRAP_CONFIG}" \
-  --restart-file "${restartfile}" \
-  ${TK_ARGS} &
+  --config "$CONFIG" \
+  --bootstrap-config "$BOOTSTRAP_CONFIG" \
+  --restart-file "$restartfile" \
+  $TK_ARGS &
 
 # $! is the process id of the last backgrounded process, the Java process above.
 pid=$!

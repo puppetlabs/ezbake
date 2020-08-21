@@ -4,6 +4,11 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+Bugfix:
+  * (RE-13643) EZ-132 broke java out-of-memory handling for those platforms not yet on Java 11.
+    This fix introduces a check for Java major version >= 11 before
+    setting `-XX:+CrashOnOutOfMemoryError` over `-XX:OnOutOfMemoryError="kill -9 %p"`
+
 ## [2.2.0] - 2020-8-17
 Feature:
   * (EZ-140) Add configuration setting to allow dependencies to be excluded
@@ -21,7 +26,7 @@ Bugfix:
   * (EZ-135) PE packages should have a dependency on pe-bouncy-castle-jars.
   * Fix adding postinstall steps. Currently `postinst` or `postinst-install` do
     not make it into packaging scripts for rpm or deb systems.
-Maintenance: 
+Maintenance:
   * (RE-13517) (RE-13502) Remove ubuntu 16.04 (xenial) and el 6 from PE `build_defaults`.
   * Update build.rake to match current jenkins security practices.
 
