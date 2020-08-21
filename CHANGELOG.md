@@ -4,6 +4,7 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.2.1] - 2020-08-21
 Bugfix:
   * (RE-13643) EZ-132 broke java out-of-memory handling for those platforms not yet on Java 11.
     This fix introduces a check for Java major version >= 11 before
@@ -786,7 +787,10 @@ This release contains bug fixes and AIO path changes.
 ## 0.1.0 - 2015-01-13
  * Rewrite ezbake to follow leiningen plugin application model.
 
-[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.1.7...HEAD
+[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.2.1...HEAD
+[2.2.1]: https://github.com/puppetlabs/ezbake/compare/2.2.0...2.2.1
+[2.2.0]: https://github.com/puppetlabs/ezbake/compare/2.1.8...2.2.0
+[2.1.8]: https://github.com/puppetlabs/ezbake/compare/2.1.7...2.1.8
 [2.1.7]: https://github.com/puppetlabs/ezbake/compare/2.1.6...2.1.7
 [2.1.6]: https://github.com/puppetlabs/ezbake/compare/2.1.5...2.1.6
 [2.1.5]: https://github.com/puppetlabs/ezbake/compare/2.1.4...2.1.5
