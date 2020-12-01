@@ -13,7 +13,6 @@ options.systemd_sles = 0
 options.old_el = 0
 options.old_sles = 0
 options.sles = 0
-options.java = 'java-1.8.0-openjdk-headless'
 options.release = 1
 options.is_pe = false
 options.replaces = {}
@@ -187,11 +186,22 @@ if options.output_type == 'rpm'
     options.systemd = 1
     options.systemd_sles = 1
     options.sles = 1
-    options.java = 'java-1_8_0-openjdk-headless'
   elsif options.operating_system == :sles #old sles
     options.sysvinit = 1
     options.old_sles = 1
   end
+
+  ##
+  # Deal with Java issues. Install java 8 by default.
+  # For rhel >= 8 we can use the newfangled 'or' syntax to allow for either
+  java_8  = 'java-1_8_0-openjdk-headless'
+  java_11 = 'java-1_11_0-openjdk-headless'
+
+  options.java = java_8
+  if options.operating_system == :el && options.os_version >= 8
+    options.java = "'(#{java_11} or #{java_8})'"
+  end
+
 
   fpm_opts << "--rpm-rpmbuild-define '_with_sysvinit #{options.sysvinit}'"
   fpm_opts << "--rpm-rpmbuild-define '_with_systemd #{options.systemd}'"
