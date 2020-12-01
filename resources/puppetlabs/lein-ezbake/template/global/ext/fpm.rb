@@ -194,10 +194,21 @@ if options.output_type == 'rpm'
   ##
   # Deal with Java issues. Install java 8 by default.
   # For rhel >= 8 we can use the newfangled 'or' syntax to allow for either
+
+  # Most yum-based platforms
   java_8  = 'java-1_8_0-openjdk-headless'
+
+  # SLES wants to use '.' instead of '_'
+  java_8_sles = 'java-1.8.0-openjdk-headless'
+
   java_11 = 'java-1_11_0-openjdk-headless'
 
   options.java = java_8
+
+  if options.operating_system == :sles && options.os_version >= 12
+    options.java = java_8_sles
+  end
+
   if options.operating_system == :el && options.os_version >= 8
     options.java = "'(#{java_11} or #{java_8})'"
   end
