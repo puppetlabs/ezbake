@@ -203,12 +203,14 @@ if options.output_type == 'rpm'
 
   java_11 = 'java-1_11_0-openjdk-headless'
 
+  # Set java_8 as default
   options.java = java_8
 
   if options.operating_system == :sles && options.os_version >= 12
     options.java = java_8_sles
   end
 
+  # For el >= 8, favor java_11 over java_8
   if options.operating_system == :el && options.os_version >= 8
     options.java = "'(#{java_11} or #{java_8})'"
   end
