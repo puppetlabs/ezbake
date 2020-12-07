@@ -3,6 +3,8 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Added:
+  * (CPR-753) Changed permissions for logdir from 700 to 750.
 
 ## [2.2.1] - 2020-08-21
 Bugfix:

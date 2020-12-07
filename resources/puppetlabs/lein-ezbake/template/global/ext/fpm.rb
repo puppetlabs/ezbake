@@ -273,7 +273,7 @@ if options.output_type == 'rpm'
   termini_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs/puppet/lib/ruby/vendor_ruby/puppet/util"
   termini_opts << "--rpm-auto-add-exclude-directories /opt/puppetlabs/puppet/lib/ruby/vendor_ruby/puppet/util/puppetdb"
   fpm_opts << "--rpm-attr 750,#{options.user},#{options.group}:/etc/puppetlabs/#{options.realname}"
-  fpm_opts << "--rpm-attr 700,#{options.user},#{options.group}:#{options.app_logdir}"
+  fpm_opts << "--rpm-attr 750,#{options.user},#{options.group}:#{options.app_logdir}"
   fpm_opts << "--rpm-attr -,#{options.user},#{options.group}:#{options.app_data}"
   fpm_opts << "--rpm-attr 755,#{options.user},#{options.group}:#{options.app_rundir}"
 
