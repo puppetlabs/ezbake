@@ -9,7 +9,6 @@ Added:
 Maintenance:
   * (RE-13425) Update the GPG signing key in the pe and foss template build_defaults.yaml
 
-
 ## [2.2.1] - 2020-08-21
 Bugfix:
   * (RE-13643) EZ-132 broke java out-of-memory handling for those platforms not yet on Java 11.
