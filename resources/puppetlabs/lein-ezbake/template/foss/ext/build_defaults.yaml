@@ -3,7 +3,7 @@ default_cow: 'base-jessie-i386.cow'
 cows: 'base-jessie-i386.cow base-xenial-i386.cow base-stretch-i386.cow base-bionic-i386.cow base-buster-i386.cow base-focal-i386.cow'
 pbuild_conf: '/etc/pbuilderrc'
 packager: 'puppetlabs'
-gpg_key: '7F438280EF8D349F'
+gpg_key: '4528B6CD9E61EF26'
 sign_tar: FALSE
 # a space separated list of mock configs
 final_mocks: 'pl-el-6-i386 pl-el-7-x86_64 pl-el-8-x86_64 pl-sles-12-x86_64'
