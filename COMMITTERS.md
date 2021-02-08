@@ -19,10 +19,10 @@ making the decision what base branch to merge the change set into.
 
 **base branch** - A branch in Git that contains an active history of changes
 and will eventually be released using semantic version guidelines.  The branch
-named `master` will always exist as a base branch.  The other base branches are
+named `main` will always exist as a base branch.  The other base branches are
 `stable`, and `security` described below.
 
-**master branch** - The branch where new functionality that are not bug fixes
+**main branch** - The branch where new functionality that are not bug fixes
 is merged.
 
 **stable branch** - The branch where bug fixes against the latest release or
@@ -41,8 +41,8 @@ This section provides a guide to help a committer decide the specific base
 branch that a change set should be merged into.
 
 The latest minor release of a major release is the only base branch that should
-be patched.  These patches will be merged into `master` if they contain new
-functionality.  They will be merged into `stable` and `master` if they fix a
+be patched.  These patches will be merged into `main` if they contain new
+functionality.  They will be merged into `stable` and `main` if they fix a
 critical bug.  Older minor releases in a major release do not get patched.
 
 Before the switch to [semantic versions](http://semver.org/) committers did not
@@ -58,7 +58,7 @@ security branch as the base branch.  Please send all security related
 information or patches to security@puppetlabs.com as per our [Security
 Policy](https://puppetlabs.com/security/).
 
-The CI systems are configured to run against `master` and `stable`.  Over time,
+The CI systems are configured to run against `main` and `stable`.  Over time,
 these branches will refer to different versions, but their name will remain
 fixed to avoid having to update CI jobs and tasks as new versions are released.
 
@@ -69,11 +69,11 @@ A change set may apply to multiple branches, for example a bug fix should be
 applied to the stable release and the development branch.  In this situation
 the change set needs to be committed to multiple base branches.  This section
 provides a guide for how to merge patches into these branches, e.g.
-`stable` is patched, how should the changes be applied to `master`?
+`stable` is patched, how should the changes be applied to `main`?
 
 First, rebase the change set onto the `stable` branch.  Next, merge the change
 set into the `stable` branch using a merge commit.  Once merged into `stable`,
-merge the same change set into `master` without doing a rebase as to preserve
+merge the same change set into `main` without doing a rebase as to preserve
 the commit identifiers.  This merge strategy follows the [git
 flow](http://nvie.com/posts/a-successful-git-branching-model/) model.  Both of
 these change set merges should have a merge commit which makes it much easier
