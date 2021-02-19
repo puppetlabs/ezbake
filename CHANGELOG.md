@@ -3,6 +3,8 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+
+## [2.2.2] - 2021-02-19
 Added:
   * (CPR-753) Changed permissions for logdir from 700 to 750.
 
@@ -792,7 +794,8 @@ This release contains bug fixes and AIO path changes.
 ## 0.1.0 - 2015-01-13
  * Rewrite ezbake to follow leiningen plugin application model.
 
-[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.2.1...HEAD
+[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.2.2...HEAD
+[2.2.2]: https://github.com/puppetlabs/ezbake/compare/2.2.1...2.2.2
 [2.2.1]: https://github.com/puppetlabs/ezbake/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/puppetlabs/ezbake/compare/2.1.8...2.2.0
 [2.1.8]: https://github.com/puppetlabs/ezbake/compare/2.1.7...2.1.8
