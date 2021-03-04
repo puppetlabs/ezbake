@@ -63,7 +63,7 @@ fi
 java_version=$($JAVA_BIN -version 2>&1 | head -1 | awk -F\" '{ print $2 }')
 java_major_version=$(echo $java_version | awk -F. '{ print $1 }')
 
-out_of_memory_flag='-XX:OnOutOfMemoryError="kill -9 %p"'
+out_of_memory_flag='-XX:OnOutOfMemoryError=kill -9 %p'
 if [ "$java_major_version" -ge 11 ]; then
   out_of_memory_flag="-XX:+CrashOnOutOfMemoryError"
 fi
