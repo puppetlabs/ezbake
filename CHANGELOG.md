@@ -3,6 +3,8 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Bugfix:
+  * (EZ-142) Fix quoting of `-XX:OnOutOfMemoryError` argument added in 2.2.1.
 
 ## [2.2.2] - 2021-02-19
 Added:
