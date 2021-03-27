@@ -5,6 +5,10 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 ## [Unreleased]
 Bugfix:
   * (EZ-142) Fix quoting of `-XX:OnOutOfMemoryError` argument added in 2.2.1.
+  * (REPLATS-150) Skip efforts to run as user when already service user.
+    In this case, the foreground command is already being executed as the
+    service user and attempts to become that user fail as it doesn't have
+    privileges to redundantly become itself anyway.
 
 ## [2.2.2] - 2021-02-19
 Added:
