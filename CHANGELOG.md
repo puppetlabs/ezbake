@@ -3,6 +3,8 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+
+## [2.2.3] - 2021-03-31
 Bugfix:
   * (EZ-142) Fix quoting of `-XX:OnOutOfMemoryError` argument added in 2.2.1.
   * (REPLATS-150) Skip efforts to run as user when already service user.
@@ -800,7 +802,8 @@ This release contains bug fixes and AIO path changes.
 ## 0.1.0 - 2015-01-13
  * Rewrite ezbake to follow leiningen plugin application model.
 
-[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.2.2...HEAD
+[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.2.3...HEAD
+[2.2.3]: https://github.com/puppetlabs/ezbake/compare/2.2.2...2.2.3
 [2.2.2]: https://github.com/puppetlabs/ezbake/compare/2.2.1...2.2.2
 [2.2.1]: https://github.com/puppetlabs/ezbake/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/puppetlabs/ezbake/compare/2.1.8...2.2.0
