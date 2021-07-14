@@ -100,46 +100,51 @@ namespace :pl do
   namespace :jenkins do
     desc "trigger jenkins packaging job"
     task :trigger_build, [:auth_string, :job_url] do |t, args|
-      Pkg::Util::RakeUtils.invoke_task("pl:prep_artifacts", "#{Dir.pwd}")
+      unless args[:auth_string] =~ /:/
+        # Old-style bare-token "build?token=<foo>" is no longer supported.
+        raise "JENKINS_USER_AUTH must have the format <LDAP username>:<access token>"
+      end
+
+      Pkg::Util::RakeUtils.invoke_task("pl:prep_artifacts", Dir.pwd)
 
       curl_opts = [
+        '--location',
+        "--user #{args[:auth_string]}",
         '--request POST',
         "--form file0=@#{Dir.pwd}/BUILD_PROPERTIES",
         "--form file1=@#{Dir.pwd}/PROJECT_BUNDLE",
       ]
 
       parameter_json = {
-        :parameter => [
+        parameter: [
           {
-            :name => "BUILD_PROPERTIES",
-            :file => "file0"
+            name: 'BUILD_PROPERTIES',
+            file: 'file0'
           },
           {
-            :name => "PROJECT_BUNDLE",
-            :file => "file1"
+            name: 'PROJECT_BUNDLE',
+            file: 'file1'
           },
           {
-            :name => "COWS",
-            :value => "#{Pkg::Config.cows}"
+            name: 'COWS',
+            value: Pkg::Config.cows
           },
           {
-            :name => "MOCKS",
-            :value => "#{Pkg::Config.final_mocks}"
+            name: 'MOCKS',
+            value: Pkg::Config.final_mocks
           }
         ]
       }
 
       if Pkg::Config.build_pe
         Pkg::Util.check_var('PE_VER', ENV['PE_VER'])
-        parameter_json[:parameter] << { :name => "PE_VER", :value => "#{ENV['PE_VER']}" }
+        parameter_json[:parameter] << {
+          name: 'PE_VER',
+          value: ENV['PE_VER']
+        }
       end
 
       curl_opts << %(--form json='#{parameter_json.to_json}')
-      unless args[:auth_string] =~ /:/
-        # Old-style bare-token "build?token=<foo>" is no longer supported.
-        raise "JENKINS_USER_AUTH must have the format <LDAP username>:<access token>"
-      end
-      curl_opts << "--user #{args[:auth_string]}"
       curl_url = "#{args[:job_url]}/build"
 
       output, _ = Pkg::Util::Net.curl_form_data(curl_url, curl_opts)
@@ -159,13 +164,13 @@ namespace :pl do
     desc "trigger jenkins packaging job with local auth"
     task :trigger_build_local_auth => "pl:fetch" do
       if Pkg::Config.build_pe
-        jenkins = 'cinext-jenkinsmaster-enterprise-prod-1'
+        jenkins_hostname = 'jenkins-enterprise.delivery.puppetlabs.net'
         stream = 'enterprise'
       else
-        jenkins = 'jenkins-master-prod-1'
+        jenkins_hostname = 'jenkins-platform.delivery.puppetlabs.net'
         stream = 'platform'
       end
-      job_url = "https://#{jenkins}.delivery.puppetlabs.net/job/#{stream}_various-packaging-jobs_packaging-os-clj_lein-ezbake-generic"
+      job_url = "https://#{jenkins_hostname}/job/#{stream}_various-packaging-jobs_packaging-os-clj_lein-ezbake-generic"
 
       begin
         auth = Pkg::Util.check_var('JENKINS_USER_AUTH', ENV['JENKINS_USER_AUTH'])

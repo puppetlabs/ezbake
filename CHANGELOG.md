@@ -3,6 +3,8 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Bugfix:
+  * (EZ-146) Update Jenkins locations; tell curl to follow Jenkins trigger redirects.
 
 ## [2.2.3] - 2021-03-31
 Bugfix:
