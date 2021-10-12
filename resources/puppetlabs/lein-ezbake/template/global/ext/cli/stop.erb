@@ -3,7 +3,7 @@ set +e
 
 pid="$(pgrep -f "<%= EZBake::Config[:uberjar_name] %>.* -m <%= EZBake::Config[:main_namespace] %>")"
 realname="<%= EZBake::Config[:real_name] %>"
-PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
+PIDFILE="/run/puppetlabs/${realname}/${realname}.pid"
 
 if [ ! -e "${INSTALL_DIR}/ezbake-functions.sh" ]; then
     echo "Unable to find ${INSTALL_DIR}/ezbake-functions.sh script, failing stop." 1>&2

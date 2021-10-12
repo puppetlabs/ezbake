@@ -48,7 +48,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 JAVA_ARGS="${JAVA_ARGS} -cp ${INSTALL_DIR}/${JARFILE} clojure.main -m <%= EZBake::Config[:main_namespace] %> --config ${CONFIG} -b ${BOOTSTRAP_CONFIG}"
 lockfile="/var/lock/subsys/${prog}"
-PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
+PIDFILE="/run/puppetlabs/${realname}/${realname}.pid"
 LOGFILE="/var/log/puppetlabs/${realname}/${realname}-daemon.log"
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
@@ -76,7 +76,7 @@ start() {
 
     export HOME="$(getent passwd ${USER} | cut -d':' -f6)"
 
-    /usr/bin/install --directory --owner=$USER --group=$GROUP --mode=755 "/var/run/puppetlabs/${realname}"
+    /usr/bin/install --directory --owner=$USER --group=$GROUP --mode=755 "/run/puppetlabs/${realname}"
     # startproc will change users, so make sure that user has permission
     # to access the present working directory.
     cd "${INSTALL_DIR}"
