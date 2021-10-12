@@ -3,6 +3,9 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Bugfix:
+  * (EZ-137) Changed systemd PIDFile location from /var/run/... to /run/...
+  * (EZ-143) Changed systemd tmpfile location from /var/run/... to /run/...
 
 ## [2.2.4] - 2021-08-03
 Bugfix:
