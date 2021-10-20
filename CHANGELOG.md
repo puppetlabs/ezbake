@@ -3,6 +3,9 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Added:
+  * Use sha256 digests for rpm packages.
+
 Bugfix:
   * (EZ-137) Changed templates to use /run directory instead of /var/run directory for PIDFiles except for with el-6 platform.
   * (EZ-143) Changed templates to use /run directory instead of /var/run directory for tmpfile.
