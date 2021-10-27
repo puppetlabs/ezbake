@@ -5,7 +5,12 @@ restartfile="/opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>/resta
 reload_timeout="${RELOAD_TIMEOUT:-<%= EZBake::Config[:reload_timeout] %>}"
 timeout="$reload_timeout"
 realname="<%= EZBake::Config[:real_name] %>"
-PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
+
+if [ -d "/run" ]; then
+  PIDFILE="/run/puppetlabs/${realname}/${realname}.pid"
+else
+  PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
+fi
 
 if [ ! -e "${INSTALL_DIR}/ezbake-functions.sh" ]; then
     echo "Unable to find ${INSTALL_DIR}/ezbake-functions.sh script, failing start." 1>&2

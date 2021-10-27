@@ -7,7 +7,13 @@ restartfile="/opt/puppetlabs/server/data/<%= EZBake::Config[:real_name] %>/resta
 start_timeout="${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}"
 
 real_name="<%= EZBake::Config[:real_name] %>"
-rundir="/var/run/puppetlabs/${real_name}"
+
+if [ -d "/run" ]; then
+  rundir="/run/puppetlabs/${real_name}"
+else
+  rundir="/var/run/puppetlabs/${real_name}"
+fi
+
 app_logdir=${app_logdir:=/var/log/puppetlabs/${real_name}}
 PIDFILE="${rundir}/${real_name}.pid"
 

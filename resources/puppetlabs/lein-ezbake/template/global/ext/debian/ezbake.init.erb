@@ -40,7 +40,7 @@ USER=<%= EZBake::Config[:user] %>
 GROUP=<%= EZBake::Config[:group] %>
 DESC="<%= EZBake::Config[:project] %> Puppet Labs version-checking backend"
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
-PIDFILE=/var/run/puppetlabs/${REALNAME}/${REALNAME}.pid
+PIDFILE=/run/puppetlabs/${REALNAME}/${REALNAME}.pid
 SCRIPTNAME=/etc/init.d/$NAME
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
@@ -68,7 +68,7 @@ do_start()
     <%= action %>
     <% end -%>
 
-    /usr/bin/install --directory --owner=${USER} --group=${GROUP} --mode=755 "/var/run/puppetlabs/${REALNAME}"
+    /usr/bin/install --directory --owner=${USER} --group=${GROUP} --mode=755 "/run/puppetlabs/${REALNAME}"
     start-stop-daemon --start --quiet --chuid $USER --oknodo --pidfile $PIDFILE --chdir $INSTALL_DIR \
       --startas "${INSTALL_DIR}/bin/${REALNAME}" -- start >> /var/log/puppetlabs/${REALNAME}/${REALNAME}-daemon.log 2>&1
     retval=$?

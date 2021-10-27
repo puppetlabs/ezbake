@@ -44,15 +44,21 @@ realname="<%= EZBake::Config[:real_name] %>"
 
 config=$CONFIG
 
+if [ -d "/run" ]; then
+  rundir=/run/puppetlabs
+else
+  rundir=/var/run/puppetlabs
+fi
+
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 JARFILE="<%= EZBake::Config[:uberjar_name] %>"
 lockfile=/var/lock/subsys/$prog
-PIDFILE="/var/run/puppetlabs/${realname}/${realname}.pid"
+PIDFILE="${rundir}/${realname}/${realname}.pid"
 START_TIMEOUT=${START_TIMEOUT:-<%= EZBake::Config[:start_timeout] %>}
 
 find_my_pid() {
     pid=`pgrep -f "${JARFILE}"`
-    /usr/bin/install --directory --owner=${USER} --group=${GROUP} --mode=755 "/var/run/puppetlabs/${realname}"
+    /usr/bin/install --directory --owner=${USER} --group=${GROUP} --mode=755 "${rundir}/${realname}"
     [ -n "$pid" ] && echo $pid > $PIDFILE
 }
 
