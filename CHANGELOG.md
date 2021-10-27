@@ -3,6 +3,9 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Bugfix:
+  * (EZ-137) Changed templates to use /run directory instead of /var/run directory for PIDFiles except for with el-6 platform.
+  * (EZ-143) Changed templates to use /run directory instead of /var/run directory for tmpfile.
 
 ## [2.2.4] - 2021-08-03
 Bugfix:
