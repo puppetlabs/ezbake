@@ -3,6 +3,9 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Removed:
+  * Removed debian 8 from build targets
+
 Added:
   * Use sha256 digests for rpm packages.
 
