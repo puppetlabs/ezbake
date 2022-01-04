@@ -8,6 +8,7 @@ Removed:
 
 Added:
   * Use sha256 digests for rpm packages.
+  * Add debian 11 to build targets
 
 Bugfix:
   * (EZ-137) Changed templates to use /run directory instead of /var/run directory for PIDFiles except for with el-6 platform.
