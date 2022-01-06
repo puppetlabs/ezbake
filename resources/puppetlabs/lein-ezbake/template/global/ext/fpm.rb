@@ -288,7 +288,7 @@ elsif options.output_type == 'deb'
   end
   options.java = 'openjdk-8-jre-headless'
 
-  if options.dist == 'buster' # debian 10 uses java11
+  if options.dist =~ /buster|bullseye/ # debian 10+ uses java11
     options.java = 'openjdk-11-jre-headless'
   end
 
