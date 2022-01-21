@@ -4,6 +4,7 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+
 ## [2.3.1] - 2022-01-21
 Added:
   * (RE-14406) Added redhatfips-8-x86_64 as a platform for pe
