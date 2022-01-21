@@ -4,6 +4,10 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.4.0] - 2022-01-21
+Added:
+  * (RE-14406) Added redhatfips-8-x86_64 as a platform for pe
+
 ## [2.3.0] - 2022-01-06
 Removed:
   * Removed debian 8 from build targets
@@ -818,7 +822,8 @@ This release contains bug fixes and AIO path changes.
 ## 0.1.0 - 2015-01-13
  * Rewrite ezbake to follow leiningen plugin application model.
 
-[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.3.0...HEAD
+[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.4.0...HEAD
+[2.4.0]: https://github.com/puppetlabs/ezbake/compare/2.3.0...2.4.0
 [2.3.0]: https://github.com/puppetlabs/ezbake/compare/2.2.4...2.3.0
 [2.2.4]: https://github.com/puppetlabs/ezbake/compare/2.2.3...2.2.4
 [2.2.3]: https://github.com/puppetlabs/ezbake/compare/2.2.2...2.2.3
