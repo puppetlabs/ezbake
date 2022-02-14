@@ -4,6 +4,9 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+Added:
+  * (RE-14499) Add sles15 as a FOSS and PE server build target
+  * (RE-14541) Add ubuntu 20.04 as a FOSS and PE server build target
 
 ## [2.3.1] - 2022-01-21
 Added:
