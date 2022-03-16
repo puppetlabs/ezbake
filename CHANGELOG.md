@@ -4,6 +4,7 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.3.2] - 2022-02-15
 Added:
   * (RE-14499) Add sles15 as a FOSS and PE server build target
   * (RE-14541) Add ubuntu 20.04 as a FOSS and PE server build target
@@ -826,7 +827,8 @@ This release contains bug fixes and AIO path changes.
 ## 0.1.0 - 2015-01-13
  * Rewrite ezbake to follow leiningen plugin application model.
 
-[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.3.1...HEAD
+[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.3.2...HEAD
+[2.3.2]: https://github.com/puppetlabs/ezbake/compare/2.3.1...2.3.2
 [2.3.1]: https://github.com/puppetlabs/ezbake/compare/2.3.0...2.3.1
 [2.3.0]: https://github.com/puppetlabs/ezbake/compare/2.2.4...2.3.0
 [2.2.4]: https://github.com/puppetlabs/ezbake/compare/2.2.3...2.2.4
