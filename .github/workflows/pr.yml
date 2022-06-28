@@ -1,0 +1,27 @@
+name: PR testing
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '8', '11' ]
+    env:
+      LEIN_HOME: local
+
+    name: Java ${{ matrix.java }} tests
+    steps:
+      - uses: actions/checkout@master
+      - name: setup java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+      - name: setup lein
+        run: |
+          mkdir -p local/bin
+          curl --output local/bin/lein https://raw.githubusercontent.com/technomancy/leiningen/2.9.1/bin/lein
+          chmod +x local/bin/lein
+      - run: local/bin/lein test
