@@ -1,6 +1,6 @@
 ---
 default_cow: 'base-bionic-i386.cow'
-cows: 'base-xenial-i386.cow base-stretch-i386.cow base-bionic-i386.cow base-buster-i386.cow base-focal-i386.cow base-bullseye-i386.cow'
+cows: 'base-xenial-i386.cow  base-bionic-i386.cow base-buster-i386.cow base-focal-i386.cow base-bullseye-i386.cow'
 pbuild_conf: '/etc/pbuilderrc'
 packager: 'puppetlabs'
 gpg_key: '4528B6CD9E61EF26'

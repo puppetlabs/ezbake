@@ -72,7 +72,7 @@ The following environment variables are supported:
 
   The deb platforms you want to build. Individual entries must match the pattern
   `base-<codename>-<arch>.cow`. For multiple OSes, use a space separated list. Defaults to 
-  `base-jessie-i386.cow base-xenial-i386.cow base-stretch-i386.cow base-bionic-i386.cow`
+  `base-xenial-i386.cow  base-bionic-i386.cow base-buster-i386.cow base-focal-i386.cow base-bullseye-i386.cow`
 
 - `UPDATE_EZBAKE_VERSION`
 

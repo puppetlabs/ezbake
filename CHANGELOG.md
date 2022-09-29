@@ -3,6 +3,8 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Removed:
+  * Removed debian 9 from build targets
 
 ## [2.3.2] - 2022-02-15
 Added:
