@@ -3,6 +3,11 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+
+## [2.3.3] - 2022-10-26
+Maintenance:
+  * (PE-34484) Add nrepl/nrepl to exclusions list
+
 Removed:
   * Removed debian 9 from build targets
 
