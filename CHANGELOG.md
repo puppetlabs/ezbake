@@ -8,6 +8,9 @@ Added:
   * (RE-14499) Add sles15 as a FOSS and PE server build target
   * (RE-14541) Add ubuntu 20.04 as a FOSS and PE server build target
 
+Removed:
+  * (maint) Removded pl-el-6-i386 and base-xenial-i386.cow as build defaults for foss.
+
 ## [2.3.1] - 2022-01-21
 Added:
   * (RE-14406) Added redhatfips-8-x86_64 as a platform for pe
