@@ -64,7 +64,7 @@ The following environment variables are supported:
 
   The rpm platforms you want to build. Individual entries must match the pattern
   `pl-<os>-<version>-<arch>`. For multiple OSes, use a space separated list. Defaults to
-  `pl-el-6-i386 pl-el-7-x86_64 pl-el-8-x86_64 pl-redhatfips-7-x86_64 pl-sles-12-x86_64`
+  `pl-el-7-x86_64 pl-el-8-x86_64 pl-redhatfips-7-x86_64 pl-sles-12-x86_64`
 
 - `COW`
 
@@ -72,7 +72,7 @@ The following environment variables are supported:
 
   The deb platforms you want to build. Individual entries must match the pattern
   `base-<codename>-<arch>.cow`. For multiple OSes, use a space separated list. Defaults to 
-  `base-xenial-i386.cow  base-bionic-i386.cow base-buster-i386.cow base-focal-i386.cow base-bullseye-i386.cow`
+  `base-bionic-i386.cow base-buster-i386.cow base-focal-i386.cow base-bullseye-i386.cow`
 
 - `UPDATE_EZBAKE_VERSION`
 
