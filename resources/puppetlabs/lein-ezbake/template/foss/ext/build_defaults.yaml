@@ -1,12 +1,12 @@
 ---
 default_cow: 'base-bionic-i386.cow'
-cows: 'base-xenial-i386.cow  base-bionic-i386.cow base-buster-i386.cow base-focal-i386.cow base-bullseye-i386.cow'
+cows: 'base-bionic-i386.cow base-buster-i386.cow base-focal-i386.cow base-bullseye-i386.cow'
 pbuild_conf: '/etc/pbuilderrc'
 packager: 'puppetlabs'
 gpg_key: '4528B6CD9E61EF26'
 sign_tar: FALSE
 # a space separated list of mock configs
-final_mocks: 'pl-el-6-i386 pl-el-7-x86_64 pl-el-8-x86_64 pl-sles-12-x86_64 pl-sles-15-x86_64'
+final_mocks: 'pl-el-7-x86_64 pl-el-8-x86_64 pl-sles-12-x86_64 pl-sles-15-x86_64'
 yum_host: 'yum.puppetlabs.com'
 yum_repo_path: '/opt/repository/yum/'
 build_gem: FALSE
