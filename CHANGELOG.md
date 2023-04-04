@@ -3,6 +3,10 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Added:
+  * Add `puppet-platform-version` parameter, defaulting to 7, to allow EZBake
+    to pick newer java versions for newer platforms
+
 Removed:
   * (EZ-149) Removed debian 9 from build targets
   * (maint) Removed pl-el-6-i386 and base-xenial-i386.cow as build defaults for foss.
