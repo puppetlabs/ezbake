@@ -184,7 +184,12 @@ if options.output_type == 'rpm'
       options.java =
         case options.platform_version
         when 8
-          'java-11-openjdk-headless'
+          # rpm on Redhat 7 may not support OR dependencies
+          if options.os_version == 7
+            'java-11-openjdk-headless'
+          elsif options.os_version == 8
+            '(java-17-openjdk-headless or java-11-openjdk-headless)'
+          end
         when 6..7
           'java-8-openjdk-headless'
         else
@@ -317,12 +322,8 @@ elsif options.output_type == 'deb'
     options.java =
       case options.platform_version
       when 8
-        # debian 10/11 and Ubuntu 18/20/22 use java11
-        if options.dist =~ /buster|bullseye|bionic|focal|jammy/
-          'openjdk-11-jre-headless'
-        elsif options.dist =~ /bookworm/
-          # Debian 12 uses java 17
-          'openjdk-17-jre-headless'
+        if options.dist =~ /buster|bullseye|bookworm|bionic|focal|jammy/
+          'openjdk-17-jre-headless | openjdk-11-jre-headless'
         end
       when 6..7
         if options.dist =~ /buster|bullseye/ # debian 10+ uses java11
@@ -392,7 +393,7 @@ if options.is_pe
   fpm_opts << "--depends pe-puppet-enterprise-release"
   fpm_opts << "--depends pe-bouncy-castle-jars"
 else
-  fpm_opts << "--depends #{options.java}"
+  fpm_opts << "--depends '#{options.java}'"
 end
 
 fpm_opts << "--depends bash"
