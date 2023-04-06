@@ -4,6 +4,10 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.4.1] - 2023-04-06
+Bugfix:
+  * EL OSes depending on java 8 used the wrong package name
+
 ## [2.4.0] - 2023-04-06
 Added:
   * Add `puppet-platform-version` parameter, defaulting to 7, to allow EZBake
