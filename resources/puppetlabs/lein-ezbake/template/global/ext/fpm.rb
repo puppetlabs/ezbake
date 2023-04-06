@@ -15,6 +15,7 @@ options.old_sles = 0
 options.sles = 0
 options.java = 'java-1.8.0-openjdk-headless'
 options.release = 1
+options.platform_version = 0
 options.is_pe = false
 options.replaces = {}
 options.additional_dependencies = []
@@ -48,6 +49,9 @@ OptionParser.new do |opts|
   end
   opts.on('--release RELEASE', 'RELEASE of the package') do |r|
     options.release = r
+  end
+  opts.on('--platform-version VERSION', Integer, 'VERSION of the puppet platform this builds for') do |v|
+    options.platform_version = v
   end
   opts.on('--[no-]enterprise-build', 'Whether or not this is a PE build') do |e|
     options.is_pe = e
@@ -176,6 +180,23 @@ if options.output_type == 'rpm'
     options.systemd = 1
     options.systemd_el = 1
   elsif options.operating_system == :el && options.os_version >= 7 # systemd el
+    if ! options.is_pe
+      options.java =
+        case options.platform_version
+        when 8
+          # rpm on Redhat 7 may not support OR dependencies
+          if options.os_version == 7
+            'java-11-openjdk-headless'
+          elsif options.os_version == 8
+            '(java-17-openjdk-headless or java-11-openjdk-headless)'
+          end
+        when 6..7
+          'java-8-openjdk-headless'
+        else
+          fail "Unknown Puppet Platform Version #{options.platform_version}"
+        end
+    end
+
     options.systemd = 1
     options.systemd_el = 1
   elsif options.operating_system == :el # old el
@@ -188,7 +209,17 @@ if options.output_type == 'rpm'
     options.systemd = 1
     options.systemd_sles = 1
     options.sles = 1
-    options.java = 'java-1_8_0-openjdk-headless'
+    if ! options.is_pe
+      options.java =
+        case options.platform_version
+        when 8
+          'java-11-openjdk-headless'
+        when 6..7
+          'java-1_8_0-openjdk-headless'
+        else
+          fail "Unknown Puppet Platform Version #{options.platform_version}"
+        end
+    end
   elsif options.operating_system == :sles #old sles
     options.sysvinit = 1
     options.old_sles = 1
@@ -286,10 +317,23 @@ elsif options.output_type == 'deb'
   if options.dist != "#{options.operating_system}#{options.os_version}"
     options.release = "#{options.release}#{options.dist}"
   end
-  options.java = 'openjdk-8-jre-headless'
 
-  if options.dist =~ /buster|bullseye/ # debian 10+ uses java11
-    options.java = 'openjdk-11-jre-headless'
+  if ! options.is_pe
+    options.java =
+      case options.platform_version
+      when 8
+        if options.dist =~ /buster|bullseye|bookworm|bionic|focal|jammy/
+          'openjdk-17-jre-headless | openjdk-11-jre-headless'
+        end
+      when 6..7
+        if options.dist =~ /buster|bullseye/ # debian 10+ uses java11
+          'openjdk-11-jre-headless'
+        else
+          'openjdk-8-jre-headless'
+        end
+      else
+        fail "Unknown Puppet Platform Version #{options.platform_version}"
+      end
   end
 
   fpm_opts << '--deb-build-depends cdbs'
@@ -349,7 +393,7 @@ if options.is_pe
   fpm_opts << "--depends pe-puppet-enterprise-release"
   fpm_opts << "--depends pe-bouncy-castle-jars"
 else
-  fpm_opts << "--depends #{options.java}"
+  fpm_opts << "--depends '#{options.java}'"
 end
 
 fpm_opts << "--depends bash"

@@ -72,6 +72,7 @@
   {(schema/optional-key :user) schema/Str
    (schema/optional-key :numeric-uid-gid) schema/Int
    (schema/optional-key :group) schema/Str
+   (schema/optional-key :puppet-platform-version) schema/Int
    (schema/optional-key :bootstrap-source) BootstrapSource
    (schema/optional-key :create-dirs) [schema/Str]
    (schema/optional-key :build-type) schema/Str
@@ -575,6 +576,7 @@ Additional uberjar dependencies:
      :packaging-release                  (-> (:version lein-project)
                                              (generate-package-release-from-version timestamp)
                                              as-ruby-literal)
+     :puppet-platform-version            (local->ruby :puppet-platform-version 7)
      :real-name                          (-> (:name lein-project) get-real-name as-ruby-literal)
      :user                               (local->ruby :user (:name lein-project))
      :numeric-uid-gid                    (local->ruby :numeric-uid-gid nil)

@@ -82,6 +82,7 @@
                     :debian-pre-start-action "[]"
                     :debian-preinst "[]"
                     :real-name "'dummy'"
+                    :puppet-platform-version "7"
                     :debian-postinst "[]"}]
       ;; Using diff may make it easier (with some additional
       ;; pretty-printing) to spot small differences.
