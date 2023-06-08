@@ -3,6 +3,8 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Added:
+  * (RE-15440,RE-15456) Add ubuntu 22.04 as a FOSS and PE server build target
 
 ## [2.4.1] - 2023-04-06
 Bugfix:
