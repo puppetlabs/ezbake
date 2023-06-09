@@ -4,6 +4,10 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.4.2] - 2023-04-06
+Added:
+  * (RE-15440,RE-15456) Add ubuntu 22.04 as a FOSS and PE server build target
+
 ## [2.4.1] - 2023-04-06
 Bugfix:
   * EL OSes depending on java 8 used the wrong package name
@@ -841,7 +845,10 @@ This release contains bug fixes and AIO path changes.
 ## 0.1.0 - 2015-01-13
  * Rewrite ezbake to follow leiningen plugin application model.
 
-[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.3.2...HEAD
+[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.4.2...HEAD
+[2.3.2]: https://github.com/puppetlabs/ezbake/compare/2.4.1...2.4.2
+[2.3.2]: https://github.com/puppetlabs/ezbake/compare/2.4.0...2.4.1
+[2.3.2]: https://github.com/puppetlabs/ezbake/compare/2.3.2...2.4.0
 [2.3.2]: https://github.com/puppetlabs/ezbake/compare/2.3.1...2.3.2
 [2.3.1]: https://github.com/puppetlabs/ezbake/compare/2.3.0...2.3.1
 [2.3.0]: https://github.com/puppetlabs/ezbake/compare/2.2.4...2.3.0

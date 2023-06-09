@@ -1,6 +1,6 @@
 ---
 default_cow: 'base-bionic-amd64.cow'
-cows: 'base-bionic-amd64.cow base-focal-amd64.cow'
+cows: 'base-bionic-amd64.cow base-focal-amd64.cow base-jammy-amd64.cow'
 pbuild_conf: '/etc/pbuilderrc'
 packager: 'puppet'
 gpg_key: '4528B6CD9E61EF26'
