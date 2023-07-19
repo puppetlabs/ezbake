@@ -4,6 +4,10 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.5.0] - 2023-07-19
+Added:
+ * `-Dlogappender=F1`` argument to clojure app startup in preparation for projects to use logback 1.3.x.
+
 ## [2.4.2] - 2023-04-06
 Added:
   * (RE-15440,RE-15456) Add ubuntu 22.04 as a FOSS and PE server build target
