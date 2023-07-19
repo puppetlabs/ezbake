@@ -69,12 +69,14 @@ fi
 java_version=$($JAVA_BIN -version 2>&1 | head -1 | awk -F\" '{ print $2 }')
 java_major_version=$(echo $java_version | awk -F. '{ print $1 }')
 
+LOG_APPENDER="-Dlogappender=F1"
+
 out_of_memory_flag='-XX:OnOutOfMemoryError=kill -9 %p'
 if [ "$java_major_version" -ge 11 ]; then
   out_of_memory_flag="-XX:+CrashOnOutOfMemoryError"
 fi
 
-"$JAVA_BIN" $JAVA_ARGS \
+"$JAVA_BIN" $JAVA_ARGS $LOG_APPENDER \
   "$out_of_memory_flag" \
   -XX:ErrorFile="$app_logdir/${real_name}_err_pid%p.log" \
   -cp "$CLASSPATH" \
