@@ -3,6 +3,9 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+## [2.5.1] - 2023-07-21
+Added:
+ * Add el-9 as a FOSS and PE server build target
 
 ## [2.5.0] - 2023-07-19
 Added:
@@ -849,10 +852,12 @@ This release contains bug fixes and AIO path changes.
 ## 0.1.0 - 2015-01-13
  * Rewrite ezbake to follow leiningen plugin application model.
 
-[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.4.2...HEAD
-[2.3.2]: https://github.com/puppetlabs/ezbake/compare/2.4.1...2.4.2
-[2.3.2]: https://github.com/puppetlabs/ezbake/compare/2.4.0...2.4.1
-[2.3.2]: https://github.com/puppetlabs/ezbake/compare/2.3.2...2.4.0
+[Unreleased]: https://github.com/puppetlabs/ezbake/compare/2.5.1...HEAD
+[2.5.1]: https://github.com/puppetlabs/ezbake/compare/2.5.0...2.5.1
+[2.5.0]: https://github.com/puppetlabs/ezbake/compare/2.4.2...2.5.0
+[2.4.2]: https://github.com/puppetlabs/ezbake/compare/2.4.1...2.4.2
+[2.4.1]: https://github.com/puppetlabs/ezbake/compare/2.4.0...2.4.1
+[2.4.0]: https://github.com/puppetlabs/ezbake/compare/2.3.2...2.4.0
 [2.3.2]: https://github.com/puppetlabs/ezbake/compare/2.3.1...2.3.2
 [2.3.1]: https://github.com/puppetlabs/ezbake/compare/2.3.0...2.3.1
 [2.3.0]: https://github.com/puppetlabs/ezbake/compare/2.2.4...2.3.0
