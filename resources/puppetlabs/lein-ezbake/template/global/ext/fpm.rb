@@ -181,6 +181,7 @@ if options.output_type == 'rpm'
     options.systemd_el = 1
   elsif options.operating_system == :el && options.os_version >= 7 # systemd el
     if ! options.is_pe
+      fpm_opts << "--depends tzdata-java"
       options.java =
         case options.platform_version
         when 8
