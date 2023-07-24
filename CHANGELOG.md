@@ -3,6 +3,9 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+
+## [2.5.2] - 2023-07-24
+Added:
  * add tzdata-java as an explicit dependency for FOSS projects with el7 and above as it was removed from openjdk
 
 ## [2.5.1] - 2023-07-21
