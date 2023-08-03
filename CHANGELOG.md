@@ -4,6 +4,10 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [2.5.3] - 2023-08-03
+Bugfix:
+ * Specify a java dependency on el9 when building for Puppet Platform 8
+
 ## [2.5.2] - 2023-07-24
 Added:
  * add tzdata-java as an explicit dependency for FOSS projects with el7 and above as it was removed from openjdk
