@@ -36,6 +36,8 @@ templates:
     target: ext/{{{project}}}.logrotate-legacy.conf
   - source: ext/ezbake.tmpfiles.conf.erb
     target: ext/{{{project}}}.tmpfiles.conf
+  - source: ext/ezbake.needrestart.conf.erb
+    target: ext/{{{project}}}.needrestart.conf
   - ext/redhat/preinst.erb
   - ext/redhat/postinst.erb
   - ext/redhat/prerm.erb
