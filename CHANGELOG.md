@@ -3,6 +3,8 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Added:
+  * Drop a file in /etc/needrestart/conf.d for deb packages that add the service to the blocklist
 
 ## [2.5.3] - 2023-08-03
 Bugfix:

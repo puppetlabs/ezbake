@@ -34,6 +34,7 @@ dest_apps_dir="${DESTDIR}${app_prefix}"
 app_data=${app_data:=/opt/puppetlabs/server/data/${real_name}}
 app_logdir=${app_logdir:=/var/log/puppetlabs/${real_name}}
 system_config_dir=${system_config_dir:=${app_prefix}/config}
+needrestart_confdir=${needrestart_dir:=/etc/needrestart/conf.d}
 
 
 ##################
@@ -294,6 +295,8 @@ function task_systemd_deb {
     fi
     install -d -m 0755 "${DESTDIR}${tmpfilesdir}"
     install -m 0644 ext/<%= EZBake::Config[:project] %>.tmpfiles.conf "${DESTDIR}${tmpfilesdir}/<%= EZBake::Config[:project] %>.conf"
+    install -d -m 0755 "${DESTDIR}${needrestart_confdir}"
+    install -m 0644 ext/<%= EZBake::Config[:project] %>.needrestart.conf "${DESTDIR}${needrestart_confdir}/<%= EZBake::Config[:project] %>.conf"
 }
 
 function task_service_account {
