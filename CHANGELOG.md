@@ -2,7 +2,11 @@
 
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
-## [Unreleased]
+## [2.5.5]
+Bugfix:
+  * Fix for needrestart conf file
+
+## [2.5.4]
 Added:
   * Drop a file in /etc/needrestart/conf.d for deb packages that add the service to the blocklist
 
