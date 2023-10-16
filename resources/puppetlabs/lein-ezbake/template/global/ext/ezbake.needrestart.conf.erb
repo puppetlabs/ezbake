@@ -1,1 +1,1 @@
-$nrconf{blacklist_rc} = [qr(^<%= EZBake::Config[:project] -%>)]
+push @{$nrconf{blacklist_rc}}, qr(^<%= EZBake::Config[:project] -%>)
