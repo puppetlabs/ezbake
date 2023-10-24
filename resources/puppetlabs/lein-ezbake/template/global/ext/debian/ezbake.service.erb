@@ -27,6 +27,7 @@ TimeoutStopSec=<%= EZBake::Config[:stop_timeout] %>
 Restart=on-failure
 StartLimitBurst=5
 PIDFile=/run/puppetlabs/<%= EZBake::Config[:real_name] %>/<%= EZBake::Config[:real_name] %>.pid
+PrivateTmp=true
 
 # https://tickets.puppetlabs.com/browse/EZ-129
 # Prior to systemd v228, TasksMax was unset by default, and unlimited. Starting in 228 a default of '512'
