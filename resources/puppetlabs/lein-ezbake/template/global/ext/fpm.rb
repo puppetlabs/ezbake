@@ -220,7 +220,11 @@ if options.output_type == 'rpm'
         when 8
           'java-11-openjdk-headless'
         when 6..7
-          'java-1_8_0-openjdk-headless'
+          if options.os_version > 12
+            'java-11-openjdk-headless'
+          else
+            'java-1_8_0-openjdk-headless'
+          end
         else
           fail "Unknown Puppet Platform Version #{options.platform_version}"
         end
