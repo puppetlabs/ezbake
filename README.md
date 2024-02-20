@@ -134,9 +134,24 @@ Note that the symble `:ezbake` is not strictly necessary here.
 Composite EZBake projects usually do not define their own services but rather
 provide a list of dependencies which themselves define TK services.  Because of
 this it is not strictly necessary to define a profile such as `:ezbake` shown
-above; although it is conceivable that such a composite project may define its
-own services, it is unlikely and ill-advised because no one likes blurred lines
-in architectural diagrams. Just look at the Leaning Tower of Pisa.
+above.
+
+If the composite project needs to define build time templates, such as `resources/ext/cli_defaults/cli-defaults.sh.erb`
+EZbake will only include items that are in jars on the class path at the time
+the project is staged. As a result, the project must include a self-referential dependency
+in the `ezbake` profile. This will allow ezbake to discover these files correctly.
+```clojure
+(def my-project-version "0.0.1-SNAPSHOT")
+
+(defproject somenamespace/myproject my-project-version
+...
+:profiles {
+           ...
+           :ezbake {:dependencies [[mynamespace/myproject ~my-project-version]]}
+           ...
+           }
+)
+```
 
 #### Additional Uberjars
 
