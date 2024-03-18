@@ -3,6 +3,9 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Added:
+  * Use systemd's PrivateTmp feature for improved security
+
 Bugfix:
   * Fix java dependency on SLES 15 when building Puppet Platform 7
 
