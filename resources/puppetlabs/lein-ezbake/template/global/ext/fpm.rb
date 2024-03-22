@@ -14,6 +14,7 @@ options.old_el = 0
 options.old_sles = 0
 options.sles = 0
 options.java = 'java-1.8.0-openjdk-headless'
+options.java_bin = '/usr/bin/java'
 options.release = 1
 options.platform_version = 0
 options.is_pe = false
@@ -181,25 +182,28 @@ if options.output_type == 'rpm'
     options.systemd_el = 1
   elsif options.operating_system == :el && options.os_version >= 7 # systemd el
     if ! options.is_pe
+      # https://bugzilla.redhat.com/show_bug.cgi?id=2224427
       fpm_opts << "--depends tzdata-java"
-      options.java =
-        case options.platform_version
-        when 8
-          # rpm on Redhat 7 may not support OR dependencies
-          if options.os_version == 7
-            'java-11-openjdk-headless'
-          elsif options.os_version == 8
-            '(java-17-openjdk-headless or java-11-openjdk-headless)'
-          elsif options.os_version == 9
-            'java-17-openjdk-headless'
-          else
-            fail "Unrecognized el os version #{options.os_version}"
-          end
-        when 6..7
-          'java-1.8.0-openjdk-headless'
+      case options.platform_version
+      when 8
+        # rpm on Redhat 7 may not support OR dependencies
+        if options.os_version == 7
+          options.java = 'jre-11-headless'
+          options.java_bin = '/usr/lib/jvm/jre-11/bin/java'
+        elsif options.os_version == 8
+          options.java = '(jre-17-headless or jre-11-headless)'
+          # TODO: which bin to use? /usr/bin/java may be anything
+        elsif options.os_version == 9
+          options.java = 'jre-17-headless'
+          options.java_bin = '/usr/lib/jvm/jre-17/bin/java'
         else
-          fail "Unknown Puppet Platform Version #{options.platform_version}"
+          fail "Unrecognized el os version #{options.os_version}"
         end
+      when 6..7
+        options.java = 'java-1.8.0-openjdk-headless'
+      else
+        fail "Unknown Puppet Platform Version #{options.platform_version}"
+      end
     end
 
     options.systemd = 1
