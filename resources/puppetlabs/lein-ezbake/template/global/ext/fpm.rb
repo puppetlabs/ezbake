@@ -191,24 +191,23 @@ if options.output_type == 'rpm'
   elsif options.operating_system == :el && options.os_version >= 7 # systemd el
     if ! options.is_pe
       fpm_opts << "--depends tzdata-java"
-      options.java =
-        case options.platform_version
-        when 8
-          # rpm on Redhat 7 may not support OR dependencies
-          if options.os_version == 7
-            'java-11-openjdk-headless'
-          elsif options.os_version == 8
-            '(java-17-openjdk-headless or java-11-openjdk-headless)'
-          elsif options.os_version >= 9
-            'java-17-openjdk-headless'
-          else
-            fail "Unrecognized el os version #{options.os_version}"
-          end
-        when 7
-          'java-11-openjdk-headless'
+      case options.platform_version
+      when 8
+        # rpm on Redhat 7 may not support OR dependencies
+        if options.os_version == 7
+          options.java = 'java-11-openjdk-headless'
+        elsif options.os_version == 8
+          options.java = '(java-17-openjdk-headless or java-11-openjdk-headless)'
+        elsif options.os_version >= 9
+          'options.java = java-17-openjdk-headless'
         else
-          fail "Unknown Puppet Platform Version #{options.platform_version}"
+          fail "Unrecognized el os version #{options.os_version}"
         end
+      when 7
+        options.java = 'java-11-openjdk-headless'
+      else
+        fail "Unrecognized el os version #{options.os_version}"
+      end
     end
 
     options.systemd = 1
