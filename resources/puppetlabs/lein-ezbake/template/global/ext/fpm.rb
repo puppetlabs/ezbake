@@ -14,6 +14,7 @@ options.old_el = 0
 options.old_sles = 0
 options.sles = 0
 options.java = 'java-1.8.0-openjdk-headless'
+options.java_bin = '/usr/bin/java'
 options.release = 1
 options.platform_version = 0
 options.is_pe = false
