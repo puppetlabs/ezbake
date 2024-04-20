@@ -328,17 +328,7 @@ elsif options.output_type == 'deb'
   end
 
   if ! options.is_pe
-    options.java =
-      case options.platform_version
-      when 8
-        if options.dist =~ /buster|bullseye|bookworm|bionic|focal|jammy/
-          'openjdk-17-jre-headless | openjdk-11-jre-headless'
-        end
-      when 7
-        'openjdk-11-jre-headless'
-      else
-        fail "Unknown Puppet Platform Version #{options.platform_version}"
-      end
+    options.java = 'openjdk-17-jre-headless | openjdk-11-jre-headless'
   end
 
   fpm_opts << '--deb-build-depends cdbs'
