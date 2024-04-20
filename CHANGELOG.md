@@ -3,6 +3,9 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+Added:
+  * Add Debian 12 bookworm as a FOSS build target
+
 Maintenance:
   * On all Debian platforms simplify java depends, allow 17 or 11, prefer 17
   * Drop platform 6 fpm support
