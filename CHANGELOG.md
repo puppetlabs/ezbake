@@ -3,6 +3,7 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+* Drop platform 6 fpm support
 
 ## [2.6.1]
 * Fix the ability to add a resources directory to a project with :include-dir by copying the resources to the staging directory directly.
