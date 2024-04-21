@@ -133,4 +133,4 @@ working directory), but it still takes significantly more than the builds from r
     docker run --rm --volume $(PWD)/output:/output --volume $(PWD)/src:/workspace/src --volume $(PWD)/project.clj:/workspace/project.clj --volume $(PWD)/resources:/workspace/resources --volume $(PWD)/.git:/workspace/.git puppet/ezbake
     ```
 
-[1]: https://github.com/puppetlabs/ezbake/blob/master/docker/ezbake/Dockerfile
+[1]: https://github.com/puppetlabs/ezbake/blob/main/docker/ezbake/Dockerfile

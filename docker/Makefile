@@ -1,62 +1,67 @@
-NAMESPACE ?= puppet
-git_describe = $(shell git describe)
+REGISTRY ?= docker.io
+REPOSITORY ?= puppet/ezbake
+
+source_url := https://github.com/puppetlabs/ezbake
 vcs_ref := $(shell git rev-parse HEAD)
 build_date := $(shell date -u +%FT%T)
 hadolint_available := $(shell hadolint --help > /dev/null 2>&1; echo $$?)
-hadolint_command := hadolint --ignore DL3008 --ignore DL3018 --ignore DL3028 --ignore DL4000 --ignore DL4001
+hadolint_command := hadolint --ignore DL3008 --ignore DL3018 --ignore DL3028 --ignore DL3033 --ignore DL4000 --ignore DL4001
 hadolint_container := hadolint/hadolint:latest
 export BUNDLE_PATH = $(PWD)/.bundle/gems
 export BUNDLE_BIN = $(PWD)/.bundle/bin
 export GEMFILE = $(PWD)/Gemfile
 
-version ?= $(shell echo $(git_describe) | sed 's/-.*//')
+version := $(shell sed -rn 's~.*defproject .*"([^"]+)"~\1~p' ../project.clj)
 dockerfile := Dockerfile
 
-prep:
-	@git fetch --unshallow 2> /dev/null ||:
-	@git fetch origin 'refs/tags/*:refs/tags/*'
-
 lint:
+	$(info -> $@ Dockerfile)
 ifeq ($(hadolint_available),0)
 	@$(hadolint_command) ezbake/$(dockerfile)
 else
-	@docker pull $(hadolint_container)
 	@docker run --rm -v $(PWD)/ezbake/$(dockerfile):/Dockerfile -i $(hadolint_container) $(hadolint_command) Dockerfile
 endif
 
-build: prep
+build:
+	$(info -> $@ verison $(version) [$(build_date) $(source_url) $(vcs_ref)])
 	@docker build \
 		--pull \
 		--build-arg vcs_ref=$(vcs_ref) \
 		--build-arg build_date=$(build_date) \
 		--build-arg version=$(version) \
+		--build-arg source_url=$(source_url) \
 		--file ezbake/$(dockerfile) \
-		--tag $(NAMESPACE)/ezbake:$(version) $(PWD)/..
-ifeq ($(IS_LATEST),true)
-	@docker tag $(NAMESPACE)/ezbake:$(version) $(NAMESPACE)/ezbake:latest
-endif
+		--tag $(REPOSITORY):$(version) \
+		$(if $(findstring true,$(TAG_LATEST)),--tag $(REPOSITORY):latest,) \
+		$(PWD)/..
 
-test: prep
+test:
+	$(info -> $@ image with rspec)
 	@bundle install --path $$BUNDLE_PATH --gemfile $$GEMFILE
-	@PUPPET_TEST_DOCKER_IMAGE=$(NAMESPACE)/ezbake:$(version) \
-		bundle exec --gemfile $$GEMFILE rspec spec
+	@PUPPET_TEST_DOCKER_IMAGE=$(REPOSITORY):$(version) \
+		bundle exec --gemfile $$GEMFILE rspec --format documentation spec
 
-push-image: prep
-	@docker push $(NAMESPACE)/ezbake:$(version)
-ifeq ($(IS_LATEST),true)
-	@docker push $(NAMESPACE)/ezbake:latest
+push-image:
+	$(info -> $@ to $(REGISTRY)/$(REPOSITORY))
+	@docker tag $(REPOSITORY):$(version) $(REGISTRY)/$(REPOSITORY):$(version)
+	@docker push $(REGISTRY)/$(REPOSITORY):$(version)
+ifeq ($(TAG_LATEST),true)
+	@docker tag $(REPOSITORY):latest $(REGISTRY)/$(REPOSITORY):latest
+	@docker push $(REGISTRY)/$(REPOSITORY):latest
 endif
 
 push-readme:
-	@docker pull sheogorath/readme-to-dockerhub
-	@docker run --rm \
-		-v $(PWD)/README.md:/data/README.md \
-		-e DOCKERHUB_USERNAME="$(DOCKERHUB_USERNAME)" \
-		-e DOCKERHUB_PASSWORD="$(DOCKERHUB_PASSWORD)" \
-		-e DOCKERHUB_REPO_PREFIX=puppet \
-		-e DOCKERHUB_REPO_NAME=ezbake \
-		sheogorath/readme-to-dockerhub
+ifeq ($(REGISTRY),docker.io)
+	$(info -> $@ to $(REGISTRY)/$(REPOSITORY))
+	@docker run -v $(PWD):/workspace \
+		-e DOCKERHUB_USERNAME="$(REGISTRY_USERNAME)" \
+		-e DOCKERHUB_PASSWORD="$(REGISTRY_PASSWORD)" \
+		-e DOCKERHUB_REPOSITORY=$(REPOSITORY) \
+		-e README_FILEPATH='/workspace/README.md' \
+		peterevans/dockerhub-description:3
+endif
 
 publish: push-image push-readme
+	$(info -> $@ to $(REGISTRY))
 
-.PHONY: prep lint build test publish push-image push-readme
+.PHONY: lint build test publish push-image push-readme

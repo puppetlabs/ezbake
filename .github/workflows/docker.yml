@@ -1,32 +1,64 @@
+---
 name: Docker test and publish
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - '*.*.*'
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-      - uses: actions/checkout@master
-      - name: Set up Ruby 2.6
-        uses: actions/setup-ruby@v1
-        with:
-          ruby-version: 2.6.x
-      - run: gem install bundler
-      - name: Build container
-        env:
-          IS_LATEST: true
-        working-directory: docker
-        run: make lint build test
-      - name: Publish container
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-          IS_LATEST: true
-        working-directory: docker
+      - name: Setup environment
         run: |
-          docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
-          make publish
+          if [[ "${{ secrets.DOCKERHUB_USERNAME }}" == '' ]] ; then
+            # defaults to ghcr.io
+            echo "REPOSITORY=${{ vars.REPOSITORY != '' && vars.REPOSITORY || github.repository }}" >> $GITHUB_ENV
+            echo "REGISTRY=${{ vars.REGISTRY != '' && vars.REGISTRY || 'ghcr.io' }}" >> $GITHUB_ENV
+            echo "REGISTRY_USERNAME=${{ vars.REGISTRY_USERNAME != '' && vars.REGISTRY_USERNAME || github.actor }}" >> $GITHUB_ENV
+            echo "REGISTRY_PASSWORD=${{ secrets.REGISTRY_PASSWORD != '' && secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+          else
+            echo "::warning title=deprecated::Project workflow called with deprecated action variables or secrets"
+            # legacy variable/secrets
+            echo "REPOSITORY=puppet/ezbake" >> $GITHUB_ENV
+            echo "REGISTRY=docker.io" >> $GITHUB_ENV
+            echo "REGISTRY_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" >> $GITHUB_ENV
+            echo "REGISTRY_PASSWORD=${{ secrets.DOCKERHUB_PASSWORD }}" >> $GITHUB_ENV
+          fi
+          echo "TAG_LATEST=${{ github.event_name == 'push' && 'true' || 'false' }}" >> $GITHUB_ENV
+
+      - name: Login to ${{ env.REGISTRY }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ env.REGISTRY_USERNAME }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: Lint
+        working-directory: docker
+        run: make lint
+
+      - name: Build
+        working-directory: docker
+        run: make build source_url=${{ github.server_url }}/${{ github.repository }}
+
+      - name: Test
+        working-directory: docker
+        run: make test
+
+      - name: Publish container
+        working-directory: docker
+        run: make publish

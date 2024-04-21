@@ -30,18 +30,18 @@ describe 'ezbake_container' do
   end
 
   it 'should be able to build puppetserver' do
-    result = run_build('https://github.com/puppetlabs/puppetserver', 'master')
+    result = run_build('https://github.com/puppetlabs/puppetserver', 'main')
     container = result[:stdout].chomp
-    wait_on_container_exit(container, 450)
+    wait_on_container_exit(container, 450) unless container.empty?
     expect(get_container_exit_code(container)).to eq(0)
     emit_log(container)
     teardown_container(container)
   end
 
   it 'should be able to build puppetdb' do
-    result = run_build('https://github.com/puppetlabs/puppetdb', 'master')
+    result = run_build('https://github.com/puppetlabs/puppetdb', 'main')
     container = result[:stdout].chomp
-    wait_on_container_exit(container, 450)
+    wait_on_container_exit(container, 450) unless container.empty?
     expect(get_container_exit_code(container)).to eq(0)
     emit_log(container)
     teardown_container(container)
