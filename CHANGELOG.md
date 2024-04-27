@@ -4,6 +4,7 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
 Bugfix:
+  * Use RPM install-time macro expansion in scriptlets
   * Fix java dependency on SLES 15 when building Puppet Platform 7
 
 ## [2.5.5]
