@@ -6,6 +6,14 @@ source /.docker_build_args
 
 echo "Ezbake docker image $version, build $build_date, ref $vcs_ref, source $source_url"
 
+# setup maven repository cache
+if [ -d /repo ] ; then
+  cp -na /root/.m2/repository/* /repo/
+  rm -rf /root/.m2/repository
+  ln -s /repo /root/.m2/repository
+  echo '{:user {:local-repo "/repo"}}' > /root/.lein/profiles.clj
+fi
+
 if [ -n "$EZBAKE_REPO" ]; then
   echo "cloning $EZBAKE_REPO"
   git clone $EZBAKE_REPO /ezbake
