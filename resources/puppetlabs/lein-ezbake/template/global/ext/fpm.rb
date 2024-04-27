@@ -169,6 +169,7 @@ options.app_data = "/opt/puppetlabs/server/data/#{options.realname}"
 # rpm specific options
 if options.output_type == 'rpm'
 
+  shared_opts << "--rpm-macro-expansion"
   shared_opts << "--rpm-digest sha256"
   shared_opts << "--rpm-rpmbuild-define 'rpmversion #{options.version}'"
   fpm_opts << "--rpm-rpmbuild-define '_app_logdir #{options.app_logdir}'"
@@ -263,6 +264,7 @@ if options.output_type == 'rpm'
 
   if options.systemd_el == 1
     fpm_opts << "--depends systemd"
+    fpm_opts << "--depends systemd-rpm-macros"
   end
 
   if options.systemd_sles == 1
