@@ -8,14 +8,13 @@ ARG source_url
 ENV LANG="en_US.utf8"
 ENV EZBAKE_ALLOW_UNREPRODUCIBLE_BUILDS=true
 ENV EZBAKE_NODEPLOY=true
-ENV EZBAKE_VERSION="$version"
 ENV GEM_SOURCE=https://rubygems.org
 ENV LEIN_PROFILES=ezbake
 
 LABEL org.opencontainers.image.title="ezbake" \
       org.opencontainers.image.vendor="Puppet" \
       org.opencontainers.image.url="$source_url" \
-      org.opencontainers.image.version="$EZBAKE_VERSION" \
+      org.opencontainers.image.version="$version" \
       org.opencontainers.image.source="$source_url" \
       org.opencontainers.image.revision="$vcs_ref" \
       org.opencontainers.image.created="$build_date" \
@@ -48,8 +47,15 @@ WORKDIR /ezbake_src
 RUN lein clean && lein install
 
 WORKDIR /
-
-ENTRYPOINT ["/docker-entrypoint.sh"] 
-
 COPY docker/ezbake/Dockerfile /
-RUN rm -rf /ezbake_src
+RUN <<EOF
+{
+    echo "version=$version" ;
+    echo "vcs_ref=$vcs_ref" ;
+    echo "build_date=$build_date" ;
+    echo "source_url=$source_url" ;
+} > .docker_build_args
+rm -rf /ezbake_src
+EOF
+
+ENTRYPOINT ["/docker-entrypoint.sh"]

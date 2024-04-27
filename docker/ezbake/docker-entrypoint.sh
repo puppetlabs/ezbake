@@ -2,6 +2,10 @@
 
 set -e
 
+source /.docker_build_args
+
+echo "Ezbake docker image $version, build $build_date, ref $vcs_ref, source $source_url"
+
 if [ -n "$EZBAKE_REPO" ]; then
   echo "cloning $EZBAKE_REPO"
   git clone $EZBAKE_REPO /ezbake
@@ -14,6 +18,10 @@ if [ -n "$EZBAKE_REPO" ]; then
     git checkout $EZBAKE_REF
   fi
   lein clean && lein install
+
+  if [ -z "$EZBAKE_VERSION" ] ; then
+    export EZBAKE_VERSION=$(sed -rn 's@.*defproject .* "([^"]+)".*@\1@p' project.clj)
+  fi
 fi
 
 if [ -n "$PROJECT_REPO" ]; then
@@ -33,8 +41,9 @@ cd /workspace
 
 if [ "$UPDATE_EZBAKE_VERSION" == 'true' ]; then
   if [ -z "$EZBAKE_VERSION" ]; then
-    echo '$EZBAKE_VERSION is required when $UPDATE_EZBAKE_VERSION=true'
-    exit 1
+    # default to ezbake version in image
+    export EZBAKE_VERSION=$version
+    echo '$UPDATE_EZBAKE_VERSION=true but $EZBAKE_VERSION not set! Using ezbake version included in container image.'
   fi
 
   echo "Building with ezbake version $EZBAKE_VERSION"
