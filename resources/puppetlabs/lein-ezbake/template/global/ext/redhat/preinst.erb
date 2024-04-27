@@ -11,7 +11,7 @@ getent group <%= EZBake::Config[:group] %> >/dev/null || groupadd --system --for
 # Add <%= EZBake::Config[:user] %> user
 if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
   usermod --gid <%= EZBake::Config[:group] %> --home %{_app_data} \
-  --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
+  --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> > /dev/null || :
 else
   useradd_options=('--system' '--gid' '<%= EZBake::Config[:group] %>' '--home' '%{_app_data}' '--shell' "$(which nologin)" '--comment' '<%= EZBake::Config[:project] %> daemon')
 <% unless EZBake::Config[:numeric_uid_gid].nil? -%>
