@@ -95,6 +95,9 @@ This container assumes that the code you're building will be in `/workspace`. Th
 will be copied into `/output` before the container terminates, and if you're building a
 custom ezbake that will be cloned into `/ezbake`.
 
+If `/repo` is volume mapped, lein will automatically be configured to it as the local-repo.
+Useful for saving the maven repository cache between builds.
+
 1. Run from a remotely accessible repo (github, gitlab, etc)
 
 This is by far the fastest build option, but does require the extra step of committing and pushing your code
@@ -133,4 +136,4 @@ working directory), but it still takes significantly more than the builds from r
     docker run --rm --volume $(PWD)/output:/output --volume $(PWD)/src:/workspace/src --volume $(PWD)/project.clj:/workspace/project.clj --volume $(PWD)/resources:/workspace/resources --volume $(PWD)/.git:/workspace/.git puppet/ezbake
     ```
 
-[1]: https://github.com/puppetlabs/ezbake/blob/master/docker/ezbake/Dockerfile
+[1]: https://github.com/puppetlabs/ezbake/blob/main/docker/ezbake/Dockerfile

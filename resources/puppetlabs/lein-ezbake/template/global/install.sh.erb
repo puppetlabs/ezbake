@@ -306,7 +306,7 @@ function task_service_account {
     # Add or update <%= EZBake::Config[:user] %> user
     if getent passwd <%= EZBake::Config[:user] %> > /dev/null; then
         usermod --gid <%= EZBake::Config[:group] %> --home "${app_data}" \
-            --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> || :
+            --comment "<%= EZBake::Config[:project] %> daemon" <%= EZBake::Config[:user] %> > /dev/null || :
     else
         useradd -r --gid <%= EZBake::Config[:group] %> --home "${app_data}" --shell $(which nologin) \
             --comment "<%= EZBake::Config[:project] %> daemon"  <%= EZBake::Config[:user] %> || :

@@ -4,21 +4,28 @@ on:
   push:
     branches:
       - main
+
+env:
+  MEND_API_KEY: ${{ secrets.MEND_API_KEY }}
+  MEND_TOKEN: ${{ secrets.MEND_TOKEN }}
+  SERVICE_KEY: ${{ secrets.TWINGATE_PUBLIC_REPO_KEY }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.repository_owner == 'puppetlabs'
     steps:
     - name: connect_twingate
       uses: twingate/github-action@v1
       with:
-        service-key: ${{ secrets.TWINGATE_PUBLIC_REPO_KEY }}
+        service-key: ${{ env.SERVICE_KEY }}
     - name: checkout repo content
-      uses: actions/checkout@v2 # checkout the repository content to github runner.
+      uses: actions/checkout@v4 # checkout the repository content to github runner.
       with:
         fetch-depth: 1
     # install java which is required for mend and clojure
     - name: setup java
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         distribution: temurin
         java-version: 17
@@ -45,8 +52,8 @@ jobs:
     - name: run mend
       run: env WS_INCLUDES=pom.xml java -jar wss-unified-agent.jar
       env:
-        WS_APIKEY: ${{ secrets.MEND_API_KEY }}
+        WS_APIKEY: ${{ env.MEND_API_KEY }}
         WS_WSS_URL: https://saas-eu.whitesourcesoftware.com/agent
-        WS_USERKEY: ${{ secrets.MEND_TOKEN }}
+        WS_USERKEY: ${{ env.MEND_TOKEN }}
         WS_PRODUCTNAME: Puppet Enterprise
         WS_PROJECTNAME: ${{ github.event.repository.name }}
