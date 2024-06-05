@@ -34,6 +34,23 @@
     (deputils/cp-files-from-jar jar-entries jar-file resource-path)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Resource Directory Type Helpers
+(defn copy-dir [src-dir dest-dir]
+  (let [src (io/file src-dir)
+        dest (io/file dest-dir)]
+    (if (.exists src)
+      (if (.isDirectory src)
+        (do
+          (.mkdirs dest)
+          (doseq [file (.listFiles src)]
+            (copy-dir (.getPath file) (str (io/file dest (.getName file))))))
+        (do
+          (lein-main/info (format "Copying lein-ezbake resources from included directory: %s to %s."
+                                        src-dir dest-dir))
+          (io/copy src dest)))
+      (throw (RuntimeException. (format "Resource directory %s does not exist." (str src-dir)))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Consumable API
 
 (defn prepare-resource-dir
@@ -43,12 +60,18 @@
   TODO: Add configuration option to clone a git repository containing ezbake
   resources instead of pulling them from the lein-ezbake jar."
   [project]
-  (let [template-type (get-in project [:lein-project
+  (let [template-type (get-in project [:lein-ezbake
                                        :resources
                                        :type]
-                              :jar)]
+                              :jar)
+        include-resource-dir (get-in project [:lein-ezbake
+                                              :resources
+                                              :include-dir]
+                                     nil)]
     (case template-type
       :git (throw (RuntimeException.
-                             (format "Resource type, %s, not implemented."
-                                     (str template-type))))
-      :jar (copy-jar-resources core/resource-prefix core/resource-path))))
+                   (format "Resource type, %s, not implemented."
+                           (str template-type))))
+      :jar (copy-jar-resources core/resource-prefix core/resource-path))
+    (when (some? include-resource-dir)
+      (copy-dir include-resource-dir core/resource-path))))
