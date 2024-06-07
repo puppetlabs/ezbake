@@ -2,6 +2,7 @@
   (:import (java.util.jar JarFile JarEntry)
            (java.io File))
   (:require [cemerick.pomegranate.aether :as aether]
+            [clojure.java.io :as io]
             [me.raynes.fs :as fs]
             [clojure.string :as str]
             [leiningen.core.main :as lein-main]
@@ -108,6 +109,37 @@
   (filter #(and (.startsWith (.getName %) prefix)
                 (not (.isDirectory %)))
           (enumeration-seq (.entries jar-file))))
+
+(defn find-files-in-dir
+  "Given a directory path and prefix string, returns a sequence of java.io.File."
+  [path prefix]
+  {:pre [(string? path) (string? prefix)]}
+  (let [dir-add-prefix (str path "/" prefix)
+        dir (io/file path)]
+    (filter #(and (.startsWith (.getPath %) dir-add-prefix)
+                  (not (.isDirectory %)))
+            (file-seq dir))))
+
+(defn copy-files-to-dir
+  "Given a sequence of java.io.File, a destination path to copy to, copy all files including directory
+   structure except the directory, specified by exclude-dir-prefix."
+  [file-seq dest-dir exclude-dir-prefix]
+  {:pre [(seq? file-seq) (string? dest-dir)]}
+  (let [dest (io/file dest-dir)]
+    (when-not (.exists dest)
+      (.mkdirs dest))
+    (doseq [file file-seq]
+      (let [exclude-dir-prefix-with-slash (if (.endsWith exclude-dir-prefix "/")
+                                            exclude-dir-prefix
+                                            (str exclude-dir-prefix "/"))
+            source-dir-path-excluding-prefix (clojure.string/replace (.getParent file) exclude-dir-prefix-with-slash "")
+            ultimate-dest-dir (io/file dest-dir source-dir-path-excluding-prefix)
+            dest-file (io/file ultimate-dest-dir (.getName file))]
+        (when-not (.exists ultimate-dest-dir)
+          (.mkdirs ultimate-dest-dir))
+        (lein-main/info (format "Copying lein-ezbake resources from included directory: %s to %s."
+                                file dest-file))
+        (io/copy file dest-file)))))
 
 (defn find-file-in-jar
   [jar-file file-path]
