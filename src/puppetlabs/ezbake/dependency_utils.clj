@@ -122,7 +122,7 @@
 
 (defn copy-files-to-dir
   "Given a sequence of java.io.File, a destination path to copy to, copy all files including directory
-   structure except the directory, specified by exclude-dir-prefix."
+   structure except the directory specified by exclude-dir-prefix."
   [file-seq dest-dir exclude-dir-prefix]
   {:pre [(seq? file-seq) (string? dest-dir)]}
   (let [dest (io/file dest-dir)]

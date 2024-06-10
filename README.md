@@ -48,8 +48,12 @@ configuration necessary.
   :resources {
 
     ; The resources type indicates where lein-ezbake gets resources from.
-    ; With the :jar type resources can be copied from the jars composed with lein-ezbake. The :include-dir option allows a project to specify an additional resource directory as well. This is useful where a project needs to specify resources outside of what is included in the jars. When specified, the :include-dir resources will replace files from the included jars of the same name.
-    ; Future versions of lein-ezbake may support pulling these resources from a
+    ; With the :jar type resources can be copied from the jars composed with
+    ; lein-ezbake. The :include-dir option allows a project to specify an additional
+    ; resource directory as well. This is useful where a project needs to specify
+    ; resources outside of what is included in the jars. When specified, the
+    ; :include-dir resources will replace files from the included jars of the same
+    ; name. Future versions of lein-ezbake may support pulling these resources from a
     ; specific version of some git repository.
     :type :jar
     ;; optionally specify a directory path in the project to include resources from

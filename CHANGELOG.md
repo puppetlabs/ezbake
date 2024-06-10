@@ -5,7 +5,7 @@ This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 ## [Unreleased]
 
 ## [2.6.1]
-* Complete the ability to add a resources directory to a project with :include-dir by copying the resources to the staging directory.
+* Fix the ability to add a resources directory to a project with :include-dir by copying the resources to the staging directory directly.
 
 ## [2.6.0]
 * Add the ability to add a directory for project resources (such as build templates) by specifying the :include-dir option under {:lein-ezbake {:resources :include-dir "resources"}}.

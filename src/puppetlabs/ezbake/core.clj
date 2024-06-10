@@ -948,7 +948,7 @@ Additional uberjar dependencies:
       (cp-doc-files lein-project)
       (when additional-uberjar-info
         (copy-additional-uberjars! additional-uberjar-info))
-      ;; if :include-dir is specified, copy directory's files into staging
+      ;; if :include-dir is specified, copy directory's resource files into staging
       (when (some? include-resources-dir)
         (deputils/copy-files-to-dir (get-bin-files-in-directory include-resources-dir) staging-dir include-resources-dir)
         (deputils/copy-files-to-dir (get-build-scripts-files-in-directory include-resources-dir) staging-dir include-resources-dir)
