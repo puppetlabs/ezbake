@@ -3,11 +3,13 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
-Bugfix:
-  * Fix java dependency on SLES 15 when building Puppet Platform 7
+
+## [2.6.1]
+* Fix the ability to add a resources directory to a project with :include-dir by copying the resources to the staging directory directly.
 
 ## [2.6.0]
 * Add the ability to add a directory for project resources (such as build templates) by specifying the :include-dir option under {:lein-ezbake {:resources :include-dir "resources"}}.
+* Fix java dependency on SLES 15 when building Puppet Platform 7
 
 ## [2.5.5]
 Bugfix:
