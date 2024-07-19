@@ -20,6 +20,7 @@ Wants=<%= EZBake::Config[:start_after].map {|dep| "#{dep}.service" }.join(" ") %
 
 [Service]
 Type=forking
+Environment=JAVA_BIN="<%= EZBake::Config[:java_bin] %>"
 EnvironmentFile=/etc/default/<%= EZBake::Config[:project] %>
 User=<%= EZBake::Config[:user] %>
 TimeoutStartSec=<%= EZBake::Config[:start_timeout] %>
