@@ -43,12 +43,12 @@
   TODO: Add configuration option to clone a git repository containing ezbake
   resources instead of pulling them from the lein-ezbake jar."
   [project]
-  (let [template-type (get-in project [:lein-project
+  (let [template-type (get-in project [:lein-ezbake
                                        :resources
                                        :type]
                               :jar)]
     (case template-type
       :git (throw (RuntimeException.
-                             (format "Resource type, %s, not implemented."
-                                     (str template-type))))
+                   (format "Resource type, %s, not implemented."
+                           (str template-type))))
       :jar (copy-jar-resources core/resource-prefix core/resource-path))))

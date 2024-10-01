@@ -294,25 +294,49 @@ Additional uberjar dependencies:
   [jar]
   (deputils/find-files-in-dir-in-jar jar shared-cli-apps-prefix))
 
+(defn- get-cli-app-files-in-directory
+  [dir-path]
+  (deputils/find-files-in-dir dir-path shared-cli-apps-prefix))
+
 (defn- get-cli-defaults-files-in
   [jar]
   (deputils/find-files-in-dir-in-jar jar shared-cli-defaults-prefix))
+
+(defn- get-cli-defaults-files-in-directory
+  [dir-path]
+  (deputils/find-files-in-dir dir-path shared-cli-defaults-prefix))
 
 (defn- get-terminus-files-in
   [jar]
   (deputils/find-files-in-dir-in-jar jar terminus-prefix))
 
+(defn- get-terminus-files-in-directory
+  [dir-path]
+  (deputils/find-files-in-dir dir-path terminus-prefix))
+
 (defn- get-bin-files-in
   [jar]
   (deputils/find-files-in-dir-in-jar jar shared-bin-prefix))
+
+(defn- get-bin-files-in-directory
+  [dir-path]
+  (deputils/find-files-in-dir dir-path shared-bin-prefix))
 
 (defn- get-config-files-in
   [jar]
   (deputils/find-files-in-dir-in-jar jar shared-config-prefix))
 
+(defn- get-config-files-in-directory
+  [dir-path]
+  (deputils/find-files-in-dir dir-path shared-config-prefix))
+
 (defn- get-build-scripts-files-in
   [jar]
   (deputils/find-files-in-dir-in-jar jar build-scripts-prefix))
+
+(defn- get-build-scripts-files-in-directory
+  [dir-path]
+  (deputils/find-files-in-dir dir-path build-scripts-prefix))
 
 (defn cp-shared-files
   [dependencies files-fn]
@@ -885,6 +909,9 @@ Additional uberjar dependencies:
         ;; Do not copy the contents of :resource-paths from the deps in this list.
         ;; Items should be symbols of the form `namespace/project`, e.g. `puppetlabs/puppetserver`
         exclude-resources-from (get-in lein-project [:lein-ezbake :exclude-resources-from])
+        include-resources-dir (get-in lein-project [:lein-ezbake
+                                                    :resources
+                                                    :include-dir])
         lein-project (update lein-project :dependencies
                              #(deputils/expand-snapshot-versions
                                 lein-project % {:reproducible? reproducible?}))]
@@ -916,11 +943,19 @@ Additional uberjar dependencies:
       (cp-shared-files non-excluded-deps get-cli-defaults-files-in)
       (cp-shared-files non-excluded-deps get-build-scripts-files-in)
       (cp-project-build-scripts lein-project)
-      (if cli-app-files
+      (when cli-app-files
         (cp-cli-wrapper-scripts (:name lein-project)))
       (cp-doc-files lein-project)
       (when additional-uberjar-info
         (copy-additional-uberjars! additional-uberjar-info))
+      ;; if :include-dir is specified, copy directory's resource files into staging
+      (when (some? include-resources-dir)
+        (deputils/copy-files-to-dir (get-bin-files-in-directory include-resources-dir) staging-dir include-resources-dir)
+        (deputils/copy-files-to-dir (get-build-scripts-files-in-directory include-resources-dir) staging-dir include-resources-dir)
+        (deputils/copy-files-to-dir (get-config-files-in-directory include-resources-dir) staging-dir include-resources-dir)
+        (deputils/copy-files-to-dir (get-cli-app-files-in-directory include-resources-dir) staging-dir include-resources-dir)
+        (deputils/copy-files-to-dir (get-cli-defaults-files-in-directory include-resources-dir) staging-dir include-resources-dir)
+        (deputils/copy-files-to-dir (get-terminus-files-in-directory include-resources-dir) staging-dir include-resources-dir))
       (generate-ezbake-config-file! lein-project
                                     build-target
                                     config-files
