@@ -99,6 +99,9 @@ case $os in
                         dir="$basepath/old_el"
                 fi
                 ;;
+        amazon)
+                dir="$basepath/systemd_el"
+                ;;
         sles)
                 if [ "$os_version" -gt '11' ]; then
                         dir="$basepath/systemd_el"
@@ -161,7 +164,7 @@ params+=('--create-dir' '<%= directory -%>')
 params+=('--enterprise-build')
 <% end -%>
 
-if [[ "$os" = 'el' || "$os" = 'sles' || "$os" = 'fedora' || "$os" = 'redhatfips' ]]; then
+if [[ "$os" = 'el' || "$os" = 'sles' || "$os" = 'fedora' || "$os" = 'redhatfips' || "$os" = 'amazon' ]]; then
         # pull in rpm dependencies
         <%EZBake::Config[:redhat][:additional_dependencies].each do |dep| -%>
                 params+=("--additional-dependency")
