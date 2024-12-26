@@ -3,7 +3,13 @@
 This changelog adheres to [Keep a CHANGELOG](http://keepachangelog.com/).
 
 ## [Unreleased]
+
+## [2.7.0]
+* Add AmazonLinux 2023 as PE build target
+* Add Ubuntu 24.04 as PE & FOSS build target
 * Add AmazonLinux 2023 as a FOSS build target
+
+## [2.6.2]
 * Drop platform 6 fpm support
 * On all Debian platforms simplify java depends, allow 17 or 11, prefer 17
 * Add Debian 12 bookworm as a FOSS build target
